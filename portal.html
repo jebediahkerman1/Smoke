@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10151d">
+<meta name="description" content="SMOKE Portal: a 2.5D portal puzzle prototype, playable in your browser.">
+<title>SMOKE Portal — Test Initiative</title>
+<link rel="stylesheet" href="portal.css">
+<script src="portal.js" defer></script>
+</head>
+<body>
+<header class="topbar"><a class="smoke" href="index.html"><span>S</span> SMOKE</a><div class="top-title">APERTURE-STYLE TEST INITIATIVE <i>● LIVE</i></div><a class="back" href="index.html">← STORE</a></header>
+<main class="shell">
+<section class="intro" id="intro">
+<div class="eyebrow">SMOKE ORIGINAL · BROWSER GAME</div><h1>PORTAL <em>TEST INITIATIVE</em></h1>
+<p>A slightly suspicious science facility. One test subject. Two linked portals. Please do not question the cake.</p>
+<div class="intro-bottom"><button id="startBtn" class="primary">BEGIN TESTING <span>▶</span></button><span>CAMPAIGN 01 · CHAMBERS 01–03</span></div>
+</section>
+<section class="game-wrap">
+<div class="game-heading"><div><small>TEST CHAMBER</small><h2 id="levelName">01 — BASIC CONNECTIONS</h2></div><div class="status"><span class="live-dot"></span><span id="statusText">AWAITING SUBJECT</span></div></div>
+<div class="viewport"><canvas id="game" aria-label="2.5D Portal puzzle game"></canvas><div class="overlay" id="pauseOverlay"><div class="overlay-card"><div class="eyebrow">TEST PAUSED</div><h2>TAKE YOUR TIME.</h2><p>The laws of physics will wait.</p><button id="resumeBtn" class="primary">RESUME TEST</button></div></div><div class="toast" id="toast"></div></div>
+<div class="hud"><span><b>SUBJECT</b> 00-HELMET</span><span><b>PORTAL DEVICE</b> <i class="blue-dot"></i> BLUE <i class="orange-dot"></i> ORANGE</span><span id="objective">OBJECTIVE: REACH THE EXIT</span></div>
+</section>
+<section class="below">
+<div class="panel"><div class="panel-title">TEST CONTROLS <span>KEYBOARD + MOUSE</span></div><div class="controls-grid"><div><kbd>A</kbd><kbd>D</kbd><span>Move</span></div><div><kbd>W</kbd> / <kbd>↑</kbd><span>Jump</span></div><div><kbd>←</kbd><kbd>→</kbd><span>Aim portal</span></div><div><kbd>Q</kbd><span>Fire blue</span></div><div><kbd>E</kbd><span>Fire orange</span></div><div><kbd>R</kbd><span>Restart room</span></div><div><kbd>P</kbd> / <kbd>Esc</kbd><span>Pause</span></div></div><p class="hint">You can also click the chamber to aim, then use the blue and orange portal buttons. Portals attach to marked flat surfaces.</p></div>
+<div class="panel progress"><div class="panel-title">TEST TRACK <span id="progressLabel">0 / 3 COMPLETE</span></div><div class="track"><div class="track-fill" id="trackFill"></div></div><button id="restartBtn" class="secondary">↻ RESTART CHAMBER</button><button id="nextBtn" class="secondary" disabled>NEXT CHAMBER →</button><p class="fine">Prototype build · Portal 1-inspired campaign. More chambers and story sequences will be added as the core mechanics are tested.</p></div>
+</section>
+<footer>SMOKE PORTAL · UNOFFICIAL FAN-MADE TRIBUTE · NOT AFFILIATED WITH VALVE</footer>
+</main>
+</body></html>
