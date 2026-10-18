@@ -150,7 +150,7 @@ document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockEleme
 document.addEventListener('keydown',e=>{
  const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();keys[k]=true;if(e.repeat)return;
  if(k==='q')placePortal('blue');if(k==='e')placePortal('orange');
- if(k==='escape'&&running){paused=!paused;overlay.classList.toggle('visible',paused);status.textContent=paused?'PAUSED':'TEST IN PROGRESS';if(paused)document.exitPointerLock?.();else canvas.requestPointerLock?.()}
+ if((k==='escape'||k==='p')&&running){paused=!paused;overlay.classList.toggle('visible',paused);status.textContent=paused?'PAUSED':'TEST IN PROGRESS';if(paused)document.exitPointerLock?.();else canvas.requestPointerLock?.()}
  if(k==='r'){running=true;resetRoom();status.textContent='TEST IN PROGRESS';canvas.requestPointerLock?.()}
 });
 document.addEventListener('keyup',e=>delete keys[e.key.toLowerCase()]);
