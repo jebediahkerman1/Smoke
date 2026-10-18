@@ -19,7 +19,7 @@ function loadProgress(){try{const saved=JSON.parse(localStorage.getItem(SAVE_KEY
 function saveProgress(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(completed))}catch{}}
 const savedCompleted=loadProgress();
 let level=savedCompleted.findIndex(v=>!v);if(level<0)level=maps.length-1;
-let map=maps[level],mw=16,mh=12,player={x:2.5,y:1.5,a:0},blue=null,orange=null,keys={},running=false,paused=false,completed=savedCompleted,last=0,depth=new Float32Array(W),messageCooldown=0,health=100,damageFlash=0,turrets=[],turretBolts=[],roomElapsed=0,walkCycle=0,portalTransfers=0,completionTimer=null,weaponKick=0,weaponSide='blue';
+let map=maps[level],mw=16,mh=12,player={x:2.5,y:1.5,a:0},blue=null,orange=null,keys={},running=false,paused=false,completed=savedCompleted,last=0,depth=new Float32Array(W),messageCooldown=0,health=100,damageFlash=0,turrets=[],turretBolts=[],roomElapsed=0,walkCycle=0,portalTransfers=0,completionTimer=null,weaponKick=0,weaponSide='blue',thirdPerson=true,viewX=2.5,viewY=1.5,teleportFlash=0;
 const status=$('statusText'),hint=$('toast'),overlay=$('pauseOverlay');
 const healthFill=$('healthFill'),healthValue=$('healthValue'),clockLabel=$('chamberClock');
 const miniMap=$('miniMap'),mctx=miniMap.getContext('2d');
@@ -83,7 +83,7 @@ function ray(ox,oy,angle,hops=0){
 function say(text){hint.textContent=text;hint.classList.add('show');clearTimeout(say.timer);say.timer=setTimeout(()=>hint.classList.remove('show'),1900)}
 function resetRoom(){
  if(completionTimer){clearTimeout(completionTimer);completionTimer=null}
- map=maps[level];player={...findSpawn(),a:0};blue=null;orange=null;keys={};paused=false;health=100;damageFlash=0;roomElapsed=0;walkCycle=0;portalTransfers=0;turretBolts=[];turrets=(turretLayouts[level]||[]).map(p=>({...p,a:Math.atan2(player.y-p.y,player.x-p.x),cooldown:1+Math.random()*1.5,flash:0,alive:true}));overlay.classList.remove('visible');
+ map=maps[level];player={...findSpawn(),a:0};blue=null;orange=null;keys={};paused=false;health=100;damageFlash=0;roomElapsed=0;walkCycle=0;portalTransfers=0;teleportFlash=0;weaponKick=0;turretBolts=[];turrets=(turretLayouts[level]||[]).map(p=>({...p,a:Math.atan2(player.y-p.y,player.x-p.x),cooldown:1+Math.random()*1.5,flash:0,alive:true}));overlay.classList.remove('visible');
  status.textContent='AWAITING SUBJECT';
  $('levelName').textContent=levelNames[level];
  $('objective').textContent=objectives[level];
@@ -116,7 +116,7 @@ function tryMove(nx,ny){
    player.x=dest.x-outTx*oldOffset+dest.nx*.34;
    player.y=dest.y-outTy*oldOffset+dest.ny*.34;
    player.a+=dest.angle-entry.angle+Math.PI;
-   portalTransfers++;say('PORTAL TRANSFER #'+portalTransfers+' — EXIT ROUTE UPDATED');return true;
+   portalTransfers++;teleportFlash=1;weaponKick=.35;say('PORTAL TRANSFER #'+portalTransfers+' — EXIT ROUTE UPDATED');return true;
   }
  }
  let moved=false;
@@ -139,7 +139,7 @@ function step(dt){
   if(length>speed){dx=dx/length*speed;dy=dy/length*speed}
   tryMove(player.x+dx,player.y+dy);walkCycle+=dt*(keys.shift?13:9);
  }else walkCycle*=Math.max(0,1-dt*5);
- roomElapsed+=dt;weaponKick=Math.max(0,weaponKick-dt*4.5);
+ roomElapsed+=dt;weaponKick=Math.max(0,weaponKick-dt*4.5);teleportFlash=Math.max(0,teleportFlash-dt*2.2);
  updateTurrets(dt);
  updateTurretBolts(dt);
  if(Math.hypot(player.x-exitPoint.x,player.y-exitPoint.y)<.62){
@@ -192,7 +192,7 @@ function updateTurretBolts(dt){
 }
 function drawTurretBolts(){
  for(const b of turretBolts){
-  const dx=b.x-player.x,dy=b.y-player.y,dist=Math.hypot(dx,dy);
+  const dx=b.x-viewX,dy=b.y-viewY,dist=Math.hypot(dx,dy);
   const rel=Math.atan2(Math.sin(Math.atan2(dy,dx)-player.a),Math.cos(Math.atan2(dy,dx)-player.a));
   if(dist<.1||Math.abs(rel)>FOV*.7)continue;
   const sx=(.5+rel/FOV)*W,col=Math.max(0,Math.min(W-1,Math.floor(sx)));
@@ -207,7 +207,7 @@ function drawTurretBolts(){
 function drawTurrets(){
  for(const t of turrets){
   if(!t.alive)continue;
-  const dx=t.x-player.x,dy=t.y-player.y,dist=Math.hypot(dx,dy),rel=Math.atan2(Math.sin(Math.atan2(dy,dx)-player.a),Math.cos(Math.atan2(dy,dx)-player.a));
+  const dx=t.x-viewX,dy=t.y-viewY,dist=Math.hypot(dx,dy),rel=Math.atan2(Math.sin(Math.atan2(dy,dx)-player.a),Math.cos(Math.atan2(dy,dx)-player.a));
   if(dist<.2||Math.abs(rel)>FOV*.65)continue;
   const sx=(.5+rel/FOV)*W,col=Math.max(0,Math.min(W-1,Math.floor(sx)));if(dist>depth[col]+.15)continue;
   const size=Math.min(130,H/dist*.48),cy=H/2+size*.12;
@@ -248,25 +248,34 @@ function drawMinimap(){
  mctx.beginPath();mctx.moveTo(5,0);mctx.lineTo(-3.5,-3.1);mctx.lineTo(-2.5,0);mctx.lineTo(-3.5,3.1);mctx.closePath();mctx.fill();mctx.stroke();mctx.restore();
  mctx.strokeStyle='rgba(190,218,233,.25)';mctx.lineWidth=1;mctx.strokeRect(.5,.5,w-1,h-1);
 }
+function updateViewPosition(){
+ if(!thirdPerson){viewX=player.x;viewY=player.y;return}
+ // Pull the camera back behind the subject without allowing it to clip into nearby walls.
+ for(const distance of [1.05,.88,.7,.52,.34,.18]){
+  const x=player.x-Math.cos(player.a)*distance,y=player.y-Math.sin(player.a)*distance;
+  if(canOccupy(x,y,.13)){viewX=x;viewY=y;return}
+ }
+ viewX=player.x;viewY=player.y;
+}
 function draw(){
- updateHud();drawMinimap();
+ updateViewPosition();updateHud();drawMinimap();
  const sky=ctx.createLinearGradient(0,0,0,H/2);sky.addColorStop(0,'#141b25');sky.addColorStop(1,'#596570');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H/2);
  const floor=ctx.createLinearGradient(0,H/2,0,H);floor.addColorStop(0,'#485057');floor.addColorStop(1,'#11161b');ctx.fillStyle=floor;ctx.fillRect(0,H/2,W,H/2);drawFloorGrid();
  for(let x=0;x<W;x++){
-  const a=player.a+(x/W-.5)*FOV,h=ray(player.x,player.y,a),dist=Math.max(.02,h.d*Math.cos(a-player.a));depth[x]=dist;
+  const a=player.a+(x/W-.5)*FOV,h=ray(viewX,viewY,a),dist=Math.max(.02,h.d*Math.cos(a-player.a));depth[x]=dist;
   const hh=Math.min(H*1.8,H/dist),top=(H-hh)/2,shade=Math.max(25,210-dist*13-(h.side?35:0));
   ctx.fillStyle=h.side?'rgb('+Math.floor(shade*.62)+','+Math.floor(shade*.7)+','+Math.floor(shade*.74)+')':'rgb('+shade+','+Math.floor(shade*.94)+','+Math.floor(shade*.9)+')';
   ctx.fillRect(x,top,1,hh);
   if(x%9===0){ctx.fillStyle='rgba(5,10,14,.15)';ctx.fillRect(x,top,1,hh)}
  }
- drawPortalFrame(blue);drawPortalFrame(orange);drawExit();drawTurrets();drawTurretBolts();drawDevice();
+ drawPortalFrame(blue);drawPortalFrame(orange);drawExit();drawTurrets();drawTurretBolts();if(thirdPerson)drawCharacter();else drawDevice();
  if(damageFlash>0){ctx.fillStyle='rgba(255,30,35,'+Math.min(.32,damageFlash*.32)+')';ctx.fillRect(0,0,W,H);}
  ctx.strokeStyle='#eafaff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(W/2-8,H/2);ctx.lineTo(W/2+8,H/2);ctx.moveTo(W/2,H/2-8);ctx.lineTo(W/2,H/2+8);ctx.stroke();
 }
 function drawPortalFrame(p){
  if(!p)return;
- const vx=p.x-player.x,vy=p.y-player.y,dist=Math.hypot(vx,vy),rel=Math.atan2(Math.sin(Math.atan2(vy,vx)-player.a),Math.cos(Math.atan2(vy,vx)-player.a));
- if(dist<.12||Math.abs(rel)>FOV*.68||frontDot(p,player.x,player.y)<=.01)return;
+ const vx=p.x-viewX,vy=p.y-viewY,dist=Math.hypot(vx,vy),rel=Math.atan2(Math.sin(Math.atan2(vy,vx)-player.a),Math.cos(Math.atan2(vy,vx)-player.a));
+ if(dist<.12||Math.abs(rel)>FOV*.68||frontDot(p,viewX,viewY)<=.01)return;
  const sx=(.5+rel/FOV)*W,col=Math.max(0,Math.min(W-1,Math.floor(sx)));
  if(depth[col]<dist-.25)return;
  // A tall, narrow portal with fully rounded ends, like the original Portal games.
@@ -286,9 +295,85 @@ function drawPortalFrame(p){
  ctx.restore();
 }
 function drawExit(){
- const dx=exitPoint.x-player.x,dy=exitPoint.y-player.y,dist=Math.hypot(dx,dy),rel=Math.atan2(Math.sin(Math.atan2(dy,dx)-player.a),Math.cos(Math.atan2(dy,dx)-player.a));
+ const dx=exitPoint.x-viewX,dy=exitPoint.y-viewY,dist=Math.hypot(dx,dy),rel=Math.atan2(Math.sin(Math.atan2(dy,dx)-player.a),Math.cos(Math.atan2(dy,dx)-player.a));
  if(Math.abs(rel)>FOV*.65||dist<.2)return;const sx=(.5+rel/FOV)*W,col=Math.max(0,Math.min(W-1,Math.floor(sx)));if(dist>depth[col]+.25)return;
  const h=Math.min(H*.8,H/dist*.62);ctx.save();ctx.fillStyle='#35ffab';ctx.shadowColor='#35ffab';ctx.shadowBlur=22;ctx.fillRect(sx-h*.12,H/2-h*.48,h*.24,h*.9);ctx.shadowBlur=0;ctx.fillStyle='#d9ffea';ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.fillText('EXIT',sx,H/2-h*.56);ctx.restore();
+}
+function drawCharacter(){
+ const moving=!!(keys.w||keys.s||keys.a||keys.d||keys.arrowup||keys.arrowdown);
+ const runningFast=moving&&!!keys.shift;
+ const stride=moving?Math.sin(walkCycle*(runningFast?1.28:.86)):0;
+ const bounce=moving?Math.abs(Math.sin(walkCycle*(runningFast?1.28:.86)))*4:0;
+ const cx=W*.5+swayCharacterX(),base=H+12+bounce;
+ function swayCharacterX(){return moving?Math.sin(walkCycle*.62)*(runningFast?5:2.5):0}
+ ctx.save();
+ // Soft contact shadow keeps the subject grounded in the chamber.
+ ctx.fillStyle='rgba(0,0,0,.48)';ctx.beginPath();ctx.ellipse(cx,H*.985,78,18,0,0,Math.PI*2);ctx.fill();
+ if(teleportFlash>0){
+  ctx.save();ctx.globalAlpha=Math.min(.75,teleportFlash*.8);
+  ctx.strokeStyle=portalTransfers%2?'#ff9b43':'#28cfff';ctx.lineWidth=4;ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=22;
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(cx,H*.83,42+i*18,14+i*7,0,0,Math.PI*2);ctx.stroke()}
+  ctx.restore();
+ }
+ // Rear-view boots and legs; each leg swings in opposition during a walk or sprint.
+ const legSwing=stride*(runningFast?23:14);
+ ctx.lineCap='round';ctx.lineJoin='round';
+ ctx.strokeStyle='#263842';ctx.lineWidth=31;
+ ctx.beginPath();ctx.moveTo(cx-20,H*.79);ctx.lineTo(cx-23+legSwing*.55,base-22);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(cx+20,H*.79);ctx.lineTo(cx+23-legSwing*.55,base-22);ctx.stroke();
+ const trousers=ctx.createLinearGradient(cx-40,H*.76,cx+35,H);
+ trousers.addColorStop(0,'#eff3f2');trousers.addColorStop(.35,'#bdcbd0');trousers.addColorStop(.7,'#899aa3');trousers.addColorStop(1,'#445863');
+ ctx.strokeStyle=trousers;ctx.lineWidth=25;
+ ctx.beginPath();ctx.moveTo(cx-20,H*.79);ctx.lineTo(cx-23+legSwing*.55,base-25);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(cx+20,H*.79);ctx.lineTo(cx+23-legSwing*.55,base-25);ctx.stroke();
+ // Boots.
+ ctx.fillStyle='#18262f';
+ ctx.beginPath();ctx.roundRect(cx-43+legSwing*.55,base-27,36,27,7);ctx.fill();
+ ctx.beginPath();ctx.roundRect(cx+8-legSwing*.55,base-27,36,27,7);ctx.fill();
+ ctx.fillStyle='#73848d';ctx.fillRect(cx-39+legSwing*.55,base-8,29,4);ctx.fillRect(cx+12-legSwing*.55,base-8,29,4);
+
+ // Suit torso with padded shoulders and a compact portal-energy backpack.
+ const torso=ctx.createLinearGradient(cx-56,H*.58,cx+56,H*.83);
+ torso.addColorStop(0,'#f3f6f3');torso.addColorStop(.28,'#d1dcdd');torso.addColorStop(.62,'#a5b7bf');torso.addColorStop(1,'#5a707c');
+ ctx.fillStyle='#263b46';ctx.beginPath();ctx.moveTo(cx-30,H*.59);ctx.lineTo(cx-54,H*.63);ctx.lineTo(cx-45,H*.79);ctx.lineTo(cx-27,H*.82);ctx.lineTo(cx+27,H*.82);ctx.lineTo(cx+45,H*.79);ctx.lineTo(cx+54,H*.63);ctx.lineTo(cx+30,H*.59);ctx.closePath();ctx.fill();
+ ctx.fillStyle=torso;ctx.beginPath();ctx.moveTo(cx-27,H*.585);ctx.lineTo(cx-47,H*.625);ctx.lineTo(cx-38,H*.78);ctx.lineTo(cx-22,H*.805);ctx.lineTo(cx+22,H*.805);ctx.lineTo(cx+38,H*.78);ctx.lineTo(cx+47,H*.625);ctx.lineTo(cx+27,H*.585);ctx.closePath();ctx.fill();
+ // Back panel and three status bars.
+ ctx.fillStyle='#253b47';ctx.beginPath();ctx.roundRect(cx-27,H*.61,54,H*.13,7);ctx.fill();
+ ctx.fillStyle='#687d88';ctx.fillRect(cx-19,H*.63,38,H*.015);
+ ctx.fillStyle='#26cefa';ctx.shadowColor='#26cefa';ctx.shadowBlur=12;ctx.fillRect(cx-18,H*.665,12,5);
+ ctx.fillStyle='#ff9b43';ctx.shadowColor='#ff9b43';ctx.fillRect(cx+6,H*.665,12,5);ctx.shadowBlur=0;
+ // Shoulder patches.
+ ctx.fillStyle='#28caff';ctx.beginPath();ctx.arc(cx-36,H*.625,5,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#ff9b43';ctx.beginPath();ctx.arc(cx+36,H*.625,5,0,Math.PI*2);ctx.fill();
+ // Suit belt, seams, and central SMOKE emblem.
+ ctx.fillStyle='#536771';ctx.fillRect(cx-27,H*.765,54,8);
+ ctx.fillStyle='#192b35';ctx.fillRect(cx-7,H*.72,14,20);
+ ctx.fillStyle='#a8f05b';ctx.font='900 10px Arial';ctx.textAlign='center';ctx.fillText('S',cx,H*.735);
+ ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,H*.595);ctx.lineTo(cx,H*.715);ctx.stroke();
+
+ // Arms sway while walking, with a visible portal emitter mounted to the subject's right arm.
+ const armSwing=stride*(runningFast?15:9);
+ ctx.lineCap='round';ctx.strokeStyle='#30434e';ctx.lineWidth=23;
+ ctx.beginPath();ctx.moveTo(cx-37,H*.625);ctx.lineTo(cx-52-armSwing,H*.74);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(cx+37,H*.625);ctx.lineTo(cx+52+armSwing,H*.74);ctx.stroke();
+ ctx.strokeStyle=torso;ctx.lineWidth=17;
+ ctx.beginPath();ctx.moveTo(cx-37,H*.625);ctx.lineTo(cx-52-armSwing,H*.735);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(cx+37,H*.625);ctx.lineTo(cx+52+armSwing,H*.735);ctx.stroke();
+ ctx.fillStyle='#2b3e49';ctx.beginPath();ctx.roundRect(cx-65-armSwing,H*.716,29,24,7);ctx.fill();ctx.beginPath();ctx.roundRect(cx+38+armSwing,H*.716,29,24,7);ctx.fill();
+ ctx.fillStyle='#172832';ctx.beginPath();ctx.roundRect(cx+39+armSwing,H*.70,27,30,6);ctx.fill();
+ ctx.fillStyle=blue?'#26d3ff':'#126d86';ctx.shadowColor='#20ceff';ctx.shadowBlur=blue?15:3;ctx.beginPath();ctx.arc(cx+52+armSwing,H*.716,5,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=orange?'#ff9b43':'#87552b';ctx.shadowColor='#ff9b43';ctx.shadowBlur=orange?15:3;ctx.beginPath();ctx.arc(cx+52+armSwing,H*.738,4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+ // Helmet from behind with a light rim, dark collar, and small cyan sensor.
+ ctx.fillStyle='#263944';ctx.beginPath();ctx.ellipse(cx,H*.555,32,39,0,0,Math.PI*2);ctx.fill();
+ const helmet=ctx.createLinearGradient(cx-30,H*.52,cx+28,H*.60);
+ helmet.addColorStop(0,'#f0f4f2');helmet.addColorStop(.38,'#c6d3d7');helmet.addColorStop(.72,'#8b9fa8');helmet.addColorStop(1,'#415965');
+ ctx.fillStyle=helmet;ctx.beginPath();ctx.ellipse(cx,H*.548,28,35,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#607883';ctx.beginPath();ctx.ellipse(cx,H*.574,22,14,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#1a2d38';ctx.beginPath();ctx.roundRect(cx-20,H*.565,40,12,5);ctx.fill();
+ ctx.fillStyle='#54dbff';ctx.shadowColor='#54dbff';ctx.shadowBlur=9;ctx.fillRect(cx-11,H*.569,22,4);ctx.shadowBlur=0;
+ ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx-8,H*.535,15,3.7,4.9);ctx.stroke();
+ ctx.fillStyle='#9bde48';ctx.font='800 8px monospace';ctx.textAlign='center';ctx.fillText('SMOKE LABS',cx,H*.812);
+ ctx.restore();
 }
 function drawDevice(){
  // First-person SMOKE test subject: articulated sleeves, gloves, and a custom portal tool.
@@ -391,11 +476,13 @@ document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockEleme
 document.addEventListener('keydown',e=>{
  const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();keys[k]=true;if(e.repeat)return;
  if(k==='q')placePortal('blue');if(k==='e')placePortal('orange');
+ if(k==='v'){thirdPerson=!thirdPerson;$('viewToggle').textContent=thirdPerson?'THIRD PERSON · V':'FIRST PERSON · V';say(thirdPerson?'THIRD-PERSON CAMERA':'FIRST-PERSON CAMERA');draw()}
  if((k==='escape'||k==='p')&&running){paused=!paused;overlay.classList.toggle('visible',paused);status.textContent=paused?'PAUSED':'TEST IN PROGRESS';if(paused)document.exitPointerLock?.();else canvas.requestPointerLock?.()}
  if(k==='r'){running=true;resetRoom();status.textContent='TEST IN PROGRESS';canvas.requestPointerLock?.()}
 });
 document.addEventListener('keyup',e=>delete keys[e.key.toLowerCase()]);
 $('startBtn').addEventListener('click',start);
+$('viewToggle').addEventListener('click',()=>{thirdPerson=!thirdPerson;$('viewToggle').textContent=thirdPerson?'THIRD PERSON · V':'FIRST PERSON · V';draw()});
 $('resumeBtn').addEventListener('click',()=>{paused=false;overlay.classList.remove('visible');canvas.requestPointerLock?.();status.textContent='TEST IN PROGRESS'});
 $('restartBtn').addEventListener('click',()=>{resetRoom();running=true;status.textContent='TEST IN PROGRESS';canvas.requestPointerLock?.()});
 $('nextBtn').addEventListener('click',()=>{if(level<maps.length-1&&completed[level]){level++;resetRoom();running=true;status.textContent='TEST IN PROGRESS';canvas.requestPointerLock?.()}else if(level===maps.length-1&&completed[level]){say('ALL TEST CHAMBERS COMPLETE');}});
