@@ -6,10 +6,16 @@ const W=960,H=540,FOV=Math.PI/3,PORTAL_HALF=.36,PORTAL_WIDTH=PORTAL_HALF*2;
 const maps=[
 ['1111111111111111','1000000000000001','1000000000000001','1000000000000001','1000000000000001','1000000000000001','1000000000000001','1000000000000001','1000000000000001','1000000000000001','1000000000000001','1111111111111111'],
 ['1111111111111111','1000000000000001','1010000000000101','1000000000000001','1000100001000001','1000100001000001','1000000000000001','1010000000000101','1000000000000001','1000000000000001','1000000000000001','1111111111111111'],
-['1111111111111111','1000000000000001','1000000000000001','1000110001100001','1000000000000001','1000000000000001','1000000000000001','1000110001100001','1000000000000001','1000000000000001','1000000000000001','1111111111111111']];
-let level=0,map=maps[0],mw=16,mh=12,player={x:2.5,y:2.5,a:0},blue=null,orange=null,keys={},running=false,paused=false,completed=[false,false,false],last=0,depth=new Float32Array(W),messageCooldown=0;
+['1111111111111111','1000000000000001','1000000000000001','1000110001100001','1000000000000001','1000000000000001','1000000000000001','1000110001100001','1000000000000001','1000000000000001','1000000000000001','1111111111111111'],
+['1111111111111111','1000000000000001','1000000000000001','1010000000000101','1000000000000001','1000100001000001','1000100001000001','1000000000000001','1010000000000101','1000000000000001','1000000000000001','1111111111111111'],
+['1111111111111111','1000000000000001','1000100001000001','1000100001000001','1000000000000001','1000000000000001','1000000000000001','1000000000000001','1000100001000001','1000100001000001','1000000000000001','1111111111111111'],
+['1111111111111111','1000000000000001','1000000000000001','1000110001100001','1000000000000001','1010000000000101','1010000000000101','1000000000000001','1000110001100001','1000000000000001','1000000000000001','1111111111111111']]
+let level=0,map=maps[0],mw=16,mh=12,player={x:2.5,y:2.5,a:0},blue=null,orange=null,keys={},running=false,paused=false,completed=Array(6).fill(false),last=0,depth=new Float32Array(W),messageCooldown=0,health=100,damageFlash=0,turrets=[],turretBolts=[];
 const status=$('statusText'),hint=$('toast'),overlay=$('pauseOverlay');
 const exitPoint={x:13.5,y:10.5};
+const levelNames=['01 — FIRST CONTACT','02 — MOMENTUM EXCHANGE','03 — THE EXIT PROBLEM','04 — SENTINEL PROTOCOL','05 — CROSS-FIRE','06 — FINAL OVERRIDE'];
+const objectives=['OBJECTIVE: PLACE BOTH PORTALS AND FIND THE EXIT','OBJECTIVE: USE PORTALS TO CROSS THE CHAMBER','OBJECTIVE: REACH THE FINAL EXIT','OBJECTIVE: EVADE TURRETS, PLACE BOTH PORTALS, REACH EXIT','OBJECTIVE: SURVIVE CROSS-FIRE AND REACH EXIT','OBJECTIVE: SURVIVE THE FINAL SECURITY GRID'];
+const turretLayouts=[[],[],[],[{x:8.5,y:2.5},{x:11.5,y:7.5},{x:6.5,y:9.5}],[{x:5.5,y:2.5},{x:10.5,y:3.5},{x:8.5,y:8.5},{x:12.5,y:6.5}],[{x:5.5,y:2.5},{x:10.5,y:2.5},{x:5.5,y:8.5},{x:10.5,y:8.5},{x:12.5,y:5.5}]];
 function tile(x,y){if(x<0||y<0||x>=mw||y>=mh)return'1';return map[Math.floor(y)][Math.floor(x)]}
 function wall(x,y){return tile(x,y)!=='0'}
 function rawRay(ox,oy,angle){
@@ -50,13 +56,13 @@ function ray(ox,oy,angle,hops=0){
 }
 function say(text){hint.textContent=text;hint.classList.add('show');clearTimeout(say.timer);say.timer=setTimeout(()=>hint.classList.remove('show'),1900)}
 function resetRoom(){
- map=maps[level];player={x:2.5,y:2.5,a:0};blue=null;orange=null;keys={};paused=false;overlay.classList.remove('visible');
+ map=maps[level];player={x:2.5,y:2.5,a:0};blue=null;orange=null;keys={};paused=false;health=100;damageFlash=0;turretBolts=[];turrets=(turretLayouts[level]||[]).map(p=>({...p,a:Math.atan2(2.5-p.y,2.5-p.x),cooldown:1+Math.random()*1.5,flash:0,alive:true}));overlay.classList.remove('visible');
  status.textContent='AWAITING SUBJECT';
- $('levelName').textContent=['01 — FIRST CONTACT','02 — MOMENTUM EXCHANGE','03 — THE EXIT PROBLEM'][level];
- $('objective').textContent=['OBJECTIVE: PLACE BOTH PORTALS AND FIND THE EXIT','OBJECTIVE: USE PORTALS TO CROSS THE CHAMBER','OBJECTIVE: REACH THE FINAL EXIT'][level];
- $('progressLabel').textContent=completed.filter(Boolean).length+' / 3 COMPLETE';
- $('trackFill').style.width=(completed.filter(Boolean).length/3*100)+'%';
- $('nextBtn').disabled=!completed[level];draw();
+ $('levelName').textContent=levelNames[level];
+ $('objective').textContent=objectives[level];
+ $('progressLabel').textContent=completed.filter(Boolean).length+' / '+maps.length+' COMPLETE';
+ $('trackFill').style.width=(completed.filter(Boolean).length/maps.length*100)+'%';
+ $('nextBtn').disabled=!completed[level]||level>=maps.length-1;draw();
 }
 function placePortal(which){
  if(!running||paused)return;
@@ -96,6 +102,7 @@ function step(dt){
  if(keys.a){dx+=Math.cos(player.a-Math.PI/2)*speed;dy+=Math.sin(player.a-Math.PI/2)*speed}
  if(keys.d){dx+=Math.cos(player.a+Math.PI/2)*speed;dy+=Math.sin(player.a+Math.PI/2)*speed}
  if(dx||dy)tryMove(player.x+dx,player.y+dy);
+ updateTurrets(dt);
  if(Math.hypot(player.x-exitPoint.x,player.y-exitPoint.y)<.62){
   if(!blue||!orange){if(messageCooldown<=0){say('Place both portals before ending the test.');messageCooldown=2}}
   else if(!completed[level]){
@@ -106,6 +113,33 @@ function step(dt){
  }
  messageCooldown=Math.max(0,messageCooldown-dt);
 }
+function updateTurrets(dt){
+ for(const t of turrets){
+  if(!t.alive)continue;
+  const dx=player.x-t.x,dy=player.y-t.y,dist=Math.hypot(dx,dy),target=Math.atan2(dy,dx);
+  const da=Math.atan2(Math.sin(target-t.a),Math.cos(target-t.a));t.a+=Math.max(-dt*1.8,Math.min(dt*1.8,da));t.cooldown-=dt;t.flash=Math.max(0,t.flash-dt);
+  const sight=rawRay(t.x,t.y,target);
+  if(dist<9&&Math.abs(da)<.22&&sight.d>=dist-.25&&t.cooldown<=0){
+   t.cooldown=1.35+Math.random()*.6;t.flash=.16;health-=20;damageFlash=.75;say('TURRET HIT — HEALTH '+Math.max(0,health)+'%');
+   if(health<=0){say('SUBJECT TERMINATED — RESTARTING CHAMBER');resetRoom();running=true;status.textContent='TEST IN PROGRESS';break;}
+  }
+ }
+ damageFlash=Math.max(0,damageFlash-dt);
+}
+function drawTurrets(){
+ for(const t of turrets){
+  if(!t.alive)continue;
+  const dx=t.x-player.x,dy=t.y-player.y,dist=Math.hypot(dx,dy),rel=Math.atan2(Math.sin(Math.atan2(dy,dx)-player.a),Math.cos(Math.atan2(dy,dx)-player.a));
+  if(dist<.2||Math.abs(rel)>FOV*.65)continue;
+  const sx=(.5+rel/FOV)*W,col=Math.max(0,Math.min(W-1,Math.floor(sx)));if(dist>depth[col]+.15)continue;
+  const size=Math.min(130,H/dist*.48),cy=H/2+size*.12;
+  ctx.save();ctx.translate(sx,cy);ctx.fillStyle='#1b2228';ctx.strokeStyle='#ff4b50';ctx.lineWidth=3;ctx.shadowColor='#ff2028';ctx.shadowBlur=12;
+  ctx.beginPath();ctx.moveTo(-size*.42,-size*.15);ctx.lineTo(-size*.34,-size*.62);ctx.lineTo(size*.34,-size*.62);ctx.lineTo(size*.42,-size*.15);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#4b555d';ctx.fillRect(-size*.22,-size*.58,size*.44,size*.42);ctx.fillStyle=t.flash>0?'#fff':'#ff3038';ctx.beginPath();ctx.arc(0,-size*.39,size*.095,0,Math.PI*2);ctx.fill();ctx.fillStyle='#171c21';ctx.fillRect(-size*.09,-size*.12,size*.18,size*.4);ctx.shadowBlur=0;ctx.restore();
+  if(t.flash>0){ctx.save();ctx.strokeStyle='#ff4148';ctx.lineWidth=3;ctx.globalAlpha=Math.min(1,t.flash*7);ctx.beginPath();ctx.moveTo(sx,cy-size*.35);ctx.lineTo(W/2,H*.55);ctx.stroke();ctx.restore();}
+ }
+}
+
 function draw(){
  const sky=ctx.createLinearGradient(0,0,0,H/2);sky.addColorStop(0,'#141b25');sky.addColorStop(1,'#596570');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H/2);
  const floor=ctx.createLinearGradient(0,H/2,0,H);floor.addColorStop(0,'#485057');floor.addColorStop(1,'#11161b');ctx.fillStyle=floor;ctx.fillRect(0,H/2,W,H/2);
@@ -116,7 +150,8 @@ function draw(){
   ctx.fillRect(x,top,1,hh);
   if(x%9===0){ctx.fillStyle='rgba(5,10,14,.15)';ctx.fillRect(x,top,1,hh)}
  }
- drawPortalFrame(blue);drawPortalFrame(orange);drawExit();drawDevice();
+ drawPortalFrame(blue);drawPortalFrame(orange);drawExit();drawTurrets();drawDevice();
+ if(damageFlash>0){ctx.fillStyle='rgba(255,30,35,'+Math.min(.32,damageFlash*.32)+')';ctx.fillRect(0,0,W,H);}
  ctx.strokeStyle='#eafaff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(W/2-8,H/2);ctx.lineTo(W/2+8,H/2);ctx.moveTo(W/2,H/2-8);ctx.lineTo(W/2,H/2+8);ctx.stroke();
 }
 function drawPortalFrame(p){
@@ -157,7 +192,7 @@ document.addEventListener('keyup',e=>delete keys[e.key.toLowerCase()]);
 $('startBtn').addEventListener('click',start);
 $('resumeBtn').addEventListener('click',()=>{paused=false;overlay.classList.remove('visible');canvas.requestPointerLock?.();status.textContent='TEST IN PROGRESS'});
 $('restartBtn').addEventListener('click',()=>{resetRoom();running=true;status.textContent='TEST IN PROGRESS';canvas.requestPointerLock?.()});
-$('nextBtn').addEventListener('click',()=>{if(level<2&&completed[level]){level++;resetRoom();running=true;status.textContent='TEST IN PROGRESS';canvas.requestPointerLock?.()}});
+$('nextBtn').addEventListener('click',()=>{if(level<maps.length-1&&completed[level]){level++;resetRoom();running=true;status.textContent='TEST IN PROGRESS';canvas.requestPointerLock?.()}else if(level===maps.length-1&&completed[level]){say('ALL TEST CHAMBERS COMPLETE');}});
 function loop(t){const dt=Math.min(.04,(t-last)/1000||0);last=t;step(dt);draw();requestAnimationFrame(loop)}
 resetRoom();requestAnimationFrame(loop);
 })();
