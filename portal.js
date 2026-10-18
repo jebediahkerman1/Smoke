@@ -25,7 +25,7 @@ const healthFill=$('healthFill'),healthValue=$('healthValue'),clockLabel=$('cham
 const miniMap=$('miniMap'),mctx=miniMap.getContext('2d');
 const exitPoint={x:13.5,y:10.5};
 const levelNames=['01 — FIRST CONTACT','02 — MOMENTUM EXCHANGE','03 — THE EXIT PROBLEM','04 — SENTINEL PROTOCOL','05 — CROSS-FIRE','06 — FINAL OVERRIDE','07 — THE MOVING MAZE','08 — BLIND CORNERS','09 — REACTOR RUN','10 — THE LAST TEST'];
-const objectives=['OBJECTIVE: PLACE BOTH PORTALS AND FIND THE EXIT','OBJECTIVE: USE PORTALS TO CROSS THE CHAMBER','OBJECTIVE: REACH THE FINAL EXIT','OBJECTIVE: EVADE TURRETS, PLACE BOTH PORTALS, REACH EXIT','OBJECTIVE: SURVIVE CROSS-FIRE AND REACH EXIT','OBJECTIVE: SURVIVE THE FINAL SECURITY GRID','OBJECTIVE: NAVIGATE THE MOVING-MAZE TEST','OBJECTIVE: FIND A SAFE ROUTE THROUGH BLIND CORNERS','OBJECTIVE: CROSS THE REACTOR TEST CHAMBER','OBJECTIVE: COMPLETE THE FINAL TEST AND ESCAPE'];
+const objectives=['OBJECTIVE: PLACE BOTH PORTALS AND FIND THE EXIT','OBJECTIVE: TRANSFER THROUGH YOUR LINKED PORTALS','OBJECTIVE: TRANSFER THROUGH PORTALS AND REACH EXIT','OBJECTIVE: EVADE TURRETS, TRANSFER, REACH EXIT','OBJECTIVE: SURVIVE CROSS-FIRE, TRANSFER, REACH EXIT','OBJECTIVE: SURVIVE SECURITY, TRANSFER, REACH EXIT','OBJECTIVE: NAVIGATE THE MAZE, TRANSFER, REACH EXIT','OBJECTIVE: FIND A SAFE ROUTE, TRANSFER, REACH EXIT','OBJECTIVE: CROSS THE REACTOR TEST WITH A TRANSFER','OBJECTIVE: COMPLETE THE FINAL TEST AND ESCAPE'];
 const turretLayouts=[[],[],[],[{x:8.5,y:2.5},{x:11.5,y:7.5},{x:6.5,y:9.5}],[{x:5.5,y:2.5},{x:10.5,y:3.5},{x:8.5,y:8.5},{x:12.5,y:6.5}],[{x:5.5,y:2.5},{x:10.5,y:2.5},{x:5.5,y:8.5},{x:10.5,y:8.5},{x:12.5,y:5.5}],[{x:8.5,y:2.5},{x:12.5,y:4.5},{x:7.5,y:8.5}],[{x:5.5,y:3.5},{x:11.5,y:3.5},{x:8.5,y:8.5},{x:12.5,y:9.5}],[{x:5.5,y:2.5},{x:10.5,y:2.5},{x:8.5,y:6.5},{x:5.5,y:9.5},{x:12.5,y:8.5}],[{x:5.5,y:2.5},{x:10.5,y:2.5},{x:5.5,y:7.5},{x:10.5,y:7.5},{x:12.5,y:5.5},{x:8.5,y:9.5}]];
 function tile(x,y){if(x<0||y<0||x>=mw||y>=mh)return'1';return map[Math.floor(y)][Math.floor(x)]}
 function wall(x,y){return tile(x,y)!=='0'}
@@ -115,12 +115,13 @@ function tryMove(nx,ny){
    player.x=dest.x-outTx*oldOffset+dest.nx*.34;
    player.y=dest.y-outTy*oldOffset+dest.ny*.34;
    player.a+=dest.angle-entry.angle+Math.PI;
-   say('PORTAL TRANSFER — MOMENTUM PRESERVED');return true;
+   portalTransfers++;say('PORTAL TRANSFER #'+portalTransfers+' — EXIT ROUTE UPDATED');return true;
   }
  }
  let moved=false;
- if(!wall(nx,oldY)) {player.x=nx;moved=true}
- if(!wall(player.x,ny)){player.y=ny;moved=true}
+ // Give the player a body radius so corners cannot clip through the camera position.
+ if(canOccupy(nx,oldY,.17)){player.x=nx;moved=true}
+ if(canOccupy(player.x,ny,.17)){player.y=ny;moved=true}
  return moved;
 }
 function step(dt){
@@ -142,6 +143,7 @@ function step(dt){
  updateTurretBolts(dt);
  if(Math.hypot(player.x-exitPoint.x,player.y-exitPoint.y)<.62){
   if(!blue||!orange){if(messageCooldown<=0){say('Place both portals before ending the test.');messageCooldown=2}}
+  else if(level>0&&portalTransfers===0){if(messageCooldown<=0){say('Exit locked — make one transfer through your linked portals.');messageCooldown=2}}
   else if(!completed[level]){
    const finishedLevel=level;completed[level]=true;saveProgress();running=false;document.exitPointerLock?.();status.textContent='CHAMBER COMPLETE';
    $('nextBtn').disabled=false;$('progressLabel').textContent=completed.filter(Boolean).length+' / '+maps.length+' COMPLETE';updateHud();
