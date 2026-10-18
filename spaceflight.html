@@ -84,7 +84,7 @@ if(!launched||paused||crashed)return;
 dt=Math.min(dt,.025);
 simTime+=dt;
 const steer=(keys.has('a')||keys.has('arrowleft')?-1:0)+(keys.has('d')||keys.has('arrowright')?1:0);
-angle=Math.max(-1.35,Math.min(1.35,angle+steer*.85*dt));
+angle+=steer*1.35*dt;
 const up=keys.has('w')||keys.has('arrowup'),down=keys.has('s')||keys.has('arrowdown');
 const active=rocket.filter(p=>(p.type==='engine'||p.type==='booster')&&!stageSpent.has(p.uid)&&(+p.thrust||0)>0);
 const thrust=active.reduce((n,p)=>n+(+p.thrust||0),0);
@@ -113,7 +113,7 @@ const nextR=r0+altitude;
 if(nextR>0)camX+=horizontalSpeed/nextR*dt;
 if(altitude<=0){
   altitude=0;
-  if(verticalSpeed < -16 || Math.abs(horizontalSpeed)>95 || Math.abs(angle)>1.25){
+  if(verticalSpeed < -16 || Math.abs(horizontalSpeed)>95){
     crashed=true;launched=false;verticalSpeed=0;
     say('flightNotice','CRASH LANDING. Recover the rocket to rebuild and launch again.');
   } else {
@@ -152,31 +152,22 @@ function drawStars(w,h){ctx.fillStyle='#050a12';ctx.fillRect(0,0,w,h);let seed=7
 function drawPlanet(c,x,y,r,color){const g=c.createRadialGradient(x-r*.35,y-r*.4,2,x,y,r);g.addColorStop(0,'#ffffff');g.addColorStop(.12,color);g.addColorStop(1,'#101a2a');c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();c.strokeStyle=color+'77';c.lineWidth=2;c.beginPath();c.arc(x,y,r+3,0,Math.PI*2);c.stroke()}
 function drawFlight(){
 const w=canvas.width,h=canvas.height;
+ctx.fillStyle='#030711';ctx.fillRect(0,0,w,h);
 drawStars(w,h);
-const r0=body().radius*1000, r=r0+altitude;
-const altitudeRatio=altitude/(r0+altitude);
-const space=altitude>80000;
-const groundY=h*.82;
-const sky=ctx.createLinearGradient(0,0,0,h);
-sky.addColorStop(0,space?'#030710':'#0a1d31');
-sky.addColorStop(.68,space?'#091323':'#387da0');
-sky.addColorStop(1,space?'#101b2b':'#d6a17c');
-ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
-if(!space){
-  const curve=Math.min(1,altitude/60000);
-  ctx.fillStyle='#243b48';ctx.beginPath();ctx.moveTo(0,groundY);
-  for(let x=0;x<=w;x+=20)ctx.lineTo(x,groundY-20-Math.sin(x*.014)*13-curve*Math.pow((x-w/2)/(w/2),2)*65);
-  ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.closePath();ctx.fill();
-  ctx.fillStyle='#28624d';ctx.fillRect(0,groundY+22,w,h-groundY);
-  ctx.strokeStyle='#b6e1ff88';ctx.setLineDash([6,6]);ctx.beginPath();ctx.moveTo(0,groundY+22);ctx.lineTo(w,groundY+22);ctx.stroke();ctx.setLineDash([]);
-}else{
-  const pr=body().name==='Earth'?52:Math.max(18,Math.min(42,body().radius*.34));
-  const px=w*.5,py=h+pr-24;
-  drawPlanet(ctx,px,py,pr,body().color);
-  if(hasFlag()){ctx.strokeStyle='#f4f7fb';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px+pr*.55,py-pr*.2);ctx.lineTo(px+pr*.55,py-pr*.95);ctx.stroke();ctx.fillStyle='#ffcf4a';ctx.beginPath();ctx.moveTo(px+pr*.55,py-pr*.95);ctx.lineTo(px+pr*.95,py-pr*.78);ctx.lineTo(px+pr*.55,py-pr*.62);ctx.closePath();ctx.fill()}
+// The rocket stays at the screen centre; the world moves behind it.
+const b=body();
+const pr=Math.max(115,Math.min(235,190-altitude/180000));
+const travel=camX*420+horizontalSpeed*.22;
+const px=w*.5+Math.sin(travel/250)*Math.min(w*.34,Math.abs(travel)*.15);
+const py=h*.82+Math.min(h*.42,altitude*.00055);
+ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(px,py,pr,0,Math.PI*2);ctx.fill();
+ctx.strokeStyle=b.color+'99';ctx.lineWidth=3;ctx.beginPath();ctx.arc(px,py,pr+3,0,Math.PI*2);ctx.stroke();
+if(hasFlag()){
+  const fx=px+pr*.35,fy=py-pr*.88;
+  ctx.strokeStyle='#f4f7fb';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(fx,fy+22);ctx.lineTo(fx,fy-10);ctx.stroke();
+  ctx.fillStyle='#ffcf4a';ctx.beginPath();ctx.moveTo(fx,fy-10);ctx.lineTo(fx+22,fy-2);ctx.lineTo(fx,fy+6);ctx.closePath();ctx.fill();
 }
-const rx=w*.5+Math.max(-w*.28,Math.min(w*.28,horizontalSpeed*.7));
-const ry=space?h*.47:Math.max(105,groundY-52-Math.min(280,Math.max(0,altitude)/(Math.max(0,altitude)+1200)*280));
+const rx=w*.5,ry=h*.5;
 ctx.save();ctx.translate(rx,ry);ctx.rotate(-angle);
 const bodyLen=Math.max(50,Math.min(130,rocket.length*12));
 ctx.fillStyle='#dce6ed';ctx.strokeStyle='#425b70';ctx.lineWidth=2;
@@ -185,8 +176,8 @@ ctx.fillStyle='#66c0f4';ctx.beginPath();ctx.arc(0,-bodyLen*.28,5,0,Math.PI*2);ct
 ctx.fillStyle='#e28b54';ctx.fillRect(-8,bodyLen*.3,16,10);
 if(thrusting&&fuel>0){ctx.fillStyle='#ffd75d';ctx.beginPath();ctx.moveTo(-7,bodyLen*.45);ctx.lineTo(0,bodyLen*.45+18+Math.random()*12);ctx.lineTo(7,bodyLen*.45);ctx.fill();ctx.fillStyle='#ef7043';ctx.beginPath();ctx.moveTo(-4,bodyLen*.45);ctx.lineTo(0,bodyLen*.45+12);ctx.lineTo(4,bodyLen*.45);ctx.fill()}
 ctx.restore();
-ctx.fillStyle='#e3eff9';ctx.font='bold 13px Arial';ctx.fillText(body().name.toUpperCase()+' // '+(space?'SPACEFLIGHT':'ATMOSPHERIC FLIGHT'),20,h-22);
-ctx.fillStyle='#a7c0d5';ctx.font='12px Arial';ctx.fillText('GRAVITY '+body().gravity.toFixed(1)+' m/s²  ·  SIM TIME '+simTime.toFixed(1)+' s',20,h-42);
+ctx.fillStyle='#e3eff9';ctx.font='bold 13px Arial';ctx.fillText(b.name.toUpperCase()+' // SPACEFLIGHT',20,h-22);
+ctx.fillStyle='#a7c0d5';ctx.font='12px Arial';ctx.fillText('GRAVITY '+b.gravity.toFixed(1)+' m/s²  ·  SIM TIME '+simTime.toFixed(1)+' s',20,h-42);
 if(!launched){roundedRect(ctx,w*.5-145,h*.15,290,62,8);ctx.fillStyle='#07111ddc';ctx.fill();ctx.strokeStyle='#3b5870';ctx.stroke();ctx.fillStyle='#eaf5fc';ctx.textAlign='center';ctx.font='bold 15px Arial';ctx.fillText('READY FOR LAUNCH',w*.5,h*.15+25);ctx.fillStyle='#9db6c9';ctx.font='12px Arial';ctx.fillText('Press LAUNCH, then hold W / ↑',w*.5,h*.15+45);ctx.textAlign='left'}
 if(paused||crashed){ctx.fillStyle='#050a12b8';ctx.fillRect(0,0,w,h);ctx.fillStyle=crashed?'#ff9b8c':'#f1f7fc';ctx.textAlign='center';ctx.font='bold 30px Arial';ctx.fillText(crashed?'MISSION FAILED':'SIMULATION PAUSED',w/2,h/2);ctx.textAlign='left'}
 }
