@@ -203,8 +203,8 @@ function streamTraffic(force=false){
    const vertical=hash(tx,ty,67+j*19)>.5;
    const lane=hash(tx,ty,68+j*19)>.5?22:-22;
    let x,y,angle;
-   if(vertical){x=tx*TILE+TILE/2+lane;y=ty*TILE+TILE*.18+hash(tx,ty,69+j*19)*TILE*.64;angle=Math.PI/2}
-   else{x=tx*TILE+TILE*.18+hash(tx,ty,70+j*19)*TILE*.64;y=ty*TILE+TILE/2+lane;angle=0}
+   if(vertical){x=tx*TILE+TILE/2+lane;y=ty*TILE+TILE/2+(hash(tx,ty,69+j*19)-.5)*(ROAD-36);angle=Math.PI/2}
+   else{x=tx*TILE+TILE/2+(hash(tx,ty,70+j*19)-.5)*(ROAD-36);y=ty*TILE+TILE/2+lane;angle=0}
    if(collidesBuilding(x,y,14))continue;
    const c=spawnCar(x,y,angle);c.cell=key;c.ai=true;c.speed=0;
   }
