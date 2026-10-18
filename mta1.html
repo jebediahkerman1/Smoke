@@ -29,6 +29,14 @@ const weapons=[{name:'Pistol',cost:0,damage:1,delay:.14,ammo:Infinity,speed:650,
 const colors=['#9d654b','#777e83','#b39a69','#6d8e87','#9b7f9b','#8d9b65','#a3a6a0'];
 function hash(x,y,s=0){let n=Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+Math.imul((s+worldSeed)|0,1442695041)|0;n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967295}
 function roadX(tx){return tx*TILE+TILE/2}function roadY(ty){return ty*TILE+TILE/2}
+function airportZone(tx,ty){
+ // Airports occupy a contiguous 12-by-8-block biome, far larger than an ordinary city lot.
+ const mx=Math.floor(tx/24),my=Math.floor(ty/20);
+ for(let gy=my-1;gy<=my+1;gy++)for(let gx=mx-1;gx<=mx+1;gx++){
+  if(hash(gx,gy,733)<.42){const ax=gx*24+5+Math.floor(hash(gx,gy,734)*4),ay=gy*20+5+Math.floor(hash(gx,gy,735)*5);if(tx>=ax&&tx<ax+12&&ty>=ay&&ty<ay+8)return {x:ax,y:ay,rx:tx-ax,ry:ty-ay,ax,ay}}
+ }
+ return null
+}
 function streetAt(x,y){let rx=((x%TILE)+TILE)%TILE,ry=((y%TILE)+TILE)%TILE;return rx<TILE/2+HALF&&rx>TILE/2-HALF||ry<TILE/2+HALF&&ry>TILE/2-HALF}
 function blockAt(x,y){return {x:Math.floor(x/TILE),y:Math.floor(y/TILE)}}
 function buildBlock(tx,ty){let bx=tx*TILE,by=ty*TILE,r=hash(tx,ty),edge=ROAD/2+38;let size=TILE/2-edge;
@@ -39,8 +47,8 @@ function buildBlock(tx,ty){let bx=tx*TILE,by=ty*TILE,r=hash(tx,ty),edge=ROAD/2+3
   {x:bx+8,y:by+TILE/2+edge+8,w:size-16,h:size-16},
   {x:bx+TILE/2+edge+8,y:by+TILE/2+edge+8,w:size-16,h:size-16}
  ];
+ if(airportZone(tx,ty))return {type:'airportBiome',tx,ty};
  if(hash(tx,ty,997)<.055)return {type:'gunstore',x:bx+8,y:by+8,w:size-16,h:size-16,tx,ty};
- if(hash(tx,ty,999)<.025)return {type:'airport',x:bx+8,y:by+8,w:size-16,h:size-16,tx,ty};
  if(r<.18)return {type:'park',x:bx+8,y:by+8,w:size-16,h:size-16,tx,ty};
  let buildings=[];
  for(let i=0;i<corners.length;i++){
@@ -55,6 +63,27 @@ function visibleBounds(){return {minX:Math.floor((cam.x-canvas.width/2)/TILE)-1,
 function drawWorld(){rect(0,0,canvas.width,canvas.height,'#38513a');const b=visibleBounds();
 for(let ty=b.minY;ty<=b.maxY;ty++)for(let tx=b.minX;tx<=b.maxX;tx++){
 let x=tx*TILE-cam.x+canvas.width/2,y=ty*TILE-cam.y+canvas.height/2;
+const airport=airportZone(tx,ty);
+if(airport){
+ rect(x,y,TILE,TILE,'#59664b');
+ const rx=airport.rx,ry=airport.ry;
+ // Runway spans almost the entire airport and is four blocks wide, with continuous markings.
+ if(ry>=3&&ry<=4){rect(x,y,TILE,TILE,'#3c4144');rect(x+8,y+TILE*.49,TILE-16,3,'#eee9ce');for(let lx=x+20;lx<x+TILE;lx+=42)rect(lx,y+TILE*.25,23,3,'#eee9ce');for(let lx=x+20;lx<x+TILE;lx+=42)rect(lx,y+TILE*.75,23,3,'#eee9ce');if(rx===0)rect(x+12,y+TILE*.32,8,TILE*.36,'#f3f0dc');if(rx===11)rect(x+TILE-20,y+TILE*.32,8,TILE*.36,'#f3f0dc')}
+ else if(ry===2||ry===5){rect(x,y,TILE,TILE,'#657252');rect(x+TILE*.08,y+TILE*.1,TILE*.84,TILE*.8,'#555c5c');rect(x+TILE*.08,y+TILE*.1,TILE*.84,4,'#aaa995');rect(x+TILE*.08,y+TILE*.9,TILE*.84,4,'#aaa995')}
+ else {for(let i=0;i<5;i++){const txp=x+18+hash(tx,ty,i+800)*(TILE-36),typ=y+18+hash(tx,ty,i+810)*(TILE-36);ctx.fillStyle='#314a31';ctx.beginPath();ctx.arc(txp,typ,5,0,Math.PI*2);ctx.fill()}}
+ // Terminal, hangars, control tower, cargo depot, parking and a parked aircraft.
+ if(rx===1&&ry===1){rect(x+12,y+18,TILE*2-24,TILE*.65,'#c4c9c4');rect(x+12,y+18,TILE*2-24,8,'#6c8992');for(let wx=x+24;wx<x+TILE*2-20;wx+=22)rect(wx,y+35,12,18,'#789aa3')}
+ if(rx===3&&ry===1){rect(x+18,y+25,TILE*.72,TILE*.55,'#c9c6b8');rect(x+18,y+25,TILE*.72,8,'#6d858d');rect(x+TILE*.28,y+TILE*.32,TILE*.38,TILE*.18,'#778d94')}
+ if(rx===8&&ry===1){rect(x+15,y+15,TILE*.72,TILE*.7,'#bcb9a9');rect(x+15,y+15,TILE*.72,8,'#6f858d');rect(x+TILE*.3,y+TILE*.32,TILE*.3,TILE*.18,'#6f858d')}
+ if(rx===10&&ry===1){rect(x+TILE*.2,y+TILE*.15,TILE*.6,TILE*.55,'#b8c1c2');rect(x+TILE*.3,y+TILE*.05,TILE*.4,TILE*.2,'#d4d8d3');rect(x+TILE*.38,y+TILE*.1,TILE*.24,TILE*.1,'#83a7b5')}
+ if(rx===2&&ry===6){rect(x+TILE*.15,y+TILE*.1,TILE*.7,TILE*.75,'#d5d0bc');rect(x+TILE*.15,y+TILE*.1,TILE*.7,7,'#9c5546');rect(x+TILE*.25,y+TILE*.3,TILE*.5,TILE*.4,'#444b4d')}
+ if(rx===5&&ry===6){rect(x+TILE*.08,y+TILE*.12,TILE*.84,TILE*.72,'#b9b7a9');rect(x+TILE*.08,y+TILE*.12,TILE*.84,7,'#687e87');rect(x+TILE*.22,y+TILE*.3,TILE*.56,TILE*.34,'#555d5f')}
+ if(rx===7&&ry===6){rect(x+TILE*.2,y+TILE*.15,TILE*.6,TILE*.65,'#d2cbb6');rect(x+TILE*.2,y+TILE*.15,TILE*.6,7,'#6e858c')}
+ if(rx===1&&ry===4){rect(x+TILE*.28,y+TILE*.18,TILE*.42,TILE*.62,'#e0e1d9');rect(x+TILE*.08,y+TILE*.42,TILE*.82,TILE*.12,'#e0e1d9');rect(x+TILE*.4,y+TILE*.22,TILE*.18,TILE*.2,'#7895a2')}
+ if(rx===9&&ry===4){rect(x+TILE*.15,y+TILE*.2,TILE*.7,TILE*.52,'#e4e2d9');rect(x+TILE*.3,y+TILE*.05,TILE*.4,TILE*.24,'#e4e2d9');rect(x+TILE*.42,y+TILE*.22,TILE*.16,TILE*.12,'#718c99')}
+ if(rx===4&&ry===0){rect(x+TILE*.15,y+TILE*.15,TILE*.7,TILE*.65,'#b5c0c0');rect(x+TILE*.35,y+TILE*.05,TILE*.3,TILE*.2,'#7f9fa7')}
+ continue;
+}
 rect(x,y,TILE,TILE,'#40533c');
 // Curving, extra-wide street segments: their endpoints line up at each block boundary,
  // while deterministic bends make the city feel less like a perfect grid.
