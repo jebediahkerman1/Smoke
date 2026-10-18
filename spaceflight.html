@@ -1,241 +1,109 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#080e18">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1420">
 <title>SMOKE Space Flight</title>
-<style>
-:root{color-scheme:dark;--bg:#080e18;--panel:#111b29;--panel2:#18283a;--line:#2b4056;--blue:#66c0f4;--green:#b6df35;--muted:#8fa4b8;--text:#e8f1f8}
-*{box-sizing:border-box}
-#sandboxStartScreen{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 38%,#1c4260 0,#0a1422 48%,#03060b 100%);display:flex;align-items:center;justify-content:center;padding:24px}
-#sandboxStartScreen.hidden{display:none}
-.sandboxTitleCard{width:min(760px,100%);text-align:center;padding:clamp(28px,6vw,64px);border:1px solid #3a607b;border-radius:14px;background:linear-gradient(145deg,#13283aee,#080f1bee);box-shadow:0 24px 100px #0009}
-.sandboxMark{font-size:11px;letter-spacing:5px;color:#b6df35;font-weight:900}
-.sandboxTitle{font-size:clamp(42px,8vw,78px);line-height:.98;font-weight:1000;letter-spacing:-3px;margin:18px 0}
-.sandboxTitle span{color:#b6df35}
-.sandboxCopy{max-width:490px;margin:0 auto 28px;color:#a9bfd1;line-height:1.7}
-.sandboxStart{font-size:15px;padding:14px 24px;min-width:220px}
-.sandboxFoot{margin-top:24px;color:#68849a;font-size:10px;letter-spacing:2px}body{margin:0;background:radial-gradient(ellipse at 50% -15%,#21415c 0,#0b1421 48%,#070c13 100%);color:var(--text);font:14px Inter,Segoe UI,Arial,sans-serif;min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-header{height:68px;display:flex;align-items:center;gap:18px;padding:0 max(18px,calc((100% - 1440px)/2));background:#0a111beF;border-bottom:1px solid #2a3a4b;position:sticky;top:0;z-index:4}.logo{font-weight:1000;font-size:27px;letter-spacing:2px;color:#f4f8fc;text-decoration:none}.logo b{color:var(--blue)}.headtag{border-left:1px solid #34495d;padding-left:18px;color:#a8bfd1;font-size:11px;letter-spacing:2px}.headright{margin-left:auto;display:flex;align-items:center;gap:12px;color:var(--muted);font-size:12px}.headright a{color:var(--blue);text-decoration:none}
-.app{max-width:1440px;margin:22px auto;padding:0 16px 24px;display:grid;grid-template-columns:320px minmax(0,1fr);gap:16px}.panel{background:linear-gradient(160deg,#142131,#0f1926);border:1px solid var(--line);border-radius:9px;overflow:hidden;box-shadow:0 12px 34px #0003}.panelhead{padding:13px 15px;background:#1a2b3d;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:900;letter-spacing:1.1px;text-transform:uppercase}.pad{padding:14px}.muted{color:var(--muted);line-height:1.5}.eyebrow{color:#83bfe2;letter-spacing:2px;font-size:10px;font-weight:900}.mainTitle{font-size:25px;letter-spacing:-.5px;margin:5px 0 3px}.subtitle{color:var(--muted);font-size:12px}.pill{border:1px solid #3a5d76;color:#b4e2fb;background:#152b3c;border-radius:99px;padding:5px 9px;font-size:10px;white-space:nowrap}.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 10px}.btn{background:linear-gradient(#29445b,#1b3043);border:1px solid #3b5a73;color:#e7f2fb;border-radius:5px;padding:9px 11px;font-weight:750}.btn:hover{filter:brightness(1.17)}.btn.primary{background:linear-gradient(#c6ed48,#8bb921);color:#17220b;border-color:#b8df3b}.btn.danger{background:#4b292b;border-color:#814347}.btn.ghost{background:#111c29;border-color:#2d4052}.btn.active{border-color:var(--blue);box-shadow:inset 0 0 0 1px #66c0f455}.wide{width:100%}.label{display:block;color:#a9bfd1;font-size:11px;margin:12px 0 5px}.field{width:100%;background:#0a121d;color:#e9f4fb;border:1px solid #354b60;border-radius:5px;padding:9px}.row{display:flex;gap:8px}.row>*{min-width:0;flex:1}.catalog{display:grid;gap:7px;margin-top:12px}.part{display:flex;align-items:center;gap:10px;text-align:left;width:100%;padding:9px;background:#142334;border:1px solid #293e52;border-radius:6px;color:var(--text)}.part:hover{border-color:#69bde9;transform:translateY(-1px)}.particon{width:38px;height:38px;display:grid;place-items:center;background:#21394d;border:1px solid #36536b;border-radius:5px;font-size:20px;flex-shrink:0}.parttext{min-width:0}.parttext strong{display:block;font-size:12px}.parttext small{display:block;color:#8fa7bb;font-size:10px;margin-top:4px}.plus{margin-left:auto;color:var(--green);font-size:20px}.sectionline{height:1px;background:#293c50;margin:17px 0}.stack{display:grid;gap:6px;margin-top:10px}.stackitem{display:flex;align-items:center;gap:8px;background:#17283a;border:1px solid #30485e;padding:8px;border-radius:5px}.stackitem .num{color:#7995ab;font:11px monospace}.stackitem .partlabel{flex:1;min-width:0;font-size:12px}.stackitem button{background:none;border:0;color:#ff9e95;font-size:16px}.smallnote{font-size:11px;color:#8da2b6;line-height:1.5}.screen{position:relative;border:1px solid #2a4156;background:#050a12;border-radius:7px;overflow:hidden}.mapExit{display:none;position:absolute;right:12px;bottom:12px;z-index:3;box-shadow:0 5px 20px #0009}.screen.mapMode .mapExit{display:block}.screen canvas{width:100%;height:auto;aspect-ratio:16/9;display:block}.hud{position:absolute;top:10px;left:10px;right:10px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none}.hud span{background:#08111cdb;border:1px solid #344a5e;padding:6px 8px;border-radius:4px;font:11px ui-monospace,Consolas,monospace;color:#d8eaf7}.screenbottom{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:10px}.controls{color:#9bb0c3;font-size:11px;line-height:1.7}.status{font-size:11px;color:#c3e78a;min-height:16px;margin-top:8px}.telemetry{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}.metric{background:#0c1622;border:1px solid #273b4f;border-radius:6px;padding:10px}.metric span{display:block;color:#849cb0;font-size:9px;letter-spacing:1px}.metric strong{display:block;font:700 17px ui-monospace,Consolas,monospace;margin-top:6px}.rightcol{display:grid;gap:14px;align-content:start}.sideTitle{font-size:12px;font-weight:900;letter-spacing:1px}.editorgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.editorgrid .full{grid-column:1/-1}.customlist{display:grid;gap:6px;margin-top:10px}.customrow{display:flex;gap:8px;align-items:center;justify-content:space-between;background:#142334;padding:8px;border-radius:5px;font-size:11px}.systemcards{display:grid;grid-template-columns:1fr 1fr;gap:9px}.syscard{padding:12px;border:1px solid #2d4357;background:#122132;border-radius:7px}.syscard h3{margin:0 0 8px;font-size:13px}.planetrow{display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #26394c;color:#b6c9d8;font-size:11px}.dot{width:11px;height:11px;border-radius:50%;box-shadow:0 0 9px currentColor;flex-shrink:0}.notice{font-size:11px;color:#c7eb8b;min-height:15px;margin-top:8px}.hidden{display:none!important}.mapLegend{display:flex;gap:14px;flex-wrap:wrap;color:#8ea5b9;font-size:10px;margin-top:8px}.legenddot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}footer{text-align:center;padding:16px;color:#657d91;font-size:10px;letter-spacing:1px}
-@media(max-width:980px){.app{grid-template-columns:280px minmax(0,1fr)}}@media(max-width:760px){header{position:static}.app{grid-template-columns:1fr;margin-top:12px}.leftcol{display:grid;grid-template-columns:1fr 1fr;gap:12px}.workshop{grid-row:span 2}.telemetry{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.leftcol{display:flex;flex-direction:column}.mainTitle{font-size:21px}.systemcards{grid-template-columns:1fr}.headtag{display:none}.headright{font-size:10px}.hud{top:5px;left:5px;right:5px}.hud span{font-size:9px;padding:4px}.telemetry{gap:5px}.metric{padding:8px}.metric strong{font-size:15px}}
-</style>
+<link rel="stylesheet" href="spaceflight.css">
 </head>
 <body>
-<div id="sandboxStartScreen" role="dialog" aria-modal="true" aria-labelledby="sandboxTitle">
-  <div class="sandboxTitleCard">
-    <div class="sandboxMark">SMOKE AEROSPACE PRESENTS</div>
-    <h1 class="sandboxTitle" id="sandboxTitle">SANDBOX <span>MADNESS</span></h1>
-    <p class="sandboxCopy">Build ridiculous rockets, fire them into space, and see what survives. Explore the Ember System. Every selectable planet has a surface you can land on — or crash into.</p>
-    <button id="enterSandboxBtn" class="btn primary sandboxStart">▶ ENTER SANDBOX</button>
-    <div class="sandboxFoot">NO MISSIONS · JUST SANDBOX</div>
-  </div>
-</div>
-<header><a class="logo" href="index.html"><b>S</b>MOKE</a><div class="headtag">SPACE FLIGHT DIVISION</div><div class="headright"><span>FLIGHT CONTROL // ALPHA</span><a href="index.html">← STORE</a></div></header>
+<header>
+ <a class="logo" href="index.html">SM<b>O</b>KE</a>
+ <div class="headtag">SPACE FLIGHT DIVISION</div>
+ <div class="headright">SANDBOX MODE · NO DOWNLOADS</div>
+</header>
 <div class="app">
-<aside class="leftcol">
-<section class="panel workshop"><div class="panelhead"><span>01 / Rocket workshop</span><span id="partCount">3 PARTS</span></div><div class="pad"><p class="muted smallnote">Build a stack from the bottom up. Add parts from the catalog, then launch from Nysa. Click a stack item’s × to remove it.</p><div id="partCatalog" class="catalog"></div><div class="sectionline"></div><div class="row"><button id="clearRocket" class="btn ghost">Clear stack</button><button id="launchBtn" class="btn primary">▶ Launch</button></div><button id="recoverBtn" class="btn ghost wide" style="margin-top:7px">Recover / reset flight</button><div id="buildNotice" class="status" role="status"></div><div class="sectionline"></div><div class="sideTitle">CURRENT STACK</div><div id="rocketStack" class="stack"></div><p class="smallnote">Parts are listed bottom → top. Engines work best near the bottom; capsule goes at the top.</p></div></section>
-<section class="panel"><div class="panelhead">02 / Mission setup</div><div class="pad"><label class="label">Solar system</label><div class="field" aria-label="Selected solar system">Ember System · Cinder</div><label class="label">Launch body</label><select id="planetSelect" class="field"></select><div id="bodyInfo" class="smallnote" style="margin-top:9px"></div><div class="sectionline"></div><div class="sideTitle">MISSION CHECKLIST</div><div id="missionCheck" class="smallnote" style="margin-top:8px;line-height:1.9"></div><p class="smallnote">The Ember System is fictional. Launch from any selected body and explore the system map.</p></div></section>
-</aside>
-<main class="rightcol">
-<section class="panel"><div class="pad"><div class="eyebrow">SMOKE AEROSPACE // FLIGHT SIMULATOR</div><div class="screenbottom"><div><h1 class="mainTitle">Space Flight</h1><div class="subtitle">Design your vehicle. Light the engine. Leave the ground.</div></div><span class="pill" id="modePill">WORKSHOP MODE</span></div><div class="tabs"><button class="btn active" data-view="flight">Flight deck</button><button class="btn" data-view="map">System map</button><button class="btn" data-view="stats">Vehicle data</button></div><div class="screen" id="gameScreen"><canvas id="game" width="1000" height="562" aria-label="2D rocket flight simulation"></canvas><button id="exitMapBtn" class="btn primary mapExit">← RETURN TO FLIGHT</button><div class="hud"><span id="hudMode">MODE: BUILD</span><span id="hudAlt">ALT 0 m</span><span id="hudSpeed">SPD 0 m/s</span><span id="hudFuel">FUEL 0</span></div></div><div class="screenbottom"><div class="controls" id="controlText">BUILD: assemble your rocket. FLIGHT: W/↑ thrust · A/D steer · S/↓ reverse · SPACE stage · M map · R reset. Orbit depends on speed and gravity.</div><div class="row" style="flex:0 0 auto"><button id="pauseBtn" class="btn ghost">Ⅱ Pause</button><button id="plantFlagBtn" class="btn ghost">⚑ Plant flag</button><button id="mapBtn" class="btn ghost">◎ Map</button></div></div><div class="telemetry"><div class="metric"><span>ALTITUDE</span><strong id="metricAlt">0 m</strong></div><div class="metric"><span>VERTICAL SPEED</span><strong id="metricVSpeed">0 m/s</strong></div><div class="metric"><span>HORIZONTAL SPEED</span><strong id="metricHSpeed">0 m/s</strong></div><div class="metric"><span>FUEL REMAINING</span><strong id="metricFuel">0 kg</strong></div><div class="metric"><span>APOAPSIS</span><strong id="metricApo">0 km</strong></div><div class="metric"><span>PERIAPSIS</span><strong id="metricPeri">0 km</strong></div></div><div id="flightNotice" class="notice" role="status"></div></div></section>
-<section class="panel hidden" id="statsPanel"><div class="panelhead">VEHICLE DATA / PERFORMANCE</div><div class="pad" id="statsContent"></div></section>
-<section class="panel"><div class="panelhead">03 / Custom parts lab <span class="pill">SAVED ON THIS DEVICE</span></div><div class="pad"><p class="smallnote">Create custom parts and use them in your rocket. Custom parts are saved in this browser using local storage; they do not automatically sync to other devices.</p><form id="partForm"><label class="label">Part name</label><input id="partName" class="field" maxlength="28" placeholder="e.g. ARFPARTS Engine" required><div class="editorgrid"><div><label class="label">Part type</label><select id="partType" class="field"><option value="capsule">Command capsule</option><option value="tank">Fuel tank</option><option value="engine">Liquid engine</option><option value="booster">Solid booster</option><option value="solar">Solar panel</option><option value="leg">Landing legs</option></select></div><div><label class="label">Mass (kg)</label><input id="partMass" class="field" type="number" min="1" max="100000" value="100" required></div><div><label class="label">Fuel capacity (kg)</label><input id="partFuel" class="field" type="number" min="0" max="100000" value="0" required></div><div><label class="label">Thrust (kN)</label><input id="partThrust" class="field" type="number" min="0" max="100000" value="0" required></div></div><button class="btn primary wide" type="submit" style="margin-top:11px">＋ Save custom part</button></form><div id="customNotice" class="notice"></div><div id="customList" class="customlist"></div></div></section>
-<section class="panel"><div class="panelhead">04 / Star charts</div><div class="pad"><div id="systemCards" class="systemcards"></div><div class="mapLegend"><span><i class="legenddot" style="background:#ffb65c"></i>Star</span><span><i class="legenddot" style="background:#66c0f4"></i>Planet</span><span><i class="legenddot" style="background:#b6df35"></i>Your selected body</span></div></div></section>
-</main>
-</div><footer>SMOKE SPACE FLIGHT · EMBER SYSTEM · BUILD / LAUNCH / EXPLORE</footer>
-<script>
-(function(){
-'use strict';
-const $=id=>document.getElementById(id);
-const defaults=[
-{id:'capsule',name:'Command Capsule',type:'capsule',mass:800,fuel:0,thrust:0,icon:'◈',color:'#c9d5df'},
-{id:'tank-small',name:'Small Fuel Tank',type:'tank',mass:180,fuel:120,thrust:0,icon:'▤',color:'#9aa9b8'},
-{id:'engine-basic',name:'Pioneer Engine',type:'engine',mass:250,fuel:0,thrust:420,icon:'♨',color:'#e28b54'},
-{id:'booster-basic',name:'Solid Booster',type:'booster',mass:400,fuel:180,thrust:700,icon:'✹',color:'#cf7052'},
-{id:'solar-basic',name:'Solar Panel',type:'solar',mass:35,fuel:0,thrust:0,icon:'▦',color:'#448bd2'},
-{id:'legs-basic',name:'Landing Legs',type:'leg',mass:90,fuel:0,thrust:0,icon:'⌁',color:'#b5c1cb'}
-];
-const systems={
-ember:{name:'Ember System',star:'Cinder',color:'#ffb65c',bodies:[{name:'Earth',type:'Homeworld',color:'#57b94f',gravity:9.8,radius:64},{name:'Nysa',type:'Ocean moon',color:'#48a8d8',gravity:3.1,radius:34},{name:'Pip',type:'Moon',color:'#aeb6c4',gravity:1.6,radius:24},{name:'Bront',type:'Desert planet',color:'#c87851',gravity:4.1,radius:48},{name:'Ilyra',type:'Ice planet',color:'#82d9e8',gravity:6.3,radius:58}]},
-
-};
-let custom=[];try{custom=JSON.parse(localStorage.getItem('smokeSpaceCustomParts')||'[]');if(!Array.isArray(custom))custom=[]}catch(e){custom=[]}
-let plantedFlags={};try{plantedFlags=JSON.parse(localStorage.getItem('smokeSpaceFlags')||'{}')||{}}catch(e){plantedFlags={}}
-const bodyKey=(key=systemKey,index=bodyIndex)=>key+':'+systems[key].bodies[index].name;
-function hasFlag(key=systemKey,index=bodyIndex){return !!plantedFlags[bodyKey(key,index)]}
-function saveFlag(){try{localStorage.setItem('smokeSpaceFlags',JSON.stringify(plantedFlags))}catch(e){}}
-function isLanded(){return launched&&!crashed&&altitude<=0.01&&Math.abs(verticalSpeed)<0.2&&Math.abs(horizontalSpeed)<0.5&&simTime>1}
-let rocket=[{...defaults[0],uid:1},{...defaults[1],uid:2},{...defaults[2],uid:3}],uid=4;
-let view='flight',systemKey='ember',bodyIndex=0,launched=false,paused=false,crashed=false,altitude=0,verticalSpeed=0,horizontalSpeed=0,angle=0,fuel=0,maxFuel=0,burned=0,simTime=0,thrusting=false,keys=new Set(),last=0,camX=0,camY=0,worldOffsetX=0,worldOffsetY=0,stageIndex=0,stageSpent=new Set(),notice='';
-const canvas=$('game'),ctx=canvas.getContext('2d');
-const body=()=>systems[systemKey].bodies[bodyIndex];
-const allParts=()=>defaults.concat(custom);
-const mass=()=>rocket.reduce((n,p)=>n+(Number(p.mass)||0),0)+fuel;
-const totalThrust=()=>rocket.reduce((n,p)=>n+((p.type==='engine'||p.type==='booster')?(Number(p.thrust)||0):0),0);
-const fmt=n=>Math.round(n).toLocaleString('en-US');
-function saveCustom(){try{localStorage.setItem('smokeSpaceCustomParts',JSON.stringify(custom))}catch(e){$('customNotice').textContent='Browser storage is unavailable.'}}
-function say(id,msg){$(id).textContent=msg}
-function drawCatalog(){const el=$('partCatalog');el.innerHTML='';allParts().forEach(p=>{const b=document.createElement('button');b.className='part';const icon=document.createElement('span');icon.className='particon';icon.textContent=p.icon||'◆';const text=document.createElement('span');text.className='parttext';const strong=document.createElement('strong');strong.textContent=p.name;const small=document.createElement('small');small.textContent=p.type.toUpperCase()+' · '+p.mass+' kg'+(p.thrust?' · '+p.thrust+' kN':'');text.append(strong,small);const plus=document.createElement('span');plus.className='plus';plus.textContent='+';b.append(icon,text,plus);b.addEventListener('click',()=>{if(launched){say('buildNotice','Recover your rocket before editing the stack.');return}rocket.push({...p,uid:uid++});renderBuild();say('buildNotice',p.name+' added to the stack.')});el.appendChild(b)});renderCustom()}
-function renderCustom(){const el=$('customList');el.innerHTML='';custom.forEach((p,i)=>{const row=document.createElement('div');row.className='customrow';const label=document.createElement('span');label.textContent=(p.icon||'◆')+' '+p.name+' · '+p.mass+' kg · '+p.thrust+' kN';const del=document.createElement('button');del.className='btn danger';del.textContent='Delete';del.addEventListener('click',()=>{custom.splice(i,1);saveCustom();drawCatalog();say('customNotice','Custom part deleted.')});row.append(label,del);el.appendChild(row)})}
-function renderBuild(){const el=$('rocketStack');el.innerHTML='';rocket.slice().reverse().forEach((p,rev)=>{const i=rocket.length-1-rev;const row=document.createElement('div');row.className='stackitem';const num=document.createElement('span');num.className='num';num.textContent=String(i+1).padStart(2,'0');const label=document.createElement('span');label.className='partlabel';label.textContent=(p.icon||'◆')+' '+p.name;const del=document.createElement('button');del.textContent='×';del.title='Remove '+p.name;del.addEventListener('click',()=>{if(launched)return;rocket.splice(i,1);renderBuild()});row.append(num,label,del);el.appendChild(row)});$('partCount').textContent=rocket.length+' PARTS';updateChecks();renderStats()}
-function updateChecks(){const engine=rocket.some(p=>(p.type==='engine'||p.type==='booster')&&Number(p.thrust)>0);const tank=rocket.some(p=>Number(p.fuel)>0);const capsule=rocket.some(p=>p.type==='capsule');$('missionCheck').innerHTML=(capsule?'✓':'○')+' Command capsule<br>'+(engine?'✓':'○')+' Engine or booster<br>'+(tank?'✓':'○')+' Fuel source<br>○ Reach orbit and explore';$('launchBtn').disabled=launched;$('launchBtn').style.opacity=launched?'.5':'1';}
-function renderStats(){const m=rocket.reduce((n,p)=>n+(+p.mass||0),0),f=rocket.reduce((n,p)=>n+(+p.fuel||0),0),t=totalThrust();$('statsContent').innerHTML='<div class="metric"><span>DRY MASS</span><strong>'+fmt(m)+' kg</strong></div><div class="metric"><span>FUEL CAPACITY</span><strong>'+fmt(f)+' kg</strong></div><div class="metric"><span>THRUST</span><strong>'+fmt(t)+' kN</strong></div><div class="metric"><span>THRUST / WEIGHT</span><strong>'+(m? (t*1000/(m*body().gravity)).toFixed(2):'0.00')+'</strong></div><p class="smallnote">Estimated values use the selected body gravity. Fuel consumption and handling are simplified for gameplay.</p>'}
-function renderBodySelect(){const sel=$('planetSelect');sel.innerHTML='';systems[systemKey].bodies.forEach((b,i)=>{const o=document.createElement('option');o.value=i;o.textContent=b.name+' — '+b.type;sel.appendChild(o)});sel.value=String(bodyIndex);$('bodyInfo').textContent=body().name+' · gravity '+body().gravity+' m/s² · '+body().type;renderSystems();renderStats()}
-function renderSystems(){const el=$('systemCards');el.innerHTML='';Object.keys(systems).forEach(key=>{const s=systems[key],card=document.createElement('div');card.className='syscard';const h=document.createElement('h3');h.textContent=s.name;h.style.color=s.color;card.appendChild(h);s.bodies.forEach((b,i)=>{const r=document.createElement('div');r.className='planetrow';const dot=document.createElement('span');dot.className='dot';dot.style.background=b.color;dot.style.color=b.color;const name=document.createElement('span');name.textContent=b.name+' · '+b.type;if(key===systemKey&&i===bodyIndex){name.style.color='#c8ed74';name.style.fontWeight='bold'}r.append(dot,name);card.appendChild(r)});el.appendChild(card)})}
-function resetFlight(){launched=false;paused=false;crashed=false;altitude=0;verticalSpeed=0;horizontalSpeed=0;worldOffsetX=0;worldOffsetY=0;camX=0;camY=0;angle=0;fuel=rocket.reduce((n,p)=>n+(+p.fuel||0),0);maxFuel=fuel;burned=0;simTime=0;thrusting=false;stageIndex=0;stageSpent.clear();keys.clear();view='flight';switchView('flight');renderBuild();say('flightNotice','Rocket reset on '+body().name+'. Ready for launch.');say('buildNotice','')}
-function launch(){if(launched)return;const hasEngine=rocket.some(p=>(p.type==='engine'||p.type==='booster')&&(+p.thrust||0)>0),hasFuel=rocket.some(p=>(+p.fuel||0)>0);if(!hasEngine||!hasFuel){say('buildNotice','Add at least one engine/booster and a fuel tank before launch.');return}if(!rocket.some(p=>p.type==='capsule'))say('buildNotice','Tip: add a command capsule to the top of your rocket.');launched=true;paused=false;crashed=false;altitude=0;verticalSpeed=0;horizontalSpeed=0;worldOffsetX=0;worldOffsetY=0;camX=0;camY=0;angle=0;fuel=rocket.reduce((n,p)=>n+(+p.fuel||0),0);maxFuel=fuel;burned=0;simTime=0;stageIndex=0;stageSpent.clear();view='flight';switchView('flight');say('flightNotice','Liftoff sequence armed. Press W or ↑ to ignite.');renderBuild()}
-function stage(){if(!launched)return;let found=-1;for(let i=rocket.length-1;i>=0;i--){const p=rocket[i];if((p.type==='booster'||p.type==='tank')&&!stageSpent.has(p.uid)){found=i;break}}if(found<0){say('flightNotice','No detachable booster or tank left to stage.');return}const p=rocket[found];stageSpent.add(p.uid);if(p.type==='tank')fuel=Math.max(0,fuel-(+p.fuel||0));else fuel=Math.max(0,fuel-(+p.fuel||0));rocket.splice(found,1);stageIndex++;say('flightNotice','Stage '+stageIndex+' separated: '+p.name+'.');renderBuild()}
-function switchView(next){if(!['flight','map','stats'].includes(next))next='flight';view=next;$('gameScreen').classList.toggle('mapMode',next==='map');document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===next));$('statsPanel').classList.toggle('hidden',next!=='stats');$('modePill').textContent=launched?(paused?'PAUSED':crashed?'FLIGHT ENDED':'FLIGHT MODE'):next==='map'?'SYSTEM MAP':'WORKSHOP MODE';$('controlText').textContent=next==='map'?'SYSTEM MAP: schematic orbits show the fictional systems and your selected body. M returns to flight.':next==='stats'?'VEHICLE DATA: mass, fuel, thrust and live flight telemetry.':'FLIGHT: W/↑ thrust · A/D steer · S/↓ reverse · SPACE stage · M map · R reset.';draw()}
-document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.view)));
-$('mapBtn').addEventListener('click',()=>switchView(view==='map'?'flight':'map'));
-$('exitMapBtn').addEventListener('click',()=>switchView('flight'));
-$('pauseBtn').addEventListener('click',()=>{if(!launched)return;paused=!paused;$('pauseBtn').textContent=paused?'▶ Resume':'Ⅱ Pause';$('modePill').textContent=paused?'PAUSED':'FLIGHT MODE';say('flightNotice',paused?'Simulation paused.':'Simulation resumed.')});
-$('plantFlagBtn').addEventListener('click',()=>{if(!isLanded()){say('flightNotice','You need to land safely and come to a stop before planting a flag.');return}plantedFlags[bodyKey()]={plantedAt:new Date().toISOString()};saveFlag();say('flightNotice','⚑ Flag planted on '+body().name+'! It will remain on this device.');updateHud();draw()});
-$('enterSandboxBtn').addEventListener('click',()=>{$('sandboxStartScreen').classList.add('hidden');say('flightNotice','Sandbox ready. Build a rocket and launch whenever you want.')});
-$('launchBtn').addEventListener('click',launch);$('recoverBtn').addEventListener('click',resetFlight);$('clearRocket').addEventListener('click',()=>{if(launched){say('buildNotice','Recover the rocket before clearing it.');return}rocket=[];renderBuild();say('buildNotice','Rocket stack cleared.')});
-
-$('planetSelect').addEventListener('change',()=>{bodyIndex=Number($('planetSelect').value);renderBodySelect();if(!launched)resetFlight();else say('flightNotice','Selected destination: '+body().name+'. Current flight is still in progress.');draw()});
-$('partType').addEventListener('change',()=>{const t=$('partType').value;$('partFuel').value=t==='tank'||t==='booster'?180:0;$('partThrust').value=t==='engine'?420:t==='booster'?700:0;$('partMass').value=t==='capsule'?800:t==='tank'?180:t==='engine'?250:t==='booster'?400:t==='solar'?35:90});
-$('partForm').addEventListener('submit',e=>{e.preventDefault();const type=$('partType').value;const p={id:'custom-'+Date.now(),name:$('partName').value.trim(),type,mass:Number($('partMass').value),fuel:Number($('partFuel').value),thrust:Number($('partThrust').value),icon:({capsule:'◈',tank:'▤',engine:'♨',booster:'✹',solar:'▦',leg:'⌁'})[type],color:'#66c0f4'};if(!p.name||!(p.mass>0)||p.fuel<0||p.thrust<0){say('customNotice','Check the part name and stat values.');return}custom.push(p);saveCustom();drawCatalog();$('partName').value='';say('customNotice',p.name+' saved. It is now in the parts catalog.');});
-document.addEventListener('keydown',e=>{const tag=e.target&&e.target.tagName;if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;const k=e.key.toLowerCase();if(['w','a','s','d',' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();if(e.code==='KeyM'||k==='m'){e.preventDefault();switchView(view==='map'?'flight':'map');return}if(k==='escape'){if(view==='map')switchView('flight');else switchView('map');return}if(k==='r'){resetFlight();return}if(k===' '){stage();return}keys.add(k)},true);
-window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());
-function tick(dt){
-if(!launched||paused||crashed)return;
-dt=Math.min(dt,.025);
-simTime+=dt;
-const steer=(keys.has('a')||keys.has('arrowleft')?-1:0)+(keys.has('d')||keys.has('arrowright')?1:0);
-angle+=steer*1.35*dt;
-const up=keys.has('w')||keys.has('arrowup'),down=keys.has('s')||keys.has('arrowdown');
-const active=rocket.filter(p=>(p.type==='engine'||p.type==='booster')&&!stageSpent.has(p.uid)&&(+p.thrust||0)>0);
-const thrust=active.reduce((n,p)=>n+(+p.thrust||0),0);
-thrusting=false;
-const r0=body().radius*1000;
-const r=Math.max(r0+1,r0+altitude);
-const mu=body().gravity*r0*r0;
-const gravity=mu/(r*r);
-if((up||down)&&thrust>0&&fuel>0){
-  thrusting=true;
-  const dir=up?1:-1;
-  // Punchier arcade-style thrust so movement is immediately noticeable.
-  const accel=Math.min(650,thrust*5200/Math.max(1,mass()));
-  verticalSpeed+=Math.cos(angle)*accel*dt*dir;
-  horizontalSpeed+=Math.sin(angle)*accel*dt*dir;
-  const use=Math.min(fuel,Math.max(.015,thrust*.00012)*dt);
-  fuel=Math.max(0,fuel-use);burned+=use;
-}
-verticalSpeed-=gravity*dt;
-if(altitude<80000){
-  const density=Math.exp(-Math.max(0,altitude)/8500);
-  const drag=Math.min(.9,density*.012*dt*(Math.abs(verticalSpeed)+Math.abs(horizontalSpeed)));
-  verticalSpeed*=1-drag;horizontalSpeed*=1-drag*.45;
-}
-altitude+=verticalSpeed*dt;
-const nextR=r0+altitude;
-if(nextR>0)camX+=horizontalSpeed/nextR*dt;
-// Keep the rocket fixed on screen and move the planet opposite the rocket's travel.
-worldOffsetX+=horizontalSpeed*dt*1.8+steer*90*dt;
-worldOffsetY+=verticalSpeed*dt*1.8;
-// Surface collision applies to whichever planet or moon is selected in the sandbox.
-if(altitude<=0){
-  altitude=0;
-  if(verticalSpeed < -16 || Math.abs(horizontalSpeed)>95){
-    crashed=true;launched=false;verticalSpeed=0;
-    say('flightNotice','CRASH LANDING. Recover the rocket to rebuild and launch again.');
-  } else {
-    verticalSpeed=Math.max(0,verticalSpeed);
-    if(simTime>1&&burned>0&&Math.abs(verticalSpeed)<.2&&Math.abs(horizontalSpeed)<.5){
-      say('flightNotice','Landed on '+body().name+'. Recover or relaunch when ready.');
-    }
-  }
-}
-if(altitude>20000000){altitude=20000000;say('flightNotice','High orbit reached. Map view shows your current flight path.')}
-updateHud();
-}
-function updateHud(){
-const sp=Math.sqrt(verticalSpeed*verticalSpeed+horizontalSpeed*horizontalSpeed);
-const r0=body().radius*1000, r=r0+altitude, mu=body().gravity*r0*r0;
-const energy=(verticalSpeed*verticalSpeed+horizontalSpeed*horizontalSpeed)/2-mu/r;
-const a=energy<0?-mu/(2*energy):Infinity;
-const ecc=Math.sqrt(Math.max(0,1+2*energy*(r*r*horizontalSpeed*horizontalSpeed)/(mu*mu)));
-const apo=Number.isFinite(a)?Math.max(0,a*(1+ecc)-r0):Infinity;
-const peri=Number.isFinite(a)?Math.max(0,a*(1-ecc)-r0):0;
-$('hudMode').textContent=crashed?'MODE: CRASHED':paused?'MODE: PAUSED':launched?'MODE: FLIGHT':'MODE: BUILD';
-$('hudAlt').textContent='ALT '+fmt(altitude)+' m';
-$('hudSpeed').textContent='SPD '+fmt(sp)+' m/s';
-$('hudFuel').textContent='FUEL '+fmt(fuel)+' kg';
-$('plantFlagBtn').disabled=!isLanded()||hasFlag();$('plantFlagBtn').style.opacity=$('plantFlagBtn').disabled?'.48':'1';$('plantFlagBtn').textContent=hasFlag()?'⚑ Flag planted':'⚑ Plant flag';
-$('metricAlt').textContent=fmt(altitude)+' m';
-$('metricVSpeed').textContent=fmt(verticalSpeed)+' m/s';
-$('metricHSpeed').textContent=fmt(horizontalSpeed)+' m/s';
-$('metricFuel').textContent=fmt(fuel)+' kg';
-if($('metricApo'))$('metricApo').textContent=Number.isFinite(apo)?fmt(apo/1000)+' km':'ESCAPE';
-if($('metricPeri'))$('metricPeri').textContent=fmt(peri/1000)+' km';
-$('modePill').textContent=launched?(paused?'PAUSED':'FLIGHT MODE'):crashed?'CRASHED':'WORKSHOP MODE';
-}
-function roundedRect(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r)}
-function drawStars(w,h){ctx.fillStyle='#050a12';ctx.fillRect(0,0,w,h);let seed=71;for(let i=0;i<140;i++){seed=(seed*16807)%2147483647;const x=(seed%10000)/10000*w;seed=(seed*16807)%2147483647;const y=(seed%10000)/10000*h;const a=.25+(seed%70)/100;ctx.fillStyle='rgba(210,231,255,'+a+')';ctx.fillRect(x,y,seed%3===0?2:1,seed%3===0?2:1)}}
-function drawPlanet(c,x,y,r,color){const g=c.createRadialGradient(x-r*.35,y-r*.4,2,x,y,r);g.addColorStop(0,'#ffffff');g.addColorStop(.12,color);g.addColorStop(1,'#101a2a');c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();c.strokeStyle=color+'77';c.lineWidth=2;c.beginPath();c.arc(x,y,r+3,0,Math.PI*2);c.stroke()}
-function drawFlight(){
-const w=canvas.width,h=canvas.height;
-ctx.fillStyle='#030711';ctx.fillRect(0,0,w,h);
-drawStars(w,h);
-// The rocket stays at the screen centre; the world moves behind it.
-const b=body();
-const pr=Math.max(115,Math.min(235,190-altitude/180000));
-const px=w*.5+worldOffsetX;
-const py=h*.5+worldOffsetY;
-ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(px,py,pr,0,Math.PI*2);ctx.fill();
-ctx.strokeStyle=b.color+'99';ctx.lineWidth=3;ctx.beginPath();ctx.arc(px,py,pr+3,0,Math.PI*2);ctx.stroke();
-if(hasFlag()){
-  const fx=px+pr*.35,fy=py-pr*.88;
-  ctx.strokeStyle='#f4f7fb';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(fx,fy+22);ctx.lineTo(fx,fy-10);ctx.stroke();
-  ctx.fillStyle='#ffcf4a';ctx.beginPath();ctx.moveTo(fx,fy-10);ctx.lineTo(fx+22,fy-2);ctx.lineTo(fx,fy+6);ctx.closePath();ctx.fill();
-}
-const rx=w*.5,ry=h*.5;
-ctx.save();ctx.translate(rx,ry);ctx.rotate(-angle);
-const bodyLen=Math.max(50,Math.min(130,rocket.length*12));
-ctx.fillStyle='#dce6ed';ctx.strokeStyle='#425b70';ctx.lineWidth=2;
-ctx.beginPath();ctx.moveTo(0,-bodyLen*.58);ctx.lineTo(12,-bodyLen*.34);ctx.lineTo(10,bodyLen*.45);ctx.lineTo(-10,bodyLen*.45);ctx.lineTo(-12,-bodyLen*.34);ctx.closePath();ctx.fill();ctx.stroke();
-ctx.fillStyle='#66c0f4';ctx.beginPath();ctx.arc(0,-bodyLen*.28,5,0,Math.PI*2);ctx.fill();
-ctx.fillStyle='#e28b54';ctx.fillRect(-8,bodyLen*.3,16,10);
-// Landing legs: hinged struts with flat feet, drawn as part of the rocket.
-const hasLegs=rocket.some(p=>p.type==='legs'||/landing legs/i.test(p.name||''));
-if(hasLegs){
-  ctx.strokeStyle='#d8e2eb';ctx.lineWidth=4;ctx.lineCap='round';
-  ctx.beginPath();ctx.moveTo(-8,bodyLen*.22);ctx.lineTo(-22,bodyLen*.48);ctx.lineTo(-31,bodyLen*.52);ctx.moveTo(8,bodyLen*.22);ctx.lineTo(22,bodyLen*.48);ctx.lineTo(31,bodyLen*.52);ctx.stroke();
-  ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-35,bodyLen*.52);ctx.lineTo(-25,bodyLen*.52);ctx.moveTo(25,bodyLen*.52);ctx.lineTo(35,bodyLen*.52);ctx.stroke();
-}
-if(thrusting&&fuel>0){ctx.fillStyle='#ffd75d';ctx.beginPath();ctx.moveTo(-7,bodyLen*.45);ctx.lineTo(0,bodyLen*.45+18+Math.random()*12);ctx.lineTo(7,bodyLen*.45);ctx.fill();ctx.fillStyle='#ef7043';ctx.beginPath();ctx.moveTo(-4,bodyLen*.45);ctx.lineTo(0,bodyLen*.45+12);ctx.lineTo(4,bodyLen*.45);ctx.fill()}
-ctx.restore();
-ctx.fillStyle='#e3eff9';ctx.font='bold 13px Arial';ctx.fillText(b.name.toUpperCase()+' // SPACEFLIGHT',20,h-22);
-ctx.fillStyle='#a7c0d5';ctx.font='12px Arial';ctx.fillText('GRAVITY '+b.gravity.toFixed(1)+' m/s²  ·  SIM TIME '+simTime.toFixed(1)+' s',20,h-42);
-if(!launched){roundedRect(ctx,w*.5-145,h*.15,290,62,8);ctx.fillStyle='#07111ddc';ctx.fill();ctx.strokeStyle='#3b5870';ctx.stroke();ctx.fillStyle='#eaf5fc';ctx.textAlign='center';ctx.font='bold 15px Arial';ctx.fillText('READY FOR LAUNCH',w*.5,h*.15+25);ctx.fillStyle='#9db6c9';ctx.font='12px Arial';ctx.fillText('Press LAUNCH, then hold W / ↑',w*.5,h*.15+45);ctx.textAlign='left'}
-if(paused||crashed){ctx.fillStyle='#050a12b8';ctx.fillRect(0,0,w,h);ctx.fillStyle=crashed?'#ff9b8c':'#f1f7fc';ctx.textAlign='center';ctx.font='bold 30px Arial';ctx.fillText(crashed?'MISSION FAILED':'SIMULATION PAUSED',w/2,h/2);ctx.textAlign='left'}
-}
-function drawMap(){
-const w=canvas.width,h=canvas.height;drawStars(w,h);const s=systems[systemKey],bodies=s.bodies;
-const left=70,right=w-42,top=92,bottom=h-75,availableW=right-left,availableH=bottom-top;
-const sx=left+20,sy=top+availableH*.5;
-const maxOrbit=Math.max(1,availableW-90),orbitStep=Math.min(94,maxOrbit/Math.max(1,bodies.length));
-const ySpread=Math.min(availableH*.22,95);
-const grad=ctx.createRadialGradient(sx,sy,2,sx,sy,58);grad.addColorStop(0,s.color);grad.addColorStop(1,s.color+'00');ctx.fillStyle=grad;ctx.beginPath();ctx.arc(sx,sy,58,0,Math.PI*2);ctx.fill();ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(sx,sy,16,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 12px Arial';ctx.fillText(s.star,sx-ctx.measureText(s.star).width/2,sy+31);
-let selected={x:sx,y:sy,r:16};
-bodies.forEach((b,i)=>{const orbit=Math.min(maxOrbit,82+(i+1)*orbitStep),x=sx+orbit,y=sy+Math.sin(i*1.55)*ySpread,r=Math.max(6,Math.min(12,5+b.radius*.045));ctx.strokeStyle='#425a70';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(sx,sy,orbit,Math.min(availableH*.44,28+i*12),0,0,Math.PI*2);ctx.stroke();drawPlanet(ctx,x,y,r,b.color);ctx.fillStyle='#e2edf6';ctx.font='bold 12px Arial';const label=b.name;let labelX=x-r;const labelWidth=ctx.measureText(label).width;if(labelX+labelWidth>w-12)labelX=w-12-labelWidth;ctx.fillText(label,labelX,Math.min(h-42,y+r+17));ctx.fillStyle='#8ea5b9';ctx.font='10px Arial';ctx.fillText(b.type,labelX,Math.min(h-27,y+r+30));if(hasFlag(systemKey,i)){ctx.strokeStyle='#f4f7fb';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x+r*.55,y-r*.3);ctx.lineTo(x+r*.55,y-r-13);ctx.stroke();ctx.fillStyle='#ffcf4a';ctx.beginPath();ctx.moveTo(x+r*.55,y-r-13);ctx.lineTo(x+r*.55+10,y-r-8);ctx.lineTo(x+r*.55,y-r-3);ctx.closePath();ctx.fill()}if(i===bodyIndex){selected={x,y,r};ctx.strokeStyle='#b6df35';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+5,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#b6df35';ctx.font='bold 10px Arial';ctx.fillText('SELECTED',Math.max(8,Math.min(w-70,x-r)),Math.max(55,y-r-10))}});
-if(launched){
-const r0=body().radius*1000,mu=body().gravity*r0*r0,r=r0+altitude,v2=verticalSpeed*verticalSpeed+horizontalSpeed*horizontalSpeed,energy=v2/2-mu/r,hMom=r*horizontalSpeed;
-const ecc=Math.sqrt(Math.max(0,1+(2*energy*hMom*hMom)/(mu*mu)));
-const a=energy<0?-mu/(2*energy):Infinity;
-ctx.save();ctx.translate(selected.x,selected.y);
-if(Number.isFinite(a)&&a>r0*.5&&ecc<2){const apo=Math.max(0,a*(1+ecc)-r0),peri=Math.max(0,a*(1-ecc)-r0);const maxAlt=Math.min(3000000,Math.max(apo,peri,altitude));const orbitPx=Math.max(selected.r+14,Math.min(100,selected.r+14+maxAlt/30000));ctx.strokeStyle='#b6df3588';ctx.lineWidth=2;ctx.setLineDash([5,5]);ctx.beginPath();ctx.ellipse(0,0,orbitPx,Math.max(selected.r+12,orbitPx*(1-ecc*.55)),0,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#b6df35';ctx.font='bold 11px Arial';ctx.fillText('PREDICTED ORBIT',selected.r+12,-orbitPx-8)}
-const mx=selected.x+Math.min(45,horizontalSpeed/15),my=selected.y-selected.r-18-Math.min(65,altitude/18000);ctx.strokeStyle='#b6df35';ctx.beginPath();ctx.moveTo(selected.x,selected.y);ctx.lineTo(mx,my);ctx.stroke();ctx.fillStyle='#b6df35';ctx.beginPath();ctx.arc(mx,my,5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#b6df35';ctx.font='bold 10px Arial';ctx.fillText('YOUR ROCKET',Math.min(w-100,mx+8),my+4);
-}
-ctx.fillStyle='#b8c8d7';ctx.font='bold 12px Arial';ctx.fillText(s.name.toUpperCase()+' / SYSTEM MAP',20,27);ctx.fillStyle='#8199ae';ctx.font='11px Arial';ctx.fillText('Small worlds · flags persist on this device · transfers are still in development.',20,h-18);
-}
-function draw(){if(!ctx)return;if(view==='map')drawMap();else if(view==='stats'){drawFlight();}else drawFlight()}
-function loop(now){const dt=last?Math.min((now-last)/1000,.04):0;last=now;tick(dt);draw();requestAnimationFrame(loop)}
-renderBodySelect();drawCatalog();renderBuild();resetFlight();requestAnimationFrame(loop);
-})();
-</script>
+ <aside class="leftcol">
+  <section class="panel workshop">
+   <div class="panelhead"><span>01 / Rocket workshop</span><span class="pill" id="partCount">3 PARTS</span></div>
+   <div class="pad">
+    <p class="muted smallnote">Build a rocket from individual parts. Add parts from the catalog, then launch. Engines need fuel tanks or boosters to fly.</p>
+    <div id="partCatalog" class="catalog"></div>
+    <div class="sectionline"></div>
+    <div class="row"><button id="clearRocket" class="btn ghost">Clear stack</button><button id="launchBtn" class="btn primary">▶ Launch</button></div>
+    <button id="recoverBtn" class="btn ghost wide" style="margin-top:7px">Recover / reset flight</button>
+    <div class="status" id="notice" role="status">Ready to build.</div>
+    <div class="sectionline"></div>
+    <div class="sideTitle">CURRENT STACK <span class="smallnote">(bottom → top)</span></div>
+    <div id="rocketStack" class="stack"></div>
+   </div>
+  </section>
+  <section class="panel">
+   <div class="panelhead">02 / Mission setup</div>
+   <div class="pad">
+    <label class="label" for="planetSelect">Launch body · Ember System</label>
+    <select id="planetSelect" class="field"></select>
+    <div id="bodyInfo" class="smallnote" style="margin-top:9px"></div>
+    <div class="sectionline"></div>
+    <div class="sideTitle">MISSION CHECKLIST</div>
+    <p class="smallnote">1. Add an engine or booster. 2. Add fuel. 3. Launch and control your rocket. 4. Try to land safely.</p>
+   </div>
+  </section>
+ </aside>
+ <main class="rightcol">
+  <section class="panel">
+   <div class="pad">
+    <div class="eyebrow">SMOKE AEROSPACE // FLIGHT SIMULATOR</div>
+    <div class="screenbottom"><div><h1 class="mainTitle">Space Flight</h1><div class="subtitle">Build. Launch. Explore the Ember System.</div></div><span class="pill" id="modePill">WORKSHOP MODE</span></div>
+    <div class="tabs">
+     <button class="btn active" data-mode="build">Flight deck</button>
+     <button class="btn" data-mode="map">System map</button>
+     <button class="btn" data-mode="stats">Vehicle data</button>
+    </div>
+    <div class="screen">
+     <canvas id="game" width="1000" height="562" aria-label="2D rocket flight and solar system map"></canvas>
+     <button id="mapExit" class="btn primary mapExit hidden">← RETURN TO FLIGHT</button>
+     <div class="hud"><span id="hudMode">MODE: BUILD</span><span id="hudAlt">ALT 0 m</span><span id="hudSpeed">SPD 0 m/s</span><span id="hudFuel">FUEL 0 kg</span></div>
+    </div>
+    <div class="screenbottom">
+     <div class="controls" id="controlText">W / ↑ thrust · A / D steer · S / ↓ retro-thrust · SPACE stage · M map · R reset</div>
+     <div class="row" style="flex:0 0 auto"><button id="pauseBtn" class="btn ghost">Ⅱ Pause</button><button id="stageBtn" class="btn ghost">⇣ Stage</button><button id="plantFlagBtn" class="btn ghost" disabled>⚑ Plant flag</button><button id="mapBtn" class="btn ghost">◎ Map</button></div>
+    </div>
+    <div class="telemetry">
+     <div class="metric"><span>ALTITUDE</span><strong id="metricAlt">0 m</strong></div>
+     <div class="metric"><span>VERTICAL SPEED</span><strong id="metricV">0 m/s</strong></div>
+     <div class="metric"><span>HORIZONTAL SPEED</span><strong id="metricH">0 m/s</strong></div>
+     <div class="metric"><span>FUEL REMAINING</span><strong id="metricFuel">0 kg</strong></div>
+     <div class="metric"><span>APOAPSIS ESTIMATE</span><strong id="metricApo">0 km</strong></div>
+     <div class="metric"><span>PERIAPSIS ESTIMATE</span><strong id="metricPeri">0 km</strong></div>
+    </div>
+   </div>
+  </section>
+  <section class="panel hidden" id="statsPanel">
+   <div class="panelhead">03 / Vehicle data</div><div class="pad">
+    <div class="telemetry">
+     <div class="metric"><span>DRY MASS</span><strong id="statMass">0 kg</strong></div>
+     <div class="metric"><span>FUEL CAPACITY / REMAINING</span><strong id="statFuel">0 kg</strong></div>
+     <div class="metric"><span>TOTAL THRUST</span><strong id="statThrust">0 kN</strong></div>
+     <div class="metric"><span>THRUST / WEIGHT</span><strong id="statTwr">0.00</strong></div>
+    </div>
+    <p class="smallnote">Flight physics are an early playable approximation; true stable orbits and interplanetary transfers are not implemented yet.</p>
+   </div>
+  </section>
+  <section class="panel">
+   <div class="panelhead">04 / Custom parts lab <span class="pill">SAVED ON THIS DEVICE</span></div>
+   <div class="pad">
+    <p class="smallnote">Create your own parts and use them in your rocket. Custom parts are saved in this browser; they do not automatically sync to other devices.</p>
+    <form id="partForm">
+     <label class="label" for="partName">Part name</label><input id="partName" class="field" maxlength="28" placeholder="e.g. SMOKE Heavy Engine" required>
+     <div class="customGrid">
+      <div><label class="label" for="partType">Part type</label><select id="partType" class="field"><option value="capsule">Command capsule</option><option value="tank">Fuel tank</option><option value="engine">Liquid engine</option><option value="booster">Solid booster</option><option value="solar">Solar panel</option><option value="legs">Landing legs</option></select></div>
+      <div><label class="label" for="partMass">Mass (kg)</label><input id="partMass" class="field" type="number" min="1" max="100000" value="100" required></div>
+      <div><label class="label" for="partFuel">Fuel capacity (kg)</label><input id="partFuel" class="field" type="number" min="0" max="100000" value="0" required></div>
+      <div><label class="label" for="partThrust">Thrust (kN)</label><input id="partThrust" class="field" type="number" min="0" max="100000" value="0" required></div>
+     </div>
+     <button class="btn primary wide" type="submit" style="margin-top:11px">＋ Save custom part</button>
+    </form>
+    <div id="customList" class="customList"></div>
+   </div>
+  </section>
+  <section class="panel">
+   <div class="panelhead">05 / Star chart</div><div class="pad"><div id="starChart" class="starChart"></div><div class="legend"><span><i class="legendDot" style="background:#ffb65c"></i>Star</span><span><i class="legendDot" style="background:#66c0f4"></i>Planet / moon</span><span><i class="legendDot" style="background:#b6df35"></i>Selected body</span></div></div>
+  </section>
+ </main>
+</div>
+<footer>SMOKE SPACE FLIGHT · EMBER SYSTEM · BUILD / LAUNCH / EXPLORE</footer>
+<script src="spaceflight.js" defer></script>
 </body>
 </html>
