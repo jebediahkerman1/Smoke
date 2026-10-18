@@ -65,7 +65,7 @@
   const communityReady = Boolean(communityConfig.url && communityConfig.anonKey &&
     !communityConfig.url.includes('YOUR_PROJECT') && !communityConfig.anonKey.includes('YOUR_SUPABASE'));
   const communityEndpoint = communityReady
-    ? communityConfig.url.replace(/\\/$/, '') + '/rest/v1/community_posts'
+    ? communityConfig.url.replace(/\/$/, '') + '/rest/v1/community_posts'
     : '';
 
   function communityHeaders(extra = {}) {
