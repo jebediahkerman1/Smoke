@@ -88,7 +88,8 @@ function renderStarChart(){
  bodies.forEach((b,i)=>{const row=document.createElement('div');row.className='planetRow';const dot=document.createElement('span');dot.className='planetDot';dot.style.background=b.color;const name=document.createElement('span');name.textContent=b.name+' · '+b.kind;if(i===selectedBody){name.className='selectedPlanet'}if(flags[b.name]){const flag=document.createElement('span');flag.textContent=' ⚑';flag.style.color='#ffcf4a';name.appendChild(flag)}row.append(dot,name);el.appendChild(row)});
 }
 function switchMode(next){
- if(!['build','flight','map','stats'].includes(next))next='flight';
+ if(next==='flight')next='build';
+ if(!['build','map','stats'].includes(next))next='build';
  mode=next;
  document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
  $('statsPanel').classList.toggle('hidden',mode!=='stats');
