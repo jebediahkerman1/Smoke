@@ -18,3 +18,11 @@ Add your SMOKE logo to the repository root as `logo.png`. The page currently use
 - [SMOKECRAFT: Blocklands](https://jebediahkerman1.github.io/Smoke/craft.html) — free voxel sandbox with mining, building, crafting and local world saves.
 
 SMOKE games are free browser experiences. SMOKECRAFT is an original voxel-inspired parody and is not affiliated with Mojang or Microsoft.
+
+
+## New 3D browser games
+- [Counter Smoke](https://jebediahkerman1.github.io/Smoke/strike.html) — original round-based tactical 3D shooter vs bots.
+- [Payload Panic](https://jebediahkerman1.github.io/Smoke/payload.html) — original class-based payload shooter with Scout, Soldier, Heavy, and Medic roles.
+- [Zombie Shift](https://jebediahkerman1.github.io/Smoke/zombie.html) — original low-poly 3D horde-survival shooter.
+
+These are original parody-inspired browser games, not affiliated with Counter-Strike, Team Fortress 2, or other third-party franchises. The pages use the Three.js library from a CDN and need an internet connection to load the 3D engine.
