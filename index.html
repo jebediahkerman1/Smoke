@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101a26">
+  <meta name="description" content="SMOKE — a fan-made gaming storefront parody. Browse games, build your library, and hang out.">
+  <title>SMOKE — Games, community, and questionable life choices</title>
+  <link rel="icon" href="logo.png">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="topline"><span>SMOKE COMMUNITY NETWORK</span><span>THE INTERNET'S MOST QUESTIONABLE GAME STORE</span></div>
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="SMOKE home">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <span class="brand-word">SM<span>O</span>KE</span>
+    </a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+    <nav class="main-nav" id="mainNav" aria-label="Main navigation">
+      <a class="active" href="#store">STORE</a><a href="#library">LIBRARY</a><a href="#community">COMMUNITY</a><a href="#about">ABOUT</a>
+    </nav>
+    <div class="header-actions"><button class="login-btn" id="loginBtn">Sign in</button><span class="tiny-note">totally not Steam</span></div>
+  </header>
+  <main id="home">
+    <section class="hero-wrap">
+      <div class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="live-dot"></span> YOUR NEXT BAD HABIT AWAITS</div>
+          <h1>GAMES THAT<br><span>RISE ABOVE.</span></h1>
+          <p>Discover your next obsession. Collect games you'll swear you'll play. Enjoy the smoke.</p>
+          <a class="primary-btn" href="#store">EXPLORE THE STORE <span>↗</span></a>
+          <div class="hero-foot"><span>✦ CURATED CHAOS</span><span>✦ 100% PARODY</span><span>✦ 0 ACTUAL DOWNLOADS</span></div>
+        </div>
+        <div class="hero-art" aria-label="Abstract smoky gaming artwork">
+          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+          <div class="smoke-cloud cloud-a"></div><div class="smoke-cloud cloud-b"></div><div class="smoke-cloud cloud-c"></div>
+          <div class="hero-emblem">S<span>✦</span></div>
+          <div class="art-caption"><span>SMOKE ORIGINAL</span><strong>THE CLOUD COLLECTION</strong><small>Very mysterious. Extremely digital.</small></div>
+          <div class="art-stamp">NO<br>FIRE<br>SAFETY</div>
+        </div>
+      </div>
+    </section>
+    <section class="content-section" id="store">
+      <div class="section-heading"><div><p class="section-kicker">THE GOOD STUFF</p><h2>Explore the <span>Store</span></h2></div><span class="section-side">PICK A GAME. PRETEND YOU HAVE TIME.</span></div>
+      <div class="store-tools">
+        <div class="search-wrap"><span aria-hidden="true">⌕</span><input id="gameSearch" type="search" placeholder="Search the store..." aria-label="Search games"></div>
+        <div class="filters" role="group" aria-label="Filter games"><button class="filter active" data-filter="all">All games</button><button class="filter" data-filter="action">Action</button><button class="filter" data-filter="adventure">Adventure</button><button class="filter" data-filter="chill">Chill</button></div>
+      </div>
+      <div class="game-grid" id="gameGrid">
+        <article class="game-card" data-name="Neon Drift" data-category="action"><div class="game-art art-neon"><span class="art-label">SMOKE SELECTS</span><div class="neon-sun"></div><div class="neon-road"></div><strong>NEON<br>DRIFT</strong><span class="art-bottom">DRIVE PAST TOMORROW</span></div><div class="game-info"><div><h3>Neon Drift</h3><p>Speed · Synthwave · Questionable turns</p></div><span class="price">€19.99</span></div><div class="card-footer"><span class="tag">ACTION</span><button class="details-btn" data-game="Neon Drift">View details ↗</button></div></article>
+        <article class="game-card" data-name="Mossbound" data-category="adventure"><div class="game-art art-moss"><span class="art-label">HIDDEN GEM</span><div class="moon"></div><div class="pine pine1"></div><div class="pine pine2"></div><div class="pine pine3"></div><strong>MOSS<br>BOUND</strong><span class="art-bottom">A LITTLE LOST, A LOT ALIVE</span></div><div class="game-info"><div><h3>Mossbound</h3><p>Explore · Discover · Get distracted</p></div><span class="price">€14.99</span></div><div class="card-footer"><span class="tag">ADVENTURE</span><button class="details-btn" data-game="Mossbound">View details ↗</button></div></article>
+        <article class="game-card" data-name="Desk Goblin" data-category="chill"><div class="game-art art-goblin"><span class="art-label">PRODUCTIVITY KILLER</span><div class="goblin-face">◕‿◕</div><strong>DESK<br>GOBLIN</strong><span class="art-bottom">YOU WERE MEANT TO BE WORKING</span></div><div class="game-info"><div><h3>Desk Goblin</h3><p>Cozy · Weird · Surprisingly relatable</p></div><span class="price">€4.99</span></div><div class="card-footer"><span class="tag">CHILL</span><button class="details-btn" data-game="Desk Goblin">View details ↗</button></div></article>
+        <article class="game-card" data-name="Last Braincell" data-category="action"><div class="game-art art-brain"><span class="art-label">MULTIPLAYER MAYHEM</span><div class="brain-orb">?</div><strong>LAST<br>BRAINCELL</strong><span class="art-bottom">TEAMWORK NOT INCLUDED</span></div><div class="game-info"><div><h3>Last Braincell</h3><p>Chaos · Friends · Blame your ping</p></div><span class="price">€9.99</span></div><div class="card-footer"><span class="tag">ACTION</span><button class="details-btn" data-game="Last Braincell">View details ↗</button></div></article>
+      </div>
+      <p class="no-results" id="noResults" hidden>No games found in this fog. Try another search.</p>
+      <p class="disclaimer">These are fictional showcase listings. Prices and buttons are part of the parody; no purchases or downloads are available.</p>
+    </section>
+    <section class="feature-band" id="library">
+      <div class="feature-icon">▤</div><div><p class="section-kicker">YOUR VERY IMPORTANT COLLECTION</p><h2>Your library. <span>Zero guilt.</span></h2><p>Keep your pretend collection organized. This demo doesn't sign you in or store personal information.</p></div><button class="outline-btn" id="libraryBtn">OPEN MY LIBRARY ↗</button>
+    </section>
+    <section class="community-section" id="community">
+      <div class="section-heading"><div><p class="section-kicker">THE PEOPLE IN THE FOG</p><h2>Community <span>Buzz</span></h2></div><span class="section-side">MADE UP POSTS. REAL INTERNET ENERGY.</span></div>
+      <div class="community-grid">
+        <article class="community-card"><div class="post-top"><span class="avatar avatar-orange">GG</span><span><strong>GigaGoblin</strong><small>General Discussion · 12 min ago</small></span><span class="post-dots">•••</span></div><h3>Anyone else have 300 games and play the same two?</h3><p>My backlog has achieved sentience. It is disappointed in me.</p><div class="post-stats">♡ 248 likes <span>↗ 63 replies</span></div></article>
+        <article class="community-card"><div class="post-top"><span class="avatar avatar-blue">AFK</span><span><strong>AFK_Enjoyer</strong><small>Off Topic · 38 min ago</small></span><span class="post-dots">•••</span></div><h3>SMOKE should add a button that says “one more round”</h3><p>Clicking it makes it 4:00 AM. For realism.</p><div class="post-stats">♡ 186 likes <span>↗ 41 replies</span></div></article>
+      </div>
+      <div class="community-cta"><span>Got an opinion? Of course you do.</span><button class="outline-btn" id="communityBtn">JOIN THE CONVERSATION ↗</button></div>
+    </section>
+    <section class="about-strip" id="about"><div class="about-logo">SM<span>O</span>KE.</div><p>A lovingly unofficial parody storefront. Inspired by gaming platforms, powered by imagination, and absolutely not affiliated with Valve or Steam.</p><a href="#home">BACK TO TOP ↑</a></section>
+  </main>
+  <footer><span>© 2026 SMOKE — A PARODY PROJECT</span><span>PLAY NICE. TOUCH GRASS SOMETIMES.</span><span>NOT AFFILIATED WITH STEAM OR VALVE.</span></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog id="gameDialog"><button class="dialog-close" id="dialogClose" aria-label="Close">×</button><p class="section-kicker">SMOKE STORE</p><h2 id="dialogTitle">Game title</h2><p id="dialogText">A fictional game listing.</p><div class="dialog-note">This is a parody demo. No checkout or downloads are enabled.</div><button class="primary-btn" id="dialogOk">GOT IT</button></dialog>
+</body>
+</html>
