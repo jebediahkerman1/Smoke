@@ -29,11 +29,23 @@ function hash(x,y,s=0){let n=Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+M
 function roadX(tx){return tx*TILE+TILE/2}function roadY(ty){return ty*TILE+TILE/2}
 function streetAt(x,y){let rx=((x%TILE)+TILE)%TILE,ry=((y%TILE)+TILE)%TILE;return rx<TILE/2+HALF&&rx>TILE/2-HALF||ry<TILE/2+HALF&&ry>TILE/2-HALF}
 function blockAt(x,y){return {x:Math.floor(x/TILE),y:Math.floor(y/TILE)}}
-function buildBlock(tx,ty){let bx=tx*TILE,by=ty*TILE,r=hash(tx,ty),margin=ROAD/2+28;let x=bx+margin,y=by+margin,w=TILE-ROAD-56,h=TILE-ROAD-56;
-if(r<.18)return {type:'park',x,y,w,h,tx,ty};
-let n=2+Math.floor(hash(tx,ty,1)*2),buildings=[];let cols=2,rows=Math.ceil(n/cols),cw=w/cols,ch=h/rows;
-for(let i=0;i<n;i++){let pad=14;buildings.push({x:x+(i%cols)*cw+pad,y:y+Math.floor(i/cols)*ch+pad,w:cw-pad*2,h:ch-pad*2,c:colors[Math.floor(hash(tx,ty,i+2)*colors.length)],type:hash(tx,ty,i+9)>.6?'shop':'building',roof:Math.floor(hash(tx,ty,i+20)*4)})}
-return {type:'buildings',x,y,w,h,buildings,tx,ty}}
+function buildBlock(tx,ty){let bx=tx*TILE,by=ty*TILE,r=hash(tx,ty),edge=ROAD/2+38;let size=TILE/2-edge;
+ // Streets cross through the middle of every block. Keep all lots inside the four green corner areas.
+ let corners=[
+  {x:bx+8,y:by+8,w:size-16,h:size-16},
+  {x:bx+TILE/2+edge+8,y:by+8,w:size-16,h:size-16},
+  {x:bx+8,y:by+TILE/2+edge+8,w:size-16,h:size-16},
+  {x:bx+TILE/2+edge+8,y:by+TILE/2+edge+8,w:size-16,h:size-16}
+ ];
+ if(r<.18)return {type:'park',x:bx+edge+8,y:by+edge+8,w:size*2-16,h:size*2-16,tx,ty};
+ let buildings=[];
+ for(let i=0;i<corners.length;i++){
+  if(hash(tx,ty,i+30)<.24)continue;
+  const lot=corners[i],pad=5;
+  const w=Math.max(24,lot.w-2*pad),h=Math.max(24,lot.h-2*pad);
+  buildings.push({x:lot.x+pad,y:lot.y+pad,w,h,c:colors[Math.floor(hash(tx,ty,i+2)*colors.length)],type:hash(tx,ty,i+9)>.6?'shop':'building',roof:Math.floor(hash(tx,ty,i+20)*4)});
+ }
+ return {type:'buildings',x:bx,y:by,w:TILE,h:TILE,buildings,tx,ty}}
 function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
 function visibleBounds(){return {minX:Math.floor((cam.x-canvas.width/2)/TILE)-1,maxX:Math.floor((cam.x+canvas.width/2)/TILE)+1,minY:Math.floor((cam.y-canvas.height/2)/TILE)-1,maxY:Math.floor((cam.y+canvas.height/2)/TILE)+1}}
 function drawWorld(){rect(0,0,canvas.width,canvas.height,'#38513a');const b=visibleBounds();
@@ -56,7 +68,7 @@ roadStroke(()=>{ctx.moveTo(x,y+TILE/2+h0-HALF+2);ctx.quadraticCurveTo(x+TILE/2,y
 roadStroke(()=>{ctx.moveTo(x,y+TILE/2+h0+HALF-2);ctx.quadraticCurveTo(x+TILE/2,y+TILE/2+(hash(tx,ty,104)-.5)*48+HALF-2,x+TILE,y+TILE/2+h1+HALF-2)},3,'#7c827b');
 const bl=buildBlock(tx,ty);let ox=bl.x-cam.x+canvas.width/2,oy=bl.y-cam.y+canvas.height/2;
 if(bl.type==='park'){rect(ox,oy,bl.w,bl.h,'#477448');for(let i=0;i<18;i++){let txp=ox+hash(tx,ty,i)*bl.w,typ=oy+hash(tx,ty,i+90)*bl.h;rect(txp,typ,7,7,'#78965a');ctx.fillStyle='#254a2d';ctx.beginPath();ctx.arc(txp,typ,5,0,Math.PI*2);ctx.fill()}rect(ox+bl.w*.42,oy+bl.h*.1,5,bl.h*.8,'#c2b994')}
-else for(const q of bl.buildings){let qx=q.x-cam.x+canvas.width/2,qy=q.y-cam.y+canvas.height/2;rect(qx+5,qy+6,q.w,q.h,'#202b29');rect(qx,qy,q.w,q.h,q.c);rect(qx+5,qy+5,q.w-10,7,'#c2c0a7');rect(qx+7,qy+17,Math.max(5,q.w-14),4,'#424d50');if(q.type==='shop'){rect(qx+q.w*.2,qy+q.h-12,q.w*.6,7,'#d8c28b')}else{for(let wy=qy+26;wy<qy+q.h-12;wy+=23)for(let wx=qx+9;wx<qx+q.w-7;wx+=20)rect(wx,wy,7,9,'#b5c4b7')}rect(qx+q.w*.42,qy+q.h-9,q.w*.16,9,'#293337')}
+else for(const q of bl.buildings){let qx=q.x-cam.x+canvas.width/2,qy=q.y-cam.y+canvas.height/2;rect(qx+2,qy+3,q.w,q.h,'#202b29');rect(qx,qy,q.w,q.h,q.c);rect(qx+3,qy+3,q.w-6,3,'#c2c0a7');rect(qx+5,qy+9,Math.max(5,q.w-10),2,'#424d50');if(q.type==='shop'){rect(qx+q.w*.2,qy+q.h-12,q.w*.6,7,'#d8c28b')}else{for(let wy=qy+26;wy<qy+q.h-12;wy+=23)for(let wx=qx+9;wx<qx+q.w-7;wx+=20)rect(wx,wy,7,9,'#b5c4b7')}rect(qx+q.w*.42,qy+q.h-9,q.w*.16,9,'#293337')}
 }
 }
 function worldToScreen(x,y){return{x:x-cam.x+canvas.width/2,y:y-cam.y+canvas.height/2}}
@@ -69,9 +81,9 @@ function setFeed(t){feedText=t;$('feed').textContent=t}
 function addHeat(n){wanted=clamp(wanted+n,0,5);crimeClock=0;heatClock=0;if(wanted)setFeed(['','Dispatch: suspicious activity reported.','Dispatch: units are searching for a suspect.','Dispatch: active pursuit, use caution.','Dispatch: all units respond!','Dispatch: citywide alert — suspect is extremely dangerous.'][wanted])}
 function spawnCar(x,y,angle,pol=false){carList.push({x,y,angle,speed:0,color:pol?'#e6e6dc':['#b34f40','#4c87a2','#c7a94e','#d1d2ca','#64815e','#a66caa'][Math.floor(Math.random()*6)],police:pol,occupied:false,ai:!pol&&Math.random()<.5,turn:0})}
 function populate(){carList=[];police=[];for(let ty=-3;ty<=3;ty++)for(let tx=-3;tx<=3;tx++){let n=hash(tx,ty,66);if(n>.13){let vertical=hash(tx,ty,67)>.5;if(vertical)spawnCar(tx*TILE+TILE/2+(hash(tx,ty,68)>.5?22:-22),ty*TILE+TILE*.25+hash(tx,ty,69)*100,Math.PI/2);else spawnCar(tx*TILE+TILE*.25+hash(tx,ty,70)*100,ty*TILE+TILE/2+(hash(tx,ty,71)>.5?22:-22),0)}}}
-function reset(){player={x:160,y:160,angle:0,car:null};cam={x:player.x,y:player.y};cash=250;wanted=0;crimeClock=0;heatClock=0;worldTime=0;bullets=[];shootCooldown=0;populate();$('end').hidden=true;$('intro').hidden=true;$('mode').textContent='ON FOOT';$('cash').textContent='$'+cash;$('wanted').textContent='☆☆☆☆☆';$('carname').textContent='NONE';setFeed('Radio quiet. The city is yours to explore.');running=true;last=performance.now();requestAnimationFrame(loop)}
+function reset(){player={x:200,y:200,angle:0,car:null};cam={x:player.x,y:player.y};cash=250;wanted=0;crimeClock=0;heatClock=0;worldTime=0;bullets=[];shootCooldown=0;populate();$('end').hidden=true;$('intro').hidden=true;$('mode').textContent='ON FOOT';$('cash').textContent='$'+cash;$('wanted').textContent='☆☆☆☆☆';$('carname').textContent='NONE';setFeed('Radio quiet. The city is yours to explore.');running=true;last=performance.now();requestAnimationFrame(loop)}
 function toggleCar(){if(player.car){let c=player.car;player.x=c.x+Math.cos(c.angle+Math.PI/2)*27;player.y=c.y+Math.sin(c.angle+Math.PI/2)*27;c.occupied=false;c.speed=0;player.car=null;$('mode').textContent='ON FOOT';$('carname').textContent='NONE';setFeed('Exited vehicle. Keep an eye out for patrols.');return}let c=nearbyCar();if(!c){setFeed('No car nearby. Walk up to a vehicle first.');return}if(c.police){addHeat(2);setFeed('You took a patrol car. Dispatch is not amused.')}else addHeat(1);player.car=c;c.occupied=true;c.ai=false;c.speed=0;$('mode').textContent='DRIVING';$('carname').textContent=c.police?'PATROL':c.color.toUpperCase();setFeed(c.police?'Patrol vehicle acquired. Wanted level increased.':'Vehicle acquired. Enjoy the ride.')}
-function actionKey(k){if(k==='e'){if(running)toggleCar()}if(k==='r'&&running){if(player.car){player.car.occupied=false;player.car=null}player.x=160;player.y=160;player.angle=0;cam.x=player.x;cam.y=player.y;setFeed('You made it back to the starting block.')}if(k===' '&&player.car)player.car.speed*=.55}
+function actionKey(k){if(k==='e'){if(running)toggleCar()}if(k==='r'&&running){if(player.car){player.car.occupied=false;player.car=null}player.x=200;player.y=200;player.angle=0;cam.x=player.x;cam.y=player.y;setFeed('You made it back to the starting block.')}if(k===' '&&player.car)player.car.speed*=.55}
 function keydown(e){let k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if(!keys.has(k))actionKey(k);keys.add(k)}function keyup(e){keys.delete(e.key.toLowerCase())}
 window.addEventListener('keydown',keydown);window.addEventListener('keyup',keyup);window.addEventListener('blur',()=>{keys.clear();mouse.down=false});
 function mousePosition(e){const r=canvas.getBoundingClientRect();const scale=Math.min(r.width/canvas.width,r.height/canvas.height);const drawnW=canvas.width*scale,drawnH=canvas.height*scale;const offX=(r.width-drawnW)/2,offY=(r.height-drawnH)/2;mouse.x=clamp((e.clientX-r.left-offX)/scale,0,canvas.width);mouse.y=clamp((e.clientY-r.top-offY)/scale,0,canvas.height)}
@@ -102,7 +114,7 @@ let target=nearbyCar();if(!player.car&&target){let p=worldToScreen(target.x,targ
 function loop(t){if(!running)return;let dt=Math.min(.035,(t-last)/1000||0);last=t;update(dt);draw();requestAnimationFrame(loop)}
 $('start').addEventListener('click',reset);$('restart').addEventListener('click',reset);
 // make the initial canvas attractive before starting
-player={x:160,y:160,angle:0,car:null};cam={x:160,y:160};populate();draw();$('start').focus();
+player={x:200,y:200,angle:0,car:null};cam={x:200,y:200};populate();draw();$('start').focus();
 })();
 </script>
 </body>
