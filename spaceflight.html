@@ -97,7 +97,7 @@ if((up||down)&&thrust>0&&fuel>0){
   thrusting=true;
   const dir=up?1:-1;
   // Punchier arcade-style thrust so movement is immediately noticeable.
-  const accel=Math.min(180,thrust*1600/Math.max(1,mass()));
+  const accel=Math.min(650,thrust*5200/Math.max(1,mass()));
   verticalSpeed+=Math.cos(angle)*accel*dt*dir;
   horizontalSpeed+=Math.sin(angle)*accel*dt*dir;
   const use=Math.min(fuel,Math.max(.015,thrust*.00012)*dt);
@@ -177,6 +177,13 @@ ctx.fillStyle='#dce6ed';ctx.strokeStyle='#425b70';ctx.lineWidth=2;
 ctx.beginPath();ctx.moveTo(0,-bodyLen*.58);ctx.lineTo(12,-bodyLen*.34);ctx.lineTo(10,bodyLen*.45);ctx.lineTo(-10,bodyLen*.45);ctx.lineTo(-12,-bodyLen*.34);ctx.closePath();ctx.fill();ctx.stroke();
 ctx.fillStyle='#66c0f4';ctx.beginPath();ctx.arc(0,-bodyLen*.28,5,0,Math.PI*2);ctx.fill();
 ctx.fillStyle='#e28b54';ctx.fillRect(-8,bodyLen*.3,16,10);
+// Landing legs: hinged struts with flat feet, drawn as part of the rocket.
+const hasLegs=rocket.some(p=>p.type==='legs'||/landing legs/i.test(p.name||''));
+if(hasLegs){
+  ctx.strokeStyle='#d8e2eb';ctx.lineWidth=4;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(-8,bodyLen*.22);ctx.lineTo(-22,bodyLen*.48);ctx.lineTo(-31,bodyLen*.52);ctx.moveTo(8,bodyLen*.22);ctx.lineTo(22,bodyLen*.48);ctx.lineTo(31,bodyLen*.52);ctx.stroke();
+  ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-35,bodyLen*.52);ctx.lineTo(-25,bodyLen*.52);ctx.moveTo(25,bodyLen*.52);ctx.lineTo(35,bodyLen*.52);ctx.stroke();
+}
 if(thrusting&&fuel>0){ctx.fillStyle='#ffd75d';ctx.beginPath();ctx.moveTo(-7,bodyLen*.45);ctx.lineTo(0,bodyLen*.45+18+Math.random()*12);ctx.lineTo(7,bodyLen*.45);ctx.fill();ctx.fillStyle='#ef7043';ctx.beginPath();ctx.moveTo(-4,bodyLen*.45);ctx.lineTo(0,bodyLen*.45+12);ctx.lineTo(4,bodyLen*.45);ctx.fill()}
 ctx.restore();
 ctx.fillStyle='#e3eff9';ctx.font='bold 13px Arial';ctx.fillText(b.name.toUpperCase()+' // SPACEFLIGHT',20,h-22);
