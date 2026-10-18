@@ -19,7 +19,7 @@ function loadProgress(){try{const saved=JSON.parse(localStorage.getItem(SAVE_KEY
 function saveProgress(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(completed))}catch{}}
 const savedCompleted=loadProgress();
 let level=savedCompleted.findIndex(v=>!v);if(level<0)level=maps.length-1;
-let map=maps[level],mw=16,mh=12,player={x:2.5,y:1.5,a:0},blue=null,orange=null,keys={},running=false,paused=false,completed=savedCompleted,last=0,depth=new Float32Array(W),messageCooldown=0,health=100,damageFlash=0,turrets=[],turretBolts=[],roomElapsed=0,walkCycle=0,portalTransfers=0,completionTimer=null;
+let map=maps[level],mw=16,mh=12,player={x:2.5,y:1.5,a:0},blue=null,orange=null,keys={},running=false,paused=false,completed=savedCompleted,last=0,depth=new Float32Array(W),messageCooldown=0,health=100,damageFlash=0,turrets=[],turretBolts=[],roomElapsed=0,walkCycle=0,portalTransfers=0,completionTimer=null,weaponKick=0,weaponSide='blue';
 const status=$('statusText'),hint=$('toast'),overlay=$('pauseOverlay');
 const healthFill=$('healthFill'),healthValue=$('healthValue'),clockLabel=$('chamberClock');
 const miniMap=$('miniMap'),mctx=miniMap.getContext('2d');
@@ -101,6 +101,7 @@ function placePortal(which){
  const other=which==='blue'?orange:blue;
  if(other&&Math.hypot(p.x-other.x,p.y-other.y)<.82){say('Portal anchors need more space between them.');return}
  if(which==='blue')blue=p;else orange=p;
+ weaponKick=.72;weaponSide=which;
  say((which==='blue'?'BLUE':'ORANGE')+' portal placed at target location');draw();
 }
 function tryMove(nx,ny){
@@ -138,7 +139,7 @@ function step(dt){
   if(length>speed){dx=dx/length*speed;dy=dy/length*speed}
   tryMove(player.x+dx,player.y+dy);walkCycle+=dt*(keys.shift?13:9);
  }else walkCycle*=Math.max(0,1-dt*5);
- roomElapsed+=dt;
+ roomElapsed+=dt;weaponKick=Math.max(0,weaponKick-dt*4.5);
  updateTurrets(dt);
  updateTurretBolts(dt);
  if(Math.hypot(player.x-exitPoint.x,player.y-exitPoint.y)<.62){
@@ -290,10 +291,94 @@ function drawExit(){
  const h=Math.min(H*.8,H/dist*.62);ctx.save();ctx.fillStyle='#35ffab';ctx.shadowColor='#35ffab';ctx.shadowBlur=22;ctx.fillRect(sx-h*.12,H/2-h*.48,h*.24,h*.9);ctx.shadowBlur=0;ctx.fillStyle='#d9ffea';ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.fillText('EXIT',sx,H/2-h*.56);ctx.restore();
 }
 function drawDevice(){
- const bob=(keys.w||keys.s||keys.a||keys.d)?Math.sin(walkCycle)*3.6:0;ctx.save();ctx.translate(0,bob);
- ctx.fillStyle='#111a20';ctx.beginPath();ctx.moveTo(W*.38,H);ctx.lineTo(W*.43,H*.82);ctx.lineTo(W*.57,H*.82);ctx.lineTo(W*.62,H);ctx.fill();
- ctx.fillStyle='#607681';ctx.fillRect(W*.445,H*.8,W*.11,H*.2);ctx.fillStyle='#b8d3db';ctx.fillRect(W*.475,H*.73,W*.05,H*.09);
- ctx.fillStyle='#18242b';ctx.fillRect(W*.49,H*.68,W*.02,H*.08);ctx.fillStyle=blue?'#29cfff':'#14738a';ctx.fillRect(W*.465,H*.77,W*.025,H*.025);ctx.fillStyle=orange?'#ff9d3e':'#87511f';ctx.fillRect(W*.51,H*.77,W*.025,H*.025);ctx.restore();
+ // First-person SMOKE test subject: articulated sleeves, gloves, and a custom portal tool.
+ // The subtle body sway follows movement; firing briefly kicks the tool back.
+ const moving=!!(keys.w||keys.s||keys.a||keys.d||keys.arrowup||keys.arrowdown);
+ const swayX=moving?Math.sin(walkCycle*.72)*3.1:Math.sin(walkCycle*.28)*.6;
+ const swayY=moving?Math.abs(Math.sin(walkCycle))*3.2:0;
+ const recoil=weaponKick*13;
+ ctx.save();ctx.translate(swayX,swayY+recoil);
+
+ const sleeve=ctx.createLinearGradient(0,H*.76,0,H);
+ sleeve.addColorStop(0,'#dfe8eb');sleeve.addColorStop(.48,'#aebdc4');sleeve.addColorStop(1,'#596a75');
+ const sleeveLight=ctx.createLinearGradient(0,H*.78,0,H);
+ sleeveLight.addColorStop(0,'#f5f8f8');sleeveLight.addColorStop(1,'#a8b8c0');
+ const glove=ctx.createLinearGradient(0,H*.73,0,H*.94);
+ glove.addColorStop(0,'#485864');glove.addColorStop(.5,'#263640');glove.addColorStop(1,'#101a22');
+
+ // Left forearm and reinforced wrist cuff.
+ ctx.save();ctx.shadowColor='#0009';ctx.shadowBlur=18;ctx.shadowOffsetY=5;
+ ctx.fillStyle='#344651';ctx.beginPath();ctx.moveTo(W*.20,H);ctx.lineTo(W*.275,H*.905);ctx.lineTo(W*.385,H*.808);
+ ctx.lineTo(W*.432,H*.84);ctx.lineTo(W*.424,H*.922);ctx.lineTo(W*.347,H);ctx.closePath();ctx.fill();
+ ctx.fillStyle=sleeve;ctx.beginPath();ctx.moveTo(W*.208,H);ctx.lineTo(W*.292,H*.913);ctx.lineTo(W*.382,H*.818);
+ ctx.lineTo(W*.419,H*.85);ctx.lineTo(W*.409,H*.911);ctx.lineTo(W*.337,H);ctx.closePath();ctx.fill();ctx.restore();
+ ctx.strokeStyle='#f3fbfc';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(W*.289,H*.914);ctx.lineTo(W*.377,H*.829);ctx.stroke();
+ ctx.strokeStyle='#31c9f2';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(W*.312,H*.935);ctx.lineTo(W*.389,H*.857);ctx.stroke();
+ // Left gloved support hand reaches under the forward barrel.
+ ctx.fillStyle=glove;ctx.beginPath();ctx.moveTo(W*.387,H*.836);ctx.quadraticCurveTo(W*.408,H*.797,W*.443,H*.806);
+ ctx.lineTo(W*.481,H*.845);ctx.quadraticCurveTo(W*.493,H*.866,W*.475,H*.884);
+ ctx.lineTo(W*.448,H*.889);ctx.lineTo(W*.424,H*.871);ctx.lineTo(W*.405,H*.873);ctx.quadraticCurveTo(W*.382,H*.865,W*.387,H*.836);ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#81939d';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(W*.417,H*.83);ctx.lineTo(W*.445,H*.849);ctx.moveTo(W*.407,H*.85);ctx.lineTo(W*.435,H*.87);ctx.stroke();
+
+ // Right forearm with orange suit identification stripe.
+ ctx.save();ctx.shadowColor='#0009';ctx.shadowBlur=18;ctx.shadowOffsetY=5;
+ ctx.fillStyle='#2e414c';ctx.beginPath();ctx.moveTo(W*.677,H);ctx.lineTo(W*.606,H*.914);ctx.lineTo(W*.578,H*.834);
+ ctx.lineTo(W*.622,H*.808);ctx.lineTo(W*.735,H*.911);ctx.lineTo(W*.798,H);ctx.closePath();ctx.fill();
+ ctx.fillStyle=sleeve;ctx.beginPath();ctx.moveTo(W*.686,H);ctx.lineTo(W*.619,H*.91);ctx.lineTo(W*.589,H*.842);
+ ctx.lineTo(W*.626,H*.824);ctx.lineTo(W*.729,H*.918);ctx.lineTo(W*.79,H);ctx.closePath();ctx.fill();ctx.restore();
+ ctx.strokeStyle='#f3f8f9';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(W*.62,H*.916);ctx.lineTo(W*.594,H*.849);ctx.stroke();
+ ctx.strokeStyle='#ff9c45';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(W*.641,H*.936);ctx.lineTo(W*.615,H*.867);ctx.stroke();
+
+ // Portal tool: dark composite shell, bright prongs and a luminous muzzle.
+ const metal=ctx.createLinearGradient(W*.48,H*.73,W*.65,H*.96);
+ metal.addColorStop(0,'#eaf2f4');metal.addColorStop(.18,'#899ba5');metal.addColorStop(.43,'#364954');metal.addColorStop(.72,'#182832');metal.addColorStop(1,'#0b141c');
+ ctx.save();ctx.translate(W*.59,H*.835);ctx.rotate(-.52);
+ ctx.shadowColor='#000b';ctx.shadowBlur=18;ctx.shadowOffsetY=7;
+ // Rear body and handle.
+ ctx.fillStyle='#101c25';ctx.beginPath();ctx.moveTo(-W*.033,H*.012);ctx.lineTo(-W*.015,-H*.076);
+ ctx.lineTo(W*.035,-H*.113);ctx.lineTo(W*.078,-H*.074);ctx.lineTo(W*.07,H*.022);
+ ctx.lineTo(W*.025,H*.066);ctx.lineTo(-W*.017,H*.055);ctx.closePath();ctx.fill();
+ ctx.fillStyle=metal;ctx.beginPath();ctx.moveTo(-W*.023,-H*.008);ctx.lineTo(-W*.006,-H*.068);
+ ctx.lineTo(W*.031,-H*.091);ctx.lineTo(W*.061,-H*.06);ctx.lineTo(W*.054,H*.012);
+ ctx.lineTo(W*.022,H*.047);ctx.lineTo(-W*.009,H*.039);ctx.closePath();ctx.fill();
+ ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+ // Three upper rails and the recognizable split muzzle.
+ ctx.strokeStyle='#d9e9ee';ctx.lineWidth=5;ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(-W*.005,-H*.064);ctx.lineTo(-W*.024,-H*.119);
+ ctx.moveTo(W*.025,-H*.079);ctx.lineTo(W*.043,-H*.134);
+ ctx.moveTo(W*.052,-H*.059);ctx.lineTo(W*.077,-H*.107);ctx.stroke();
+ ctx.lineWidth=2;ctx.strokeStyle='#6e8794';ctx.beginPath();ctx.moveTo(-W*.004,-H*.065);ctx.lineTo(-W*.023,-H*.116);ctx.moveTo(W*.026,-H*.08);ctx.lineTo(W*.044,-H*.131);ctx.stroke();
+ // Blue and orange emitters cast soft light when their portal is active.
+ const emit=(x,y,color,active)=>{
+  ctx.save();ctx.shadowColor=color;ctx.shadowBlur=active?24:8;ctx.fillStyle=active?color:'#263641';
+  ctx.beginPath();ctx.ellipse(x,y,W*.012,H*.021,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle=active?'#e9fbff':'#71838c';ctx.lineWidth=1.5;ctx.stroke();ctx.restore();
+ };
+ emit(-W*.008,-H*.084,'#22caff',!!blue);
+ emit(W*.046,-H*.074,'#ff9b43',!!orange);
+ // Barrel opening, angled into the chamber.
+ ctx.fillStyle='#9aadb7';ctx.beginPath();ctx.ellipse(W*.015,-H*.115,W*.036,H*.026,-.12,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#0b1720';ctx.beginPath();ctx.ellipse(W*.015,-H*.117,W*.027,H*.018,-.12,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle=weaponSide==='blue'?'#47dcff':'#ffb15b';ctx.lineWidth=3;
+ ctx.beginPath();ctx.ellipse(W*.015,-H*.117,W*.03,H*.02,-.12,0,Math.PI*2);ctx.stroke();
+ // Gloved trigger hand wraps the rear grip.
+ ctx.fillStyle=glove;ctx.beginPath();ctx.moveTo(W*.027,-H*.006);ctx.quadraticCurveTo(W*.064,-H*.025,W*.077,H*.005);
+ ctx.lineTo(W*.072,H*.043);ctx.quadraticCurveTo(W*.052,H*.06,W*.033,H*.032);
+ ctx.lineTo(W*.019,H*.019);ctx.closePath();ctx.fill();
+ ctx.strokeStyle='#82939c';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(W*.044,H*.007);ctx.lineTo(W*.064,H*.019);ctx.moveTo(W*.04,H*.022);ctx.lineTo(W*.06,H*.034);ctx.stroke();
+ // Suit wrist plate and a small cyan status LED.
+ ctx.fillStyle='#263a45';ctx.beginPath();ctx.roundRect(-W*.013,H*.036,W*.05,H*.027,5);ctx.fill();
+ ctx.fillStyle='#a6ee49';ctx.shadowColor='#a6ee49';ctx.shadowBlur=9;ctx.fillRect(W*.008,H*.045,W*.009,H*.008);ctx.shadowBlur=0;
+ ctx.restore();
+
+ // Small identity patch makes the visible arms clearly belong to a test subject suit.
+ ctx.save();ctx.translate(W*.275,H*.942);ctx.rotate(-.68);
+ ctx.fillStyle='#f2f6f7';ctx.beginPath();ctx.roundRect(-17,-7,34,14,3);ctx.fill();
+ ctx.fillStyle='#273a45';ctx.fillRect(-12,-3,24,6);
+ ctx.fillStyle='#9bde48';ctx.fillRect(-9,-2,5,4);ctx.fillRect(-1,-2,5,4);ctx.fillRect(7,-2,5,4);
+ ctx.restore();
+
+ ctx.restore();
 }
 function start(){if(running)return;running=true;paused=false;overlay.classList.remove('visible');status.textContent='TEST IN PROGRESS';canvas.requestPointerLock?.();say('WASD move · mouse look · left blue · right orange')}
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
