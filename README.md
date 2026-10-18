@@ -1,6 +1,6 @@
 # SMOKE
 
-A static, responsive gaming storefront parody built with HTML, CSS, and JavaScript.
+A responsive, free browser gaming hub built with HTML, CSS, and JavaScript.
 
 ## Publish with GitHub Pages
 1. Open the repository **Settings**.
@@ -10,7 +10,7 @@ A static, responsive gaming storefront parody built with HTML, CSS, and JavaScri
 5. After GitHub finishes deploying, the site should be available at `https://jebediahkerman1.github.io/Smoke/`.
 
 ## Logo
-Add your SMOKE logo to the repository root as `logo.png`. The page currently uses a CSS text mark as a fallback. The site is a parody demo: no downloads, purchases, or real account features are enabled.
+Add your SMOKE logo to the repository root as `logo.png`. The page currently uses a CSS text mark as a fallback. The site is a parody demo offering free browser games; no purchases or game downloads are required.
 
 
 ## Games
