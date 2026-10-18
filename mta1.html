@@ -22,8 +22,8 @@
 </main>
 <script>
 (()=>{'use strict';
-const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),mini=$('minimap'),mctx=mini.getContext('2d');
-const $=id=>document.getElementById(id);const TILE=400,ROAD=150,HALF=ROAD/2;
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const $=id=>document.getElementById(id);const mini=$('minimap'),mctx=mini.getContext('2d');const TILE=400,ROAD=150,HALF=ROAD/2;
 let running=false,keys=new Set(),last=0,player,carList=[],police=[],officers=[],pedestrians=[],bullets=[],cash=250,wanted=0,crimeClock=0,heatClock=0,cam={x:0,y:0},worldSeed=1337,feedText='Radio quiet. The city is yours to explore.',missionCash=0,worldTime=0,mouse={x:canvas.width/2,y:canvas.height/2,down:false},shootCooldown=0,health=100,armor=0,weaponIndex=0,weaponAmmo=[Infinity,180,48,90],shopOpen=false,gamepadState={x:0,y:0,rx:0,ry:0,fire:false,a:false,prevA:false};
 const weapons=[{name:'Pistol',cost:0,damage:1,delay:.14,ammo:Infinity,speed:650,count:1,spread:0},{name:'SMG',cost:350,damage:1,delay:.075,ammo:180,speed:680,count:1,spread:.06},{name:'Shotgun',cost:600,damage:1,delay:.55,ammo:48,speed:570,count:6,spread:.34},{name:'Assault Rifle',cost:900,damage:2,delay:.11,ammo:90,speed:800,count:1,spread:.025}];
 const colors=['#9d654b','#777e83','#b39a69','#6d8e87','#9b7f9b','#8d9b65','#a3a6a0'];
