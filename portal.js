@@ -84,8 +84,8 @@ function tryMove(nx,ny){
   }
  }
  let moved=false;
- if(!wall(nx,oldY)&&!wall(nx+Math.sign(nx-oldX)*.18,oldY)) {player.x=nx;moved=true}
- if(!wall(player.x,ny)&&!wall(player.x,ny+Math.sign(ny-oldY)*.18)){player.y=ny;moved=true}
+ if(!wall(nx,oldY)) {player.x=nx;moved=true}
+ if(!wall(player.x,ny)){player.y=ny;moved=true}
  return moved;
 }
 function step(dt){
