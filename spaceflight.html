@@ -113,7 +113,7 @@ altitude+=verticalSpeed*dt;
 const nextR=r0+altitude;
 if(nextR>0)camX+=horizontalSpeed/nextR*dt;
 // Keep the rocket fixed on screen and move the planet opposite the rocket's travel.
-worldOffsetX+=horizontalSpeed*dt*1.8;
+worldOffsetX+=horizontalSpeed*dt*1.8+steer*90*dt;
 worldOffsetY+=verticalSpeed*dt*1.8;
 if(altitude<=0){
   altitude=0;
