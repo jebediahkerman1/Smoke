@@ -125,7 +125,7 @@ function tryMove(nx,ny){
     // Step outward from the destination wall until the body has clear floor.
     // This avoids landing with the collision radius embedded in a neighboring wall.
     let landing=null;
-    for(const distance of [.36,.48,.62,.8,1.0]){
+    for(const distance of [1.1,1.3,1.5,1.75,2.0,2.3]){
      const x=dest.x-outTx*offset+dest.nx*distance;
      const y=dest.y-outTy*offset+dest.ny*distance;
      if(canOccupy(x,y,.16)){landing={x,y};break}
