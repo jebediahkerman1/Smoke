@@ -160,9 +160,21 @@ function drawPortalFrame(p){
  if(dist<.12||Math.abs(rel)>FOV*.68||frontDot(p,player.x,player.y)<=.01)return;
  const sx=(.5+rel/FOV)*W,col=Math.max(0,Math.min(W-1,Math.floor(sx)));
  if(depth[col]<dist-.25)return;
- const cosine=Math.max(.18,Math.abs(Math.cos(rel))),pw=Math.min(W*.38,(W/(2*Math.tan(FOV/2)))*PORTAL_WIDTH*cosine/dist),ph=Math.min(H*.92,H*.78/dist),top=(H-ph)/2;
- ctx.save();ctx.shadowColor=p.color==='blue'?'#00bfff':'#ff8c28';ctx.shadowBlur=19;ctx.strokeStyle=p.color==='blue'?'#40ddff':'#ffad50';ctx.lineWidth=Math.max(3,Math.min(8,8/dist));ctx.strokeRect(sx-pw/2,top+ph*.07,pw,ph*.86);
- ctx.shadowBlur=0;ctx.globalAlpha=.25;ctx.fillStyle=p.color==='blue'?'#00bfff':'#ff8c28';ctx.fillRect(sx-pw/2,top+ph*.07,pw,3);ctx.restore();
+ // A tall, narrow portal with fully rounded ends, like the original Portal games.
+ const scale=(W/(2*Math.tan(FOV/2)))/dist*Math.max(.22,Math.abs(Math.cos(rel)));
+ const pw=Math.min(W*.25,PORTAL_WIDTH*scale),ph=Math.min(H*.94,H*1.12/dist),cy=H*.5;
+ ctx.save();
+ ctx.shadowColor=p.color==='blue'?'#00bfff':'#ff8c28';ctx.shadowBlur=24;
+ ctx.strokeStyle=p.color==='blue'?'#40ddff':'#ffad50';ctx.lineWidth=Math.max(3,Math.min(8,8/dist));
+ ctx.beginPath();ctx.ellipse(sx,cy,pw*.5,ph*.5,0,0,Math.PI*2);ctx.stroke();
+ ctx.shadowBlur=0;ctx.globalAlpha=.32;ctx.fillStyle=p.color==='blue'?'#00bfff':'#ff8c28';
+ ctx.beginPath();ctx.ellipse(sx,cy,pw*.47,ph*.48,0,0,Math.PI*2);ctx.fill();
+ // Dark inner opening gives the oval a clear portal silhouette.
+ ctx.globalAlpha=.88;ctx.fillStyle='#071018';
+ ctx.beginPath();ctx.ellipse(sx,cy,pw*.39,ph*.43,0,0,Math.PI*2);ctx.fill();
+ ctx.globalAlpha=.9;ctx.strokeStyle=p.color==='blue'?'#9bf0ff':'#ffd1a0';ctx.lineWidth=Math.max(1,Math.min(3,3/dist));
+ ctx.beginPath();ctx.ellipse(sx,cy,pw*.42,ph*.45,0,0,Math.PI*2);ctx.stroke();
+ ctx.restore();
 }
 function drawExit(){
  const dx=exitPoint.x-player.x,dy=exitPoint.y-player.y,dist=Math.hypot(dx,dy),rel=Math.atan2(Math.sin(Math.atan2(dy,dx)-player.a),Math.cos(Math.atan2(dy,dx)-player.a));
