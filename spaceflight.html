@@ -84,7 +84,7 @@ if(!launched||paused||crashed)return;
 dt=Math.min(dt,.025);
 simTime+=dt;
 const steer=(keys.has('a')||keys.has('arrowleft')?-1:0)+(keys.has('d')||keys.has('arrowright')?1:0);
-angle=Math.max(-1.45,Math.min(1.45,angle+steer*1.2*dt));
+angle=Math.max(-1.35,Math.min(1.35,angle+steer*.85*dt));
 const up=keys.has('w')||keys.has('arrowup'),down=keys.has('s')||keys.has('arrowdown');
 const active=rocket.filter(p=>(p.type==='engine'||p.type==='booster')&&!stageSpent.has(p.uid)&&(+p.thrust||0)>0);
 const thrust=active.reduce((n,p)=>n+(+p.thrust||0),0);
@@ -176,7 +176,7 @@ if(!space){
   if(hasFlag()){ctx.strokeStyle='#f4f7fb';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px+pr*.55,py-pr*.2);ctx.lineTo(px+pr*.55,py-pr*.95);ctx.stroke();ctx.fillStyle='#ffcf4a';ctx.beginPath();ctx.moveTo(px+pr*.55,py-pr*.95);ctx.lineTo(px+pr*.95,py-pr*.78);ctx.lineTo(px+pr*.55,py-pr*.62);ctx.closePath();ctx.fill()}
 }
 const rx=w*.5+Math.max(-w*.28,Math.min(w*.28,horizontalSpeed*.7));
-const ry=space?h*.47:Math.max(105,groundY-52-altitude/950);
+const ry=space?h*.47:Math.max(105,groundY-52-Math.min(280,Math.max(0,altitude)/(Math.max(0,altitude)+1200)*280));
 ctx.save();ctx.translate(rx,ry);ctx.rotate(-angle);
 const bodyLen=Math.max(50,Math.min(130,rocket.length*12));
 ctx.fillStyle='#dce6ed';ctx.strokeStyle='#425b70';ctx.lineWidth=2;
