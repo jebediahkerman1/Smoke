@@ -14,7 +14,7 @@
 <main>
 <section class="intro"><div><div class="kicker">SMOKE ORIGINAL • BROWSER GAME</div><h1>MTA 1: PROCEDURAL MAP</h1><p>A retro top-down city that generates as you explore. Find a car. Make your own trouble.</p></div></section>
 <div class="status"><div class="stat"><span>STATUS</span><strong id="mode">ON FOOT</strong></div><div class="stat"><span>CASH</span><strong id="cash">$250</strong></div><div class="stat"><span>WANTED</span><strong id="wanted">☆☆☆☆☆</strong></div><div class="stat"><span>BLOCK</span><strong id="block">0, 0</strong></div><div class="stat"><span>VEHICLE</span><strong id="carname">NONE</strong></div><div class="stat"><span>AMMO</span><strong id="ammo">∞</strong></div></div>
-<div class="game-frame"><canvas id="game" width="960" height="600" aria-label="MTA 1 top-down procedural city game"></canvas><div class="overlay" id="intro"><div class="modal"><div class="kicker">WELCOME TO THE CITY</div><h2>MTA 1</h2><p>Procedural streets. Random city blocks. Stolen cars, tiny projectiles, and a city that keeps growing.</p><p class="hint">WASD move/drive · Mouse aim & click shoot · E enter/exit · Space handbrake</p><button class="primary" id="start">ENTER THE CITY</button></div></div><div class="overlay" id="end" hidden><div class="modal"><h2 id="endTitle">BUSTED!</h2><p id="endText">The city caught up with you.</p><button class="primary" id="restart">GET BACK OUT THERE</button></div></div></div>
+<div class="game-frame"><canvas id="game" width="960" height="600" aria-label="MTA 1 top-down procedural city game"></canvas><div class="overlay" id="intro"><div class="modal"><div class="kicker">WELCOME TO THE CITY</div><h2>MTA 1</h2><p>Wider curving streets. Room to cruise between buildings. Stolen cars, tiny projectiles, and a city that keeps growing.</p><p class="hint">WASD move/drive · Mouse aim & click shoot · E enter/exit · Space handbrake</p><button class="primary" id="start">ENTER THE CITY</button></div></div><div class="overlay" id="end" hidden><div class="modal"><h2 id="endTitle">BUSTED!</h2><p id="endText">The city caught up with you.</p><button class="primary" id="restart">GET BACK OUT THERE</button></div></div></div>
 <div class="touch"><button data-key="w">▲</button><button data-key="a">◀</button><button data-key="s">▼</button><button data-key="d">▶</button><button data-key="e">ENTER / EXIT</button><button data-key=" ">BRAKE</button></div>
 <div class="under"><section class="box"><h3>DISPATCH / CITY FEED</h3><p id="feed" class="feed">Radio quiet. The city is yours to explore.</p><p class="hint">Tip: cars spawn on roads. Walk near one and press <kbd>E</kbd> to take the wheel. Drive recklessly to raise your wanted level; hide out to cool it down.</p></section><section class="box"><h3>CONTROLS</h3><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move / accelerate / steer</p><p><kbd>E</kbd> Enter or leave nearby car</p><p><kbd>SHIFT</kbd> Sprint on foot</p><p><kbd>SPACE</kbd> Handbrake while driving</p><p><kbd>R</kbd> Reset your position</p><p><kbd>MOUSE</kbd> Aim at cursor</p><p><kbd>LEFT CLICK</kbd> Fire tiny projectiles</p></section></div>
 <p class="hint" style="text-align:center;color:#8195a4;margin-top:18px">MTA 1 is an original SMOKE parody game inspired by classic top-down city games. No downloads or purchases.</p>
@@ -22,7 +22,7 @@
 <script>
 (()=>{'use strict';
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
-const $=id=>document.getElementById(id);const TILE=400,ROAD=100,HALF=ROAD/2;
+const $=id=>document.getElementById(id);const TILE=400,ROAD=150,HALF=ROAD/2;
 let running=false,keys=new Set(),last=0,player,carList=[],police=[],bullets=[],cash=250,wanted=0,crimeClock=0,heatClock=0,cam={x:0,y:0},worldSeed=1337,feedText='Radio quiet. The city is yours to explore.',missionCash=0,worldTime=0,mouse={x:canvas.width/2,y:canvas.height/2,down:false},shootCooldown=0,ammo=Infinity;
 const colors=['#9d654b','#777e83','#b39a69','#6d8e87','#9b7f9b','#8d9b65','#a3a6a0'];
 function hash(x,y,s=0){let n=Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+Math.imul((s+worldSeed)|0,1442695041)|0;n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967295}
@@ -40,7 +40,7 @@ function drawWorld(){rect(0,0,canvas.width,canvas.height,'#38513a');const b=visi
 for(let ty=b.minY;ty<=b.maxY;ty++)for(let tx=b.minX;tx<=b.maxX;tx++){
 let x=tx*TILE-cam.x+canvas.width/2,y=ty*TILE-cam.y+canvas.height/2;
 rect(x,y,TILE,TILE,'#40533c');
-// Curving street segments: their endpoints line up at each block boundary,
+// Curving, extra-wide street segments: their endpoints line up at each block boundary,
  // while deterministic bends make the city feel less like a perfect grid.
 const v0=(hash(tx,ty,101)-.5)*34,v1=(hash(tx,ty+1,101)-.5)*34;
 const h0=(hash(tx,ty,102)-.5)*34,h1=(hash(tx+1,ty,102)-.5)*34;
