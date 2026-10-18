@@ -15,7 +15,7 @@ const maps=[
 ['1111111111111111','1000000000000001','1000000000000001','1010000000000101','1000000000000001','1000110001100001','1000000000000001','1000110001100001','1000000000000001','1010000000000101','1000000000000001','1111111111111111'],
 ['1111111111111111','1000000000000001','1000100001000001','1000000000000001','1000100001000001','1000000000000001','1000000000000001','1000000000000001','1000100001000001','1000000000000001','1000000000000001','1111111111111111'],
 ['1111111111111111','1000000000000001','1000000000000001','1000110001100001','1000000000000001','1010000000000101','1000000000000001','1000000000000001','1000110001100001','1000000000000001','1000000000000001','1111111111111111']]
-let level=0,map=maps[0],mw=16,mh=12,player={x:2.5,y:2.5,a:0},blue=null,orange=null,keys={},running=false,paused=false,completed=Array(maps.length).fill(false),last=0,depth=new Float32Array(W),messageCooldown=0,health=100,damageFlash=0,turrets=[],turretBolts=[];
+let level=0,map=maps[0],mw=16,mh=12,player={x:2.5,y:1.5,a:0},blue=null,orange=null,keys={},running=false,paused=false,completed=Array(maps.length).fill(false),last=0,depth=new Float32Array(W),messageCooldown=0,health=100,damageFlash=0,turrets=[],turretBolts=[];
 const status=$('statusText'),hint=$('toast'),overlay=$('pauseOverlay');
 const exitPoint={x:13.5,y:10.5};
 const levelNames=['01 — FIRST CONTACT','02 — MOMENTUM EXCHANGE','03 — THE EXIT PROBLEM','04 — SENTINEL PROTOCOL','05 — CROSS-FIRE','06 — FINAL OVERRIDE','07 — THE MOVING MAZE','08 — BLIND CORNERS','09 — REACTOR RUN','10 — THE LAST TEST'];
@@ -61,7 +61,7 @@ function ray(ox,oy,angle,hops=0){
 }
 function say(text){hint.textContent=text;hint.classList.add('show');clearTimeout(say.timer);say.timer=setTimeout(()=>hint.classList.remove('show'),1900)}
 function resetRoom(){
- map=maps[level];player={x:2.5,y:2.5,a:0};blue=null;orange=null;keys={};paused=false;health=100;damageFlash=0;turretBolts=[];turrets=(turretLayouts[level]||[]).map(p=>({...p,a:Math.atan2(2.5-p.y,2.5-p.x),cooldown:1+Math.random()*1.5,flash:0,alive:true}));overlay.classList.remove('visible');
+ map=maps[level];player={x:2.5,y:1.5,a:0};blue=null;orange=null;keys={};paused=false;health=100;damageFlash=0;turretBolts=[];turrets=(turretLayouts[level]||[]).map(p=>({...p,a:Math.atan2(2.5-p.y,2.5-p.x),cooldown:1+Math.random()*1.5,flash:0,alive:true}));overlay.classList.remove('visible');
  status.textContent='AWAITING SUBJECT';
  $('levelName').textContent=levelNames[level];
  $('objective').textContent=objectives[level];
