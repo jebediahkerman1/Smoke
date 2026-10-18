@@ -44,7 +44,8 @@
     'Desk Goblin': 'A cozy little creature helps you procrastinate with extraordinary efficiency.',
     'Last Braincell': 'A chaotic multiplayer party game about teamwork, bad plans, and the last thought in your head.'
   };
-  document.querySelectorAll('.details-btn').forEach(button => button.addEventListener('click', () => {
+  document.querySelectorAll('.details-btn').forEach(button => button.addEventListener('click', event => {
+    event.preventDefault();
     const name = button.dataset.game;
     $('dialogTitle').textContent = name;
     $('dialogText').textContent = descriptions[name] || 'A fictional SMOKE store listing.';
