@@ -11,3 +11,10 @@ A static, responsive gaming storefront parody built with HTML, CSS, and JavaScri
 
 ## Logo
 Add your SMOKE logo to the repository root as `logo.png`. The page currently uses a CSS text mark as a fallback. The site is a parody demo: no downloads, purchases, or real account features are enabled.
+
+
+## Games
+- [SMOKE Portal](https://jebediahkerman1.github.io/Smoke/portal.html) — first-person portal puzzle prototype.
+- [SMOKECRAFT: Blocklands](https://jebediahkerman1.github.io/Smoke/craft.html) — free voxel sandbox with mining, building, crafting and local world saves.
+
+SMOKE games are free browser experiences. SMOKECRAFT is an original voxel-inspired parody and is not affiliated with Mojang or Microsoft.
