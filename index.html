@@ -8,6 +8,7 @@
   <title>SMOKE Store</title>
   <link rel="icon" href="logo.png">
   <link rel="stylesheet" href="style.css">
+  <script src="supabase-config.js" defer></script>
   <script src="script.js" defer></script>
 </head>
 <body>
@@ -77,12 +78,21 @@
       </section>
       <section class="workshop-banner" id="library"><div class="workshop-symbol">▤</div><div><h2>SMOKE Workshop</h2><p>Create and share your own games with the community.</p></div><a href="builder.html">Explore Workshop　›</a></section>
       <section class="store-section community-section" id="community">
-        <div class="section-bar"><h2>FROM THE SMOKE COMMUNITY</h2><a href="multiplayer.html">Play together　›</a></div>
-        <div class="community-grid">
-          <article class="community-card"><div class="post-top"><span class="avatar avatar-orange">GG</span><span><strong>GigaGoblin</strong><small>General Discussion · 12 min ago</small></span><span class="post-dots">•••</span></div><h3>Anyone else have 300 games and play the same two?</h3><p>My backlog has achieved sentience. It is disappointed in me.</p><div class="post-stats">♡ 248 likes <span>↗ 63 replies</span></div></article>
-          <article class="community-card"><div class="post-top"><span class="avatar avatar-blue">AFK</span><span><strong>AFK_Enjoyer</strong><small>Off Topic · 38 min ago</small></span><span class="post-dots">•••</span></div><h3>SMOKE should add a button that says “one more round”</h3><p>Clicking it makes it 4:00 AM. For realism.</p><div class="post-stats">♡ 186 likes <span>↗ 41 replies</span></div></article>
-        </div>
-        <div class="community-cta"><span>Join friends and find your next game.</span><button class="outline-btn" id="communityBtn">Join the conversation</button></div>
+        <div class="section-bar"><h2>SMOKE COMMUNITY</h2><a href="multiplayer.html">Play together ↗</a></div>
+        <p class="community-intro">Talk games, share opinions, and post your latest gaming chaos. Posts are shared with everyone visiting SMOKE.</p>
+        <form class="community-composer" id="communityForm">
+          <h3>Start a discussion</h3>
+          <div class="community-form-row">
+            <label>Display name<input id="communityName" maxlength="24" required placeholder="e.g. GigaGoblin" autocomplete="nickname"></label>
+            <label>Category<select id="communityCategory"><option>General Discussion</option><option>Help & Tips</option><option>Game Suggestions</option><option>Off Topic</option><option>SMOKE Workshop</option></select></label>
+          </div>
+          <label>Discussion title<input id="communityTitle" maxlength="90" required placeholder="What do you want to talk about?"></label>
+          <label>Message<textarea id="communityBody" maxlength="1200" required rows="4" placeholder="Write your post here…"></textarea></label>
+          <div class="community-submit-row"><span id="communityStatus" role="status">Loading community…</span><button class="outline-btn" id="communitySubmit" type="submit">Post discussion</button></div>
+        </form>
+        <div class="community-feed-heading"><h3>Recent discussions</h3><button class="outline-btn" id="communityRefresh" type="button">↻ Refresh</button></div>
+        <div class="community-feed" id="communityFeed" aria-live="polite"><p class="community-loading">Connecting to the SMOKE community…</p></div>
+        <p class="community-footnote">SMOKE is a parody project. Do not post passwords, private information, or harmful content. Public posts are visible to all visitors.</p>
       </section>
       <footer class="site-footer" id="about"><div class="footer-brand">SMOKE</div><p>A lovingly unofficial parody storefront. Inspired by gaming platforms, powered by imagination, and not affiliated with Valve or Steam.</p><span>© 2026 SMOKE — PARODY PROJECT</span></footer>
     </div>
