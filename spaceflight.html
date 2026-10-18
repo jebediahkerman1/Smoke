@@ -20,7 +20,7 @@ header{height:68px;display:flex;align-items:center;gap:18px;padding:0 max(18px,c
 <section class="panel"><div class="panelhead">02 / Mission setup</div><div class="pad"><label class="label">Solar system</label><select id="systemSelect" class="field"><option value="ember">Ember System</option><option value="vanta">Vanta System</option></select><label class="label">Launch body</label><select id="planetSelect" class="field"></select><div id="bodyInfo" class="smallnote" style="margin-top:9px"></div><div class="sectionline"></div><div class="sideTitle">MISSION CHECKLIST</div><div id="missionCheck" class="smallnote" style="margin-top:8px;line-height:1.9"></div><p class="smallnote">Both systems are fictional. The flight simulator launches from the selected body; the system map shows the full system layout.</p></div></section>
 </aside>
 <main class="rightcol">
-<section class="panel"><div class="pad"><div class="eyebrow">SMOKE AEROSPACE // FLIGHT SIMULATOR</div><div class="screenbottom"><div><h1 class="mainTitle">Space Flight</h1><div class="subtitle">Design your vehicle. Light the engine. Leave the ground.</div></div><span class="pill" id="modePill">WORKSHOP MODE</span></div><div class="tabs"><button class="btn active" data-view="flight">Flight deck</button><button class="btn" data-view="map">System map</button><button class="btn" data-view="stats">Vehicle data</button></div><div class="screen"><canvas id="game" width="1000" height="562" aria-label="2D rocket flight simulation"></canvas><div class="hud"><span id="hudMode">MODE: BUILD</span><span id="hudAlt">ALT 0 m</span><span id="hudSpeed">SPD 0 m/s</span><span id="hudFuel">FUEL 0</span></div></div><div class="screenbottom"><div class="controls" id="controlText">BUILD: assemble your rocket. FLIGHT: W/↑ thrust · A/D steer · S/↓ reverse · SPACE stage · M map · R reset.</div><div class="row" style="flex:0 0 auto"><button id="pauseBtn" class="btn ghost">Ⅱ Pause</button><button id="mapBtn" class="btn ghost">◎ Map</button></div></div><div class="telemetry"><div class="metric"><span>ALTITUDE</span><strong id="metricAlt">0 m</strong></div><div class="metric"><span>VERTICAL SPEED</span><strong id="metricVSpeed">0 m/s</strong></div><div class="metric"><span>HORIZONTAL SPEED</span><strong id="metricHSpeed">0 m/s</strong></div><div class="metric"><span>FUEL REMAINING</span><strong id="metricFuel">0 kg</strong></div></div><div id="flightNotice" class="notice" role="status"></div></div></section>
+<section class="panel"><div class="pad"><div class="eyebrow">SMOKE AEROSPACE // FLIGHT SIMULATOR</div><div class="screenbottom"><div><h1 class="mainTitle">Space Flight</h1><div class="subtitle">Design your vehicle. Light the engine. Leave the ground.</div></div><span class="pill" id="modePill">WORKSHOP MODE</span></div><div class="tabs"><button class="btn active" data-view="flight">Flight deck</button><button class="btn" data-view="map">System map</button><button class="btn" data-view="stats">Vehicle data</button></div><div class="screen"><canvas id="game" width="1000" height="562" aria-label="2D rocket flight simulation"></canvas><div class="hud"><span id="hudMode">MODE: BUILD</span><span id="hudAlt">ALT 0 m</span><span id="hudSpeed">SPD 0 m/s</span><span id="hudFuel">FUEL 0</span></div></div><div class="screenbottom"><div class="controls" id="controlText">BUILD: assemble your rocket. FLIGHT: W/↑ thrust · A/D steer · S/↓ reverse · SPACE stage · M map · R reset. Orbit depends on speed and gravity.</div><div class="row" style="flex:0 0 auto"><button id="pauseBtn" class="btn ghost">Ⅱ Pause</button><button id="mapBtn" class="btn ghost">◎ Map</button></div></div><div class="telemetry"><div class="metric"><span>ALTITUDE</span><strong id="metricAlt">0 m</strong></div><div class="metric"><span>VERTICAL SPEED</span><strong id="metricVSpeed">0 m/s</strong></div><div class="metric"><span>HORIZONTAL SPEED</span><strong id="metricHSpeed">0 m/s</strong></div><div class="metric"><span>FUEL REMAINING</span><strong id="metricFuel">0 kg</strong></div><div class="metric"><span>APOAPSIS</span><strong id="metricApo">0 km</strong></div><div class="metric"><span>PERIAPSIS</span><strong id="metricPeri">0 km</strong></div></div><div id="flightNotice" class="notice" role="status"></div></div></section>
 <section class="panel hidden" id="statsPanel"><div class="panelhead">VEHICLE DATA / PERFORMANCE</div><div class="pad" id="statsContent"></div></section>
 <section class="panel"><div class="panelhead">03 / Custom parts lab <span class="pill">SAVED ON THIS DEVICE</span></div><div class="pad"><p class="smallnote">Create custom parts and use them in your rocket. Custom parts are saved in this browser using local storage; they do not automatically sync to other devices.</p><form id="partForm"><label class="label">Part name</label><input id="partName" class="field" maxlength="28" placeholder="e.g. ARFPARTS Engine" required><div class="editorgrid"><div><label class="label">Part type</label><select id="partType" class="field"><option value="capsule">Command capsule</option><option value="tank">Fuel tank</option><option value="engine">Liquid engine</option><option value="booster">Solid booster</option><option value="solar">Solar panel</option><option value="leg">Landing legs</option></select></div><div><label class="label">Mass (kg)</label><input id="partMass" class="field" type="number" min="1" max="100000" value="100" required></div><div><label class="label">Fuel capacity (kg)</label><input id="partFuel" class="field" type="number" min="0" max="100000" value="0" required></div><div><label class="label">Thrust (kN)</label><input id="partThrust" class="field" type="number" min="0" max="100000" value="0" required></div></div><button class="btn primary wide" type="submit" style="margin-top:11px">＋ Save custom part</button></form><div id="customNotice" class="notice"></div><div id="customList" class="customlist"></div></div></section>
 <section class="panel"><div class="panelhead">04 / Star charts</div><div class="pad"><div id="systemCards" class="systemcards"></div><div class="mapLegend"><span><i class="legenddot" style="background:#ffb65c"></i>Star</span><span><i class="legenddot" style="background:#66c0f4"></i>Planet</span><span><i class="legenddot" style="background:#b6df35"></i>Your selected body</span></div></div></section>
@@ -73,13 +73,130 @@ $('partType').addEventListener('change',()=>{const t=$('partType').value;$('part
 $('partForm').addEventListener('submit',e=>{e.preventDefault();const type=$('partType').value;const p={id:'custom-'+Date.now(),name:$('partName').value.trim(),type,mass:Number($('partMass').value),fuel:Number($('partFuel').value),thrust:Number($('partThrust').value),icon:({capsule:'◈',tank:'▤',engine:'♨',booster:'✹',solar:'▦',leg:'⌁'})[type],color:'#66c0f4'};if(!p.name||!(p.mass>0)||p.fuel<0||p.thrust<0){say('customNotice','Check the part name and stat values.');return}custom.push(p);saveCustom();drawCatalog();$('partName').value='';say('customNotice',p.name+' saved. It is now in the parts catalog.');});
 window.addEventListener('keydown',e=>{const tag=e.target&&e.target.tagName;if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;const k=e.key.toLowerCase();if(['w','a','s','d',' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();if(k==='m'){switchView(view==='map'?'flight':'map');return}if(k==='r'){resetFlight();return}if(k===' '){stage();return}keys.add(k)});
 window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());
-function tick(dt){if(!launched||paused||crashed)return;dt=Math.min(dt,.04);simTime+=dt;const steering=(keys.has('a')||keys.has('arrowleft')?-1:0)+(keys.has('d')||keys.has('arrowright')?1:0);angle=Math.max(-1.25,Math.min(1.25,angle+steering*1.45*dt));const up=keys.has('w')||keys.has('arrowup'),down=keys.has('s')||keys.has('arrowdown');const active=rocket.filter(p=>(p.type==='engine'||p.type==='booster')&&!stageSpent.has(p.uid)&&(+p.thrust||0)>0);const thrust=active.reduce((n,p)=>n+(+p.thrust||0),0);thrusting=false;if((up||down)&&thrust>0&&fuel>0){thrusting=true;const dir=up?1:-1;const accel=Math.min(95,thrust*1000/Math.max(1,mass()));verticalSpeed+=Math.cos(angle)*accel*dt*dir;horizontalSpeed+=Math.sin(angle)*accel*dt*dir;const use=Math.min(fuel,Math.max(.08,thrust*.00042)*dt);fuel=Math.max(0,fuel-use);burned+=use}const radius=body().radius*1000;const g=body().gravity*Math.pow(radius/(radius+Math.max(0,altitude)),2);verticalSpeed-=g*dt;altitude+=verticalSpeed*dt;horizontalSpeed*=Math.pow(.999,dt*60);if(altitude<=0){if(verticalSpeed < -18){crashed=true;launched=false;altitude=0;verticalSpeed=0;say('flightNotice','CRASH LANDING. Press Recover / reset flight to rebuild and try again.')}else{altitude=0;verticalSpeed=Math.max(0,verticalSpeed);if(simTime>1&&verticalSpeed===0&&horizontalSpeed<1&&burned>0){say('flightNotice','Landed on '+body().name+'. You can relaunch or recover.')}}}if(altitude>500000){altitude=500000;verticalSpeed=Math.max(0,verticalSpeed)}updateHud()}
-function updateHud(){const sp=Math.sqrt(verticalSpeed*verticalSpeed+horizontalSpeed*horizontalSpeed);$('hudMode').textContent=crashed?'MODE: CRASHED':paused?'MODE: PAUSED':launched?'MODE: FLIGHT':'MODE: BUILD';$('hudAlt').textContent='ALT '+fmt(altitude)+' m';$('hudSpeed').textContent='SPD '+fmt(sp)+' m/s';$('hudFuel').textContent='FUEL '+fmt(fuel)+' kg';$('metricAlt').textContent=fmt(altitude)+' m';$('metricVSpeed').textContent=fmt(verticalSpeed)+' m/s';$('metricHSpeed').textContent=fmt(horizontalSpeed)+' m/s';$('metricFuel').textContent=fmt(fuel)+' kg';$('modePill').textContent=launched?(paused?'PAUSED':'FLIGHT MODE'):crashed?'CRASHED':'WORKSHOP MODE'}
+function tick(dt){
+if(!launched||paused||crashed)return;
+dt=Math.min(dt,.025);
+simTime+=dt;
+const steer=(keys.has('a')||keys.has('arrowleft')?-1:0)+(keys.has('d')||keys.has('arrowright')?1:0);
+angle=Math.max(-1.45,Math.min(1.45,angle+steer*1.2*dt));
+const up=keys.has('w')||keys.has('arrowup'),down=keys.has('s')||keys.has('arrowdown');
+const active=rocket.filter(p=>(p.type==='engine'||p.type==='booster')&&!stageSpent.has(p.uid)&&(+p.thrust||0)>0);
+const thrust=active.reduce((n,p)=>n+(+p.thrust||0),0);
+thrusting=false;
+const r0=body().radius*1000;
+const r=Math.max(r0+1,r0+altitude);
+const mu=body().gravity*r0*r0;
+const gravity=mu/(r*r);
+if((up||down)&&thrust>0&&fuel>0){
+  thrusting=true;
+  const dir=up?1:-1;
+  const accel=Math.min(90,thrust*1000/Math.max(1,mass()));
+  verticalSpeed+=Math.cos(angle)*accel*dt*dir;
+  horizontalSpeed+=Math.sin(angle)*accel*dt*dir;
+  const use=Math.min(fuel,Math.max(.015,thrust*.00018)*dt);
+  fuel=Math.max(0,fuel-use);burned+=use;
+}
+verticalSpeed-=gravity*dt;
+if(altitude<80000){
+  const density=Math.exp(-Math.max(0,altitude)/8500);
+  const drag=Math.min(.9,density*.012*dt*(Math.abs(verticalSpeed)+Math.abs(horizontalSpeed)));
+  verticalSpeed*=1-drag;horizontalSpeed*=1-drag*.45;
+}
+altitude+=verticalSpeed*dt;
+const nextR=r0+altitude;
+if(nextR>0)camX+=horizontalSpeed/nextR*dt;
+if(altitude<=0){
+  altitude=0;
+  if(verticalSpeed < -16 || Math.abs(horizontalSpeed)>95 || Math.abs(angle)>1.25){
+    crashed=true;launched=false;verticalSpeed=0;
+    say('flightNotice','CRASH LANDING. Recover the rocket to rebuild and launch again.');
+  } else {
+    verticalSpeed=Math.max(0,verticalSpeed);
+    if(simTime>1&&burned>0&&Math.abs(verticalSpeed)<.2&&Math.abs(horizontalSpeed)<.5){
+      say('flightNotice','Landed on '+body().name+'. Recover or relaunch when ready.');
+    }
+  }
+}
+if(altitude>20000000){altitude=20000000;say('flightNotice','High orbit reached. Map view shows your current flight path.')}
+updateHud();
+}
+function updateHud(){
+const sp=Math.sqrt(verticalSpeed*verticalSpeed+horizontalSpeed*horizontalSpeed);
+const r0=body().radius*1000, r=r0+altitude, mu=body().gravity*r0*r0;
+const energy=(verticalSpeed*verticalSpeed+horizontalSpeed*horizontalSpeed)/2-mu/r;
+const a=energy<0?-mu/(2*energy):Infinity;
+const ecc=Math.sqrt(Math.max(0,1+2*energy*(r*r*horizontalSpeed*horizontalSpeed)/(mu*mu)));
+const apo=Number.isFinite(a)?Math.max(0,a*(1+ecc)-r0):Infinity;
+const peri=Number.isFinite(a)?Math.max(0,a*(1-ecc)-r0):0;
+$('hudMode').textContent=crashed?'MODE: CRASHED':paused?'MODE: PAUSED':launched?'MODE: FLIGHT':'MODE: BUILD';
+$('hudAlt').textContent='ALT '+fmt(altitude)+' m';
+$('hudSpeed').textContent='SPD '+fmt(sp)+' m/s';
+$('hudFuel').textContent='FUEL '+fmt(fuel)+' kg';
+$('metricAlt').textContent=fmt(altitude)+' m';
+$('metricVSpeed').textContent=fmt(verticalSpeed)+' m/s';
+$('metricHSpeed').textContent=fmt(horizontalSpeed)+' m/s';
+$('metricFuel').textContent=fmt(fuel)+' kg';
+if($('metricApo'))$('metricApo').textContent=Number.isFinite(apo)?fmt(apo/1000)+' km':'ESCAPE';
+if($('metricPeri'))$('metricPeri').textContent=fmt(peri/1000)+' km';
+$('modePill').textContent=launched?(paused?'PAUSED':'FLIGHT MODE'):crashed?'CRASHED':'WORKSHOP MODE';
+}
 function roundedRect(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r)}
 function drawStars(w,h){ctx.fillStyle='#050a12';ctx.fillRect(0,0,w,h);let seed=71;for(let i=0;i<140;i++){seed=(seed*16807)%2147483647;const x=(seed%10000)/10000*w;seed=(seed*16807)%2147483647;const y=(seed%10000)/10000*h;const a=.25+(seed%70)/100;ctx.fillStyle='rgba(210,231,255,'+a+')';ctx.fillRect(x,y,seed%3===0?2:1,seed%3===0?2:1)}}
 function drawPlanet(c,x,y,r,color){const g=c.createRadialGradient(x-r*.35,y-r*.4,2,x,y,r);g.addColorStop(0,'#ffffff');g.addColorStop(.12,color);g.addColorStop(1,'#101a2a');c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();c.strokeStyle=color+'77';c.lineWidth=2;c.beginPath();c.arc(x,y,r+3,0,Math.PI*2);c.stroke()}
-function drawFlight(){const w=canvas.width,h=canvas.height;drawStars(w,h);const ground=h*.79;const horizon=ground-Math.min(altitude/500000,1)*h*.5;const sky=ctx.createLinearGradient(0,0,0,ground);sky.addColorStop(0,altitude>25000?'#030711':'#0b1d31');sky.addColorStop(.7,altitude>25000?'#0b1421':'#327ba0');sky.addColorStop(1,'#d9a477');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);if(altitude<30000){ctx.fillStyle='#263e48';ctx.beginPath();ctx.moveTo(0,ground);for(let x=0;x<=w;x+=60)ctx.lineTo(x,ground-22-Math.sin(x*.018)*20);ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.fill();ctx.fillStyle='#2b654e';ctx.fillRect(0,ground+25,w,h-ground)}else{ctx.fillStyle='#111b2b';ctx.fillRect(0,ground,w,h-ground)}ctx.strokeStyle='#b1d7eb55';ctx.setLineDash([5,7]);ctx.beginPath();ctx.moveTo(0,horizon);ctx.lineTo(w,horizon);ctx.stroke();ctx.setLineDash([]);const scale=Math.max(.6,Math.min(1.3,1-altitude/900000));const rx=w*.5+Math.sin(angle)*Math.min(100,Math.abs(horizontalSpeed)*.4),ry=altitude<30000?ground-50-altitude/800:ground-60;ctx.save();ctx.translate(rx,Math.max(85,ry));ctx.rotate(-angle);const bodyLen=Math.max(50,rocket.length*10);ctx.fillStyle='#d8e1e8';ctx.strokeStyle='#526879';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-bodyLen*.58);ctx.lineTo(13,-bodyLen*.35);ctx.lineTo(10,bodyLen*.48);ctx.lineTo(-10,bodyLen*.48);ctx.lineTo(-13,-bodyLen*.35);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#66c0f4';ctx.beginPath();ctx.arc(0,-bodyLen*.3,5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#e08b52';ctx.fillRect(-8,bodyLen*.28,16,12);if(thrusting&&fuel>0){ctx.fillStyle='#ffd45c';ctx.beginPath();ctx.moveTo(-7,bodyLen*.45);ctx.lineTo(0,bodyLen*.45+18+Math.random()*10);ctx.lineTo(7,bodyLen*.45);ctx.fill();ctx.fillStyle='#ef6d42';ctx.beginPath();ctx.moveTo(-4,bodyLen*.45);ctx.lineTo(0,bodyLen*.45+12);ctx.lineTo(4,bodyLen*.45);ctx.fill()}ctx.restore();ctx.fillStyle='#e3eff9';ctx.font='bold 13px Arial';ctx.fillText(body().name.toUpperCase()+' // FLIGHT ZONE',20,canvas.height-22);ctx.fillStyle='#a7c0d5';ctx.font='12px Arial';ctx.fillText(altitude>100000?'UPPER ATMOSPHERE / SPACE TRANSITION':altitude>25000?'THIN ATMOSPHERE':'SURFACE OPERATIONS',20,canvas.height-42);if(!launched){roundedRect(ctx,w*.5-145,h*.15,290,62,8);ctx.fillStyle='#07111ddc';ctx.fill();ctx.strokeStyle='#3b5870';ctx.stroke();ctx.fillStyle='#eaf5fc';ctx.textAlign='center';ctx.font='bold 15px Arial';ctx.fillText('READY FOR LAUNCH',w*.5,h*.15+25);ctx.fillStyle='#9db6c9';ctx.font='12px Arial';ctx.fillText('Build your rocket, then press LAUNCH',w*.5,h*.15+45);ctx.textAlign='left'}if(paused||crashed){ctx.fillStyle='#050a12b8';ctx.fillRect(0,0,w,h);ctx.fillStyle=crashed?'#ff9b8c':'#f1f7fc';ctx.textAlign='center';ctx.font='bold 30px Arial';ctx.fillText(crashed?'MISSION FAILED':'SIMULATION PAUSED',w/2,h/2);ctx.textAlign='left'}}
-function drawMap(){const w=canvas.width,h=canvas.height;drawStars(w,h);const s=systems[systemKey],sx=w*.13,sy=h*.51;const grad=ctx.createRadialGradient(sx,sy,2,sx,sy,80);grad.addColorStop(0,s.color);grad.addColorStop(1,s.color+'00');ctx.fillStyle=grad;ctx.beginPath();ctx.arc(sx,sy,80,0,Math.PI*2);ctx.fill();ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(sx,sy,22,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 12px Arial';ctx.fillText(s.star,sx-18,sy+43);s.bodies.forEach((b,i)=>{const orbit=100+i*92,x=sx+orbit,y=sy+Math.sin(i*1.55)*Math.min(140,h*.25),r=Math.max(8,Math.min(24,b.radius*.2));ctx.strokeStyle='#425a70';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(sx,sy,orbit,32+i*23,0,0,Math.PI*2);ctx.stroke();drawPlanet(ctx,x,y,r,b.color);ctx.fillStyle='#e2edf6';ctx.font='bold 13px Arial';ctx.fillText(b.name,x-r,y+r+20);ctx.fillStyle='#8ea5b9';ctx.font='10px Arial';ctx.fillText(b.type,x-r,y+r+34);if(i===bodyIndex){ctx.strokeStyle='#b6df35';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+9,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#b6df35';ctx.font='bold 11px Arial';ctx.fillText('SELECTED BODY',x-r,y-r-14);if(launched){const mx=x+Math.min(30,altitude/18000),my=y-r-20-Math.min(55,altitude/6000);ctx.strokeStyle='#b6df35';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(mx,my);ctx.stroke();ctx.fillStyle='#b6df35';ctx.beginPath();ctx.arc(mx,my,5,0,Math.PI*2);ctx.fill();ctx.fillText('ROCKET',mx+9,my+4)}}});ctx.fillStyle='#b8c8d7';ctx.font='12px Arial';ctx.fillText(s.name.toUpperCase()+' / SCHEMATIC SYSTEM MAP',20,27);ctx.fillStyle='#8199ae';ctx.font='11px Arial';ctx.fillText('Orbits are illustrative, not to scale. Local flight is simulated in the flight deck.',20,h-18)}
+function drawFlight(){
+const w=canvas.width,h=canvas.height;
+drawStars(w,h);
+const r0=body().radius*1000, r=r0+altitude;
+const altitudeRatio=altitude/(r0+altitude);
+const space=altitude>80000;
+const groundY=h*.82;
+const sky=ctx.createLinearGradient(0,0,0,h);
+sky.addColorStop(0,space?'#030710':'#0a1d31');
+sky.addColorStop(.68,space?'#091323':'#387da0');
+sky.addColorStop(1,space?'#101b2b':'#d6a17c');
+ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+if(!space){
+  const curve=Math.min(1,altitude/60000);
+  ctx.fillStyle='#243b48';ctx.beginPath();ctx.moveTo(0,groundY);
+  for(let x=0;x<=w;x+=20)ctx.lineTo(x,groundY-20-Math.sin(x*.014)*13-curve*Math.pow((x-w/2)/(w/2),2)*65);
+  ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#28624d';ctx.fillRect(0,groundY+22,w,h-groundY);
+  ctx.strokeStyle='#b6e1ff88';ctx.setLineDash([6,6]);ctx.beginPath();ctx.moveTo(0,groundY+22);ctx.lineTo(w,groundY+22);ctx.stroke();ctx.setLineDash([]);
+}else{
+  const pr=Math.max(55,Math.min(220,Math.sqrt(r0)*2.1));
+  ctx.fillStyle=body().color;ctx.beginPath();ctx.arc(w*.5,h+pr*.63,pr,Math.PI,Math.PI*2);ctx.fill();
+  ctx.strokeStyle=body().color+'88';ctx.lineWidth=3;ctx.beginPath();ctx.arc(w*.5,h+pr*.63,pr+3,Math.PI,Math.PI*2);ctx.stroke();
+}
+const rx=w*.5+Math.max(-w*.28,Math.min(w*.28,horizontalSpeed*.7));
+const ry=space?h*.47:Math.max(105,groundY-52-altitude/950);
+ctx.save();ctx.translate(rx,ry);ctx.rotate(-angle);
+const bodyLen=Math.max(50,Math.min(130,rocket.length*12));
+ctx.fillStyle='#dce6ed';ctx.strokeStyle='#425b70';ctx.lineWidth=2;
+ctx.beginPath();ctx.moveTo(0,-bodyLen*.58);ctx.lineTo(12,-bodyLen*.34);ctx.lineTo(10,bodyLen*.45);ctx.lineTo(-10,bodyLen*.45);ctx.lineTo(-12,-bodyLen*.34);ctx.closePath();ctx.fill();ctx.stroke();
+ctx.fillStyle='#66c0f4';ctx.beginPath();ctx.arc(0,-bodyLen*.28,5,0,Math.PI*2);ctx.fill();
+ctx.fillStyle='#e28b54';ctx.fillRect(-8,bodyLen*.3,16,10);
+if(thrusting&&fuel>0){ctx.fillStyle='#ffd75d';ctx.beginPath();ctx.moveTo(-7,bodyLen*.45);ctx.lineTo(0,bodyLen*.45+18+Math.random()*12);ctx.lineTo(7,bodyLen*.45);ctx.fill();ctx.fillStyle='#ef7043';ctx.beginPath();ctx.moveTo(-4,bodyLen*.45);ctx.lineTo(0,bodyLen*.45+12);ctx.lineTo(4,bodyLen*.45);ctx.fill()}
+ctx.restore();
+ctx.fillStyle='#e3eff9';ctx.font='bold 13px Arial';ctx.fillText(body().name.toUpperCase()+' // '+(space?'SPACEFLIGHT':'ATMOSPHERIC FLIGHT'),20,h-22);
+ctx.fillStyle='#a7c0d5';ctx.font='12px Arial';ctx.fillText('GRAVITY '+body().gravity.toFixed(1)+' m/s²  ·  SIM TIME '+simTime.toFixed(1)+' s',20,h-42);
+if(!launched){roundedRect(ctx,w*.5-145,h*.15,290,62,8);ctx.fillStyle='#07111ddc';ctx.fill();ctx.strokeStyle='#3b5870';ctx.stroke();ctx.fillStyle='#eaf5fc';ctx.textAlign='center';ctx.font='bold 15px Arial';ctx.fillText('READY FOR LAUNCH',w*.5,h*.15+25);ctx.fillStyle='#9db6c9';ctx.font='12px Arial';ctx.fillText('Press LAUNCH, then hold W / ↑',w*.5,h*.15+45);ctx.textAlign='left'}
+if(paused||crashed){ctx.fillStyle='#050a12b8';ctx.fillRect(0,0,w,h);ctx.fillStyle=crashed?'#ff9b8c':'#f1f7fc';ctx.textAlign='center';ctx.font='bold 30px Arial';ctx.fillText(crashed?'MISSION FAILED':'SIMULATION PAUSED',w/2,h/2);ctx.textAlign='left'}
+}
+function drawMap(){
+const w=canvas.width,h=canvas.height;drawStars(w,h);const s=systems[systemKey],sx=w*.11,sy=h*.52;
+const grad=ctx.createRadialGradient(sx,sy,2,sx,sy,70);grad.addColorStop(0,s.color);grad.addColorStop(1,s.color+'00');ctx.fillStyle=grad;ctx.beginPath();ctx.arc(sx,sy,70,0,Math.PI*2);ctx.fill();ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(sx,sy,18,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 12px Arial';ctx.fillText(s.star,sx-15,sy+35);
+let selected={x:0,y:0,r:0};
+s.bodies.forEach((b,i)=>{const orbit=105+i*94,x=sx+orbit,y=sy+Math.sin(i*1.55)*Math.min(125,h*.22),r=Math.max(9,Math.min(24,b.radius*.2));ctx.strokeStyle='#425a70';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(sx,sy,orbit,28+i*23,0,0,Math.PI*2);ctx.stroke();drawPlanet(ctx,x,y,r,b.color);ctx.fillStyle='#e2edf6';ctx.font='bold 13px Arial';ctx.fillText(b.name,x-r,y+r+19);ctx.fillStyle='#8ea5b9';ctx.font='10px Arial';ctx.fillText(b.type,x-r,y+r+32);if(i===bodyIndex){selected={x,y,r};ctx.strokeStyle='#b6df35';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+8,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#b6df35';ctx.font='bold 10px Arial';ctx.fillText('SELECTED',x-r,y-r-12)}});
+if(launched&&systemKey==='ember'&&bodyIndex===0){
+const r0=body().radius*1000,mu=body().gravity*r0*r0,r=r0+altitude,v2=verticalSpeed*verticalSpeed+horizontalSpeed*horizontalSpeed,energy=v2/2-mu/r,hMom=r*horizontalSpeed;
+const ecc=Math.sqrt(Math.max(0,1+(2*energy*hMom*hMom)/(mu*mu)));
+const a=energy<0?-mu/(2*energy):Infinity;
+ctx.save();ctx.translate(selected.x,selected.y);ctx.scale(1,1);
+if(Number.isFinite(a)&&a>r0*.5&&ecc<2){const apo=Math.max(0,a*(1+ecc)-r0),peri=Math.max(0,a*(1-ecc)-r0);const maxAlt=Math.min(3000000,Math.max(apo,peri,altitude));const orbitPx=Math.max(selected.r+14,Math.min(145,selected.r+14+maxAlt/30000));ctx.strokeStyle='#b6df3588';ctx.lineWidth=2;ctx.setLineDash([5,5]);ctx.beginPath();ctx.ellipse(0,0,orbitPx,Math.max(selected.r+12,orbitPx*(1-ecc*.55)),0,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#b6df35';ctx.font='bold 11px Arial';ctx.fillText('PREDICTED ORBIT',selected.r+12,-orbitPx-8)}
+const mx=selected.x+Math.min(60,horizontalSpeed/15),my=selected.y-selected.r-18-Math.min(80,altitude/18000);ctx.strokeStyle='#b6df35';ctx.beginPath();ctx.moveTo(selected.x,selected.y);ctx.lineTo(mx,my);ctx.stroke();ctx.fillStyle='#b6df35';ctx.beginPath();ctx.arc(mx,my,5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#b6df35';ctx.font='bold 11px Arial';ctx.fillText('YOUR ROCKET',mx+8,my+4);
+}
+ctx.fillStyle='#b8c8d7';ctx.font='bold 12px Arial';ctx.fillText(s.name.toUpperCase()+' / SYSTEM MAP',20,27);ctx.fillStyle='#8199ae';ctx.font='11px Arial';ctx.fillText('Predicted path is approximate. Interplanetary transfers are still in development.',20,h-18);
+}
 function draw(){if(!ctx)return;if(view==='map')drawMap();else if(view==='stats'){drawFlight();}else drawFlight()}
 function loop(now){const dt=last?Math.min((now-last)/1000,.04):0;last=now;tick(dt);draw();requestAnimationFrame(loop)}
 renderBodySelect();drawCatalog();renderBuild();resetFlight();requestAnimationFrame(loop);
