@@ -68,11 +68,11 @@ function placePortal(which){
  if(!running||paused)return;
  const hit=rawRay(player.x,player.y,player.a);
  if(hit.d>14){say('Too far away. Aim at a wall.');return}
- const frac=hit.side===0?hit.y-Math.floor(hit.y):hit.x-Math.floor(hit.x);
- if(frac<PORTAL_HALF+.035||frac>1-PORTAL_HALF-.035){say('Aim closer to the middle of the wall panel.');return}
+ // Portals can be placed anywhere the crosshair hits a wall surface;
+ // no more forced center-of-panel placement.
  const p={x:hit.x,y:hit.y,nx:hit.nx,ny:hit.ny,angle:Math.atan2(hit.ny,hit.nx),color:which};
  if(which==='blue')blue=p;else orange=p;
- say((which==='blue'?'BLUE':'ORANGE')+' portal connected to wall');draw();
+ say((which==='blue'?'BLUE':'ORANGE')+' portal placed at target location');draw();
 }
 function tryMove(nx,ny){
  const oldX=player.x,oldY=player.y;
