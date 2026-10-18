@@ -187,7 +187,7 @@ const w=canvas.width,h=canvas.height;drawStars(w,h);const s=systems[systemKey],s
 const grad=ctx.createRadialGradient(sx,sy,2,sx,sy,70);grad.addColorStop(0,s.color);grad.addColorStop(1,s.color+'00');ctx.fillStyle=grad;ctx.beginPath();ctx.arc(sx,sy,70,0,Math.PI*2);ctx.fill();ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(sx,sy,18,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 12px Arial';ctx.fillText(s.star,sx-15,sy+35);
 let selected={x:0,y:0,r:0};
 s.bodies.forEach((b,i)=>{const orbit=105+i*94,x=sx+orbit,y=sy+Math.sin(i*1.55)*Math.min(125,h*.22),r=Math.max(9,Math.min(24,b.radius*.2));ctx.strokeStyle='#425a70';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(sx,sy,orbit,28+i*23,0,0,Math.PI*2);ctx.stroke();drawPlanet(ctx,x,y,r,b.color);ctx.fillStyle='#e2edf6';ctx.font='bold 13px Arial';ctx.fillText(b.name,x-r,y+r+19);ctx.fillStyle='#8ea5b9';ctx.font='10px Arial';ctx.fillText(b.type,x-r,y+r+32);if(i===bodyIndex){selected={x,y,r};ctx.strokeStyle='#b6df35';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+8,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#b6df35';ctx.font='bold 10px Arial';ctx.fillText('SELECTED',x-r,y-r-12)}});
-if(launched&&systemKey==='ember'&&bodyIndex===0){
+if(launched){
 const r0=body().radius*1000,mu=body().gravity*r0*r0,r=r0+altitude,v2=verticalSpeed*verticalSpeed+horizontalSpeed*horizontalSpeed,energy=v2/2-mu/r,hMom=r*horizontalSpeed;
 const ecc=Math.sqrt(Math.max(0,1+(2*energy*hMom*hMom)/(mu*mu)));
 const a=energy<0?-mu/(2*energy):Infinity;
