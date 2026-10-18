@@ -9,6 +9,7 @@ create table if not exists public.community_games (
 
 alter table public.community_games enable row level security;
 -- Anyone can read published community levels.
+drop policy if exists "Anyone can view community games" on public.community_games;
 create policy "Anyone can view community games"
   on public.community_games for select to anon, authenticated using (true);
 -- Public uploads are allowed for this demo site. Add auth/moderation and rate limits before treating it as production.
