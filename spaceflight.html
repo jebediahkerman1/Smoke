@@ -96,10 +96,11 @@ const gravity=mu/(r*r);
 if((up||down)&&thrust>0&&fuel>0){
   thrusting=true;
   const dir=up?1:-1;
-  const accel=Math.min(90,thrust*1000/Math.max(1,mass()));
+  // Punchier arcade-style thrust so movement is immediately noticeable.
+  const accel=Math.min(180,thrust*1600/Math.max(1,mass()));
   verticalSpeed+=Math.cos(angle)*accel*dt*dir;
   horizontalSpeed+=Math.sin(angle)*accel*dt*dir;
-  const use=Math.min(fuel,Math.max(.015,thrust*.00018)*dt);
+  const use=Math.min(fuel,Math.max(.015,thrust*.00012)*dt);
   fuel=Math.max(0,fuel-use);burned+=use;
 }
 verticalSpeed-=gravity*dt;
@@ -112,8 +113,8 @@ altitude+=verticalSpeed*dt;
 const nextR=r0+altitude;
 if(nextR>0)camX+=horizontalSpeed/nextR*dt;
 // Keep the rocket fixed on screen and move the planet opposite the rocket's travel.
-worldOffsetX-=horizontalSpeed*dt*.22;
-worldOffsetY+=verticalSpeed*dt*.22;
+worldOffsetX-=horizontalSpeed*dt*1.8;
+worldOffsetY+=verticalSpeed*dt*1.8;
 if(altitude<=0){
   altitude=0;
   if(verticalSpeed < -16 || Math.abs(horizontalSpeed)>95){
