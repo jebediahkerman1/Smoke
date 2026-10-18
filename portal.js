@@ -102,21 +102,46 @@ function placePortal(which){
  if(other&&Math.hypot(p.x-other.x,p.y-other.y)<.82){say('Portal anchors need more space between them.');return}
  if(which==='blue')blue=p;else orange=p;
  weaponKick=.72;weaponSide=which;
- say((which==='blue'?'BLUE':'ORANGE')+' portal placed at target location');draw();
+ say((which==='blue'?'BLUE':'ORANGE')+' portal placed — line up with the oval and walk into it');draw();
 }
 function tryMove(nx,ny){
  const oldX=player.x,oldY=player.y;
+ const PLAYER_RADIUS=.17;
  for(const entry of [blue,orange]){
-  if(!entry)continue;
+  if(!entry||!blue||!orange)continue;
   const before=frontDot(entry,oldX,oldY),after=frontDot(entry,nx,ny);
-  const tx=-entry.ny,ty=entry.nx,offset=(nx-entry.x)*tx+(ny-entry.y)*ty;
-  if(before>.08&&after<=.08&&Math.abs(offset)<PORTAL_HALF-.10&&blue&&orange){
-   const dest=entry===blue?orange:blue,outTx=-dest.ny,outTy=dest.nx;
-   const oldOffset=(oldX-entry.x)*tx+(oldY-entry.y)*ty;
-   player.x=dest.x-outTx*oldOffset+dest.nx*.34;
-   player.y=dest.y-outTy*oldOffset+dest.ny*.34;
-   player.a+=dest.angle-entry.angle+Math.PI;
-   portalTransfers++;teleportFlash=1;weaponKick=.35;say('PORTAL TRANSFER #'+portalTransfers+' — EXIT ROUTE UPDATED');return true;
+  // The player's body touches the portal plane before its center reaches it.
+  // Trigger at body contact, not at the plane itself: ordinary wall collision
+  // prevents the center crossing, which made the old <= .08 condition unreachable.
+  if(before>PLAYER_RADIUS&&after<=PLAYER_RADIUS&&after<before){
+   const denom=before-after;
+   const t=denom>1e-8?Math.max(0,Math.min(1,(before-PLAYER_RADIUS)/denom)):1;
+   const crossX=oldX+(nx-oldX)*t,crossY=oldY+(ny-oldY)*t;
+   const tangentX=-entry.ny,tangentY=entry.nx;
+   const offset=(crossX-entry.x)*tangentX+(crossY-entry.y)*tangentY;
+   // Leave room for the subject's shoulders inside the visible oval.
+   if(Math.abs(offset)<=PORTAL_HALF-PLAYER_RADIUS*.72){
+    const dest=entry===blue?orange:blue,outTx=-dest.ny,outTy=dest.nx;
+    // Step outward from the destination wall until the body has clear floor.
+    // This avoids landing with the collision radius embedded in a neighboring wall.
+    let landing=null;
+    for(const distance of [.36,.48,.62,.8,1.0]){
+     const x=dest.x-outTx*offset+dest.nx*distance;
+     const y=dest.y-outTy*offset+dest.ny*distance;
+     if(canOccupy(x,y,.16)){landing={x,y};break}
+    }
+    if(landing){
+     player.x=landing.x;player.y=landing.y;
+     player.a+=dest.angle-entry.angle+Math.PI;
+     portalTransfers++;teleportFlash=1;weaponKick=.35;
+     say('PORTAL TRANSFER #'+portalTransfers+' — EXIT ROUTE UPDATED');
+     return true;
+    }
+    say('PORTAL EXIT BLOCKED — try placing the orange portal on a clearer wall.');
+    return false;
+   }
+   // The player reached the plane beside the opening. Let them slide along
+   // the wall so they can line up with the center of the portal.
   }
  }
  let moved=false;
