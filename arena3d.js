@@ -266,11 +266,11 @@
     overlay.classList.remove('hidden');
   }
   function applyClass(index, resetHealth) {
+    const previousMax = mode === 'payload' ? classInfo[currentClass].hp : cfg.hp;
     currentClass = Math.max(0, Math.min(classInfo.length - 1, index));
     const c = classInfo[currentClass];
-    const oldMax = mode === 'payload' ? (classInfo[currentClass] || classInfo[0]).hp : cfg.hp;
     if (resetHealth) health = c.hp;
-    else health = Math.min(c.hp, Math.ceil(health / Math.max(1, oldMax) * c.hp));
+    else health = Math.min(c.hp, Math.ceil(health / Math.max(1, previousMax) * c.hp));
     ammo = Math.min(ammo, c.mag); if (ammo <= 0) ammo = c.mag;
     reserveAmmo = Math.max(reserveAmmo, c.reserve);
     cfg.hp = c.hp; cfg.mag = c.mag; cfg.damage = c.damage; cfg.fireRate = c.delay; cfg.speed = c.speed;
