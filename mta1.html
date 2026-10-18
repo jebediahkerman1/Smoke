@@ -40,12 +40,20 @@ function drawWorld(){rect(0,0,canvas.width,canvas.height,'#38513a');const b=visi
 for(let ty=b.minY;ty<=b.maxY;ty++)for(let tx=b.minX;tx<=b.maxX;tx++){
 let x=tx*TILE-cam.x+canvas.width/2,y=ty*TILE-cam.y+canvas.height/2;
 rect(x,y,TILE,TILE,'#40533c');
-// asphalt crossing streets
-rect(x+TILE/2-HALF,y,ROAD,TILE,'#343a3d');rect(x,y+TILE/2-HALF,TILE,ROAD,'#343a3d');
-// lane dashes
-ctx.strokeStyle='#c7b875';ctx.lineWidth=2;ctx.setLineDash([15,17]);ctx.beginPath();ctx.moveTo(x+TILE/2,y);ctx.lineTo(x+TILE/2,y+TILE);ctx.moveTo(x,y+TILE/2);ctx.lineTo(x+TILE,y+TILE/2);ctx.stroke();ctx.setLineDash([]);
-// sidewalk edging
-ctx.strokeStyle='#7c827b';ctx.lineWidth=4;ctx.strokeRect(x+TILE/2-HALF,y,ROAD,TILE);ctx.strokeRect(x,y+TILE/2-HALF,TILE,ROAD);
+// Curving street segments: their endpoints line up at each block boundary,
+ // while deterministic bends make the city feel less like a perfect grid.
+const v0=(hash(tx,ty,101)-.5)*34,v1=(hash(tx,ty+1,101)-.5)*34;
+const h0=(hash(tx,ty,102)-.5)*34,h1=(hash(tx+1,ty,102)-.5)*34;
+function roadStroke(draw,width,color,dash=[]){ctx.beginPath();draw();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.setLineDash(dash);ctx.stroke();ctx.setLineDash([])}
+// Asphalt first, then lane paint and subtle curb edges.
+roadStroke(()=>{ctx.moveTo(x+TILE/2+v0,y);ctx.quadraticCurveTo(x+TILE/2+(hash(tx,ty,103)-.5)*48,y+TILE/2,x+TILE/2+v1,y+TILE)},ROAD,'#343a3d');
+roadStroke(()=>{ctx.moveTo(x,y+TILE/2+h0);ctx.quadraticCurveTo(x+TILE/2,y+TILE/2+(hash(tx,ty,104)-.5)*48,x+TILE,y+TILE/2+h1)},ROAD,'#343a3d');
+roadStroke(()=>{ctx.moveTo(x+TILE/2+v0,y);ctx.quadraticCurveTo(x+TILE/2+(hash(tx,ty,103)-.5)*48,y+TILE/2,x+TILE/2+v1,y+TILE)},2,'#c7b875',[15,17]);
+roadStroke(()=>{ctx.moveTo(x,y+TILE/2+h0);ctx.quadraticCurveTo(x+TILE/2,y+TILE/2+(hash(tx,ty,104)-.5)*48,x+TILE,y+TILE/2+h1)},2,'#c7b875',[15,17]);
+roadStroke(()=>{ctx.moveTo(x+TILE/2+v0-HALF+2,y);ctx.quadraticCurveTo(x+TILE/2+(hash(tx,ty,103)-.5)*48-HALF+2,y+TILE/2,x+TILE/2+v1-HALF+2,y+TILE)},3,'#7c827b');
+roadStroke(()=>{ctx.moveTo(x+TILE/2+v0+HALF-2,y);ctx.quadraticCurveTo(x+TILE/2+(hash(tx,ty,103)-.5)*48+HALF-2,y+TILE/2,x+TILE/2+v1+HALF-2,y+TILE)},3,'#7c827b');
+roadStroke(()=>{ctx.moveTo(x,y+TILE/2+h0-HALF+2);ctx.quadraticCurveTo(x+TILE/2,y+TILE/2+(hash(tx,ty,104)-.5)*48-HALF+2,x+TILE,y+TILE/2+h1-HALF+2)},3,'#7c827b');
+roadStroke(()=>{ctx.moveTo(x,y+TILE/2+h0+HALF-2);ctx.quadraticCurveTo(x+TILE/2,y+TILE/2+(hash(tx,ty,104)-.5)*48+HALF-2,x+TILE,y+TILE/2+h1+HALF-2)},3,'#7c827b');
 const bl=buildBlock(tx,ty);let ox=bl.x-cam.x+canvas.width/2,oy=bl.y-cam.y+canvas.height/2;
 if(bl.type==='park'){rect(ox,oy,bl.w,bl.h,'#477448');for(let i=0;i<18;i++){let txp=ox+hash(tx,ty,i)*bl.w,typ=oy+hash(tx,ty,i+90)*bl.h;rect(txp,typ,7,7,'#78965a');ctx.fillStyle='#254a2d';ctx.beginPath();ctx.arc(txp,typ,5,0,Math.PI*2);ctx.fill()}rect(ox+bl.w*.42,oy+bl.h*.1,5,bl.h*.8,'#c2b994')}
 else for(const q of bl.buildings){let qx=q.x-cam.x+canvas.width/2,qy=q.y-cam.y+canvas.height/2;rect(qx+5,qy+6,q.w,q.h,'#202b29');rect(qx,qy,q.w,q.h,q.c);rect(qx+5,qy+5,q.w-10,7,'#c2c0a7');rect(qx+7,qy+17,Math.max(5,q.w-14),4,'#424d50');if(q.type==='shop'){rect(qx+q.w*.2,qy+q.h-12,q.w*.6,7,'#d8c28b')}else{for(let wy=qy+26;wy<qy+q.h-12;wy+=23)for(let wx=qx+9;wx<qx+q.w-7;wx+=20)rect(wx,wy,7,9,'#b5c4b7')}rect(qx+q.w*.42,qy+q.h-9,q.w*.16,9,'#293337')}
