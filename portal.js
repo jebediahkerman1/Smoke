@@ -13,16 +13,37 @@ const maps=[
 ['1111111111111111','1000000000000001','1010000000000101','1000000000000001','1000100001000001','1000100001000001','1000000000000001','1000000100000001','1000000100000001','1000000000000001','1000000000000001','1111111111111111'],
 ['1111111111111111','1000000000000001','1000000000000001','1000111000000001','1000001000000001','1000001000000001','1000000000000001','1000000011100001','1000000000100001','1000000000100001','1000000000000001','1111111111111111'],
 ['1111111111111111','1000000000000001','1000000000000001','1010000000000101','1000000000000001','1000110001100001','1000000000000001','1000110001100001','1000000000000001','1010000000000101','1000000000000001','1111111111111111'],
-['1111111111111111','1000000000000001','1000100001000001','1000000000000001','1000100001000001','1000000000000001','1000000000000001','1000000000000001','1000100001000001','1000000000000001','1000000000000001','1111111111111111'],
-['1111111111111111','1000000000000001','1000000000000001','1000110001100001','1000000000000001','1010000000000101','1000000000000001','1000000000000001','1000110001100001','1000000000000001','1000000000000001','1111111111111111']]
-let level=0,map=maps[0],mw=16,mh=12,player={x:2.5,y:1.5,a:0},blue=null,orange=null,keys={},running=false,paused=false,completed=Array(maps.length).fill(false),last=0,depth=new Float32Array(W),messageCooldown=0,health=100,damageFlash=0,turrets=[],turretBolts=[];
+['1111111111111111','1000000000000001','1000100001000001','1000000000000001','1000100001000001','1000000000000001','1000000000000001','1000000000000001','1000100001000001','1000000000000001','1000000000000001','1111111111111111'],]
+const SAVE_KEY='smoke-portal-progress-v1';
+function loadProgress(){try{const saved=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');return Array.isArray(saved)&&saved.length===maps.length?saved.map(Boolean):Array(maps.length).fill(false)}catch{return Array(maps.length).fill(false)}}
+function saveProgress(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(completed))}catch{}}
+const savedCompleted=loadProgress();
+let level=savedCompleted.findIndex(v=>!v);if(level<0)level=maps.length-1;
+let map=maps[level],mw=16,mh=12,player={x:2.5,y:1.5,a:0},blue=null,orange=null,keys={},running=false,paused=false,completed=savedCompleted,last=0,depth=new Float32Array(W),messageCooldown=0,health=100,damageFlash=0,turrets=[],turretBolts=[],roomElapsed=0,walkCycle=0,portalTransfers=0,completionTimer=null;
 const status=$('statusText'),hint=$('toast'),overlay=$('pauseOverlay');
+const healthFill=$('healthFill'),healthValue=$('healthValue'),clockLabel=$('chamberClock');
+const miniMap=$('miniMap'),mctx=miniMap.getContext('2d');
 const exitPoint={x:13.5,y:10.5};
 const levelNames=['01 — FIRST CONTACT','02 — MOMENTUM EXCHANGE','03 — THE EXIT PROBLEM','04 — SENTINEL PROTOCOL','05 — CROSS-FIRE','06 — FINAL OVERRIDE','07 — THE MOVING MAZE','08 — BLIND CORNERS','09 — REACTOR RUN','10 — THE LAST TEST'];
 const objectives=['OBJECTIVE: PLACE BOTH PORTALS AND FIND THE EXIT','OBJECTIVE: USE PORTALS TO CROSS THE CHAMBER','OBJECTIVE: REACH THE FINAL EXIT','OBJECTIVE: EVADE TURRETS, PLACE BOTH PORTALS, REACH EXIT','OBJECTIVE: SURVIVE CROSS-FIRE AND REACH EXIT','OBJECTIVE: SURVIVE THE FINAL SECURITY GRID','OBJECTIVE: NAVIGATE THE MOVING-MAZE TEST','OBJECTIVE: FIND A SAFE ROUTE THROUGH BLIND CORNERS','OBJECTIVE: CROSS THE REACTOR TEST CHAMBER','OBJECTIVE: COMPLETE THE FINAL TEST AND ESCAPE'];
 const turretLayouts=[[],[],[],[{x:8.5,y:2.5},{x:11.5,y:7.5},{x:6.5,y:9.5}],[{x:5.5,y:2.5},{x:10.5,y:3.5},{x:8.5,y:8.5},{x:12.5,y:6.5}],[{x:5.5,y:2.5},{x:10.5,y:2.5},{x:5.5,y:8.5},{x:10.5,y:8.5},{x:12.5,y:5.5}],[{x:8.5,y:2.5},{x:12.5,y:4.5},{x:7.5,y:8.5}],[{x:5.5,y:3.5},{x:11.5,y:3.5},{x:8.5,y:8.5},{x:12.5,y:9.5}],[{x:5.5,y:2.5},{x:10.5,y:2.5},{x:8.5,y:6.5},{x:5.5,y:9.5},{x:12.5,y:8.5}],[{x:5.5,y:2.5},{x:10.5,y:2.5},{x:5.5,y:7.5},{x:10.5,y:7.5},{x:12.5,y:5.5},{x:8.5,y:9.5}]];
 function tile(x,y){if(x<0||y<0||x>=mw||y>=mh)return'1';return map[Math.floor(y)][Math.floor(x)]}
 function wall(x,y){return tile(x,y)!=='0'}
+function canOccupy(x,y,r=.18){return !wall(x-r,y-r)&&!wall(x+r,y-r)&&!wall(x-r,y+r)&&!wall(x+r,y+r)}
+function findSpawn(preferred={x:2.5,y:1.5}){
+ if(!wall(preferred.x,preferred.y)&&canOccupy(preferred.x,preferred.y,.16))return {x:preferred.x,y:preferred.y};
+ const candidates=[];
+ for(let y=1;y<mh-1;y++)for(let x=1;x<mw-1;x++)if(tile(x,y)==='0'&&canOccupy(x+.5,y+.5,.16))candidates.push({x:x+.5,y:y+.5});
+ candidates.sort((a,b)=>(Math.abs(a.x-preferred.x)+Math.abs(a.y-preferred.y))-(Math.abs(b.x-preferred.x)+Math.abs(b.y-preferred.y)));
+ return candidates[0]||{x:1.5,y:1.5};
+}
+function updateHud(){
+ healthFill.style.width=Math.max(0,Math.min(100,health))+'%';
+ healthFill.style.background=health<=30?'linear-gradient(90deg,#ef3f4f,#ff9090)':health<=60?'linear-gradient(90deg,#f0a33a,#ffdf73)':'linear-gradient(90deg,#7bd943,#caff71)';
+ healthValue.textContent=Math.max(0,health)+'%';
+ const seconds=Math.floor(roomElapsed),mm=String(Math.floor(seconds/60)).padStart(2,'0'),ss=String(seconds%60).padStart(2,'0');
+ clockLabel.textContent=mm+':'+ss;
+}
 function rawRay(ox,oy,angle){
  const dx=Math.cos(angle),dy=Math.sin(angle),mx=Math.floor(ox),my=Math.floor(oy);
  let gx=mx,gy=my,stepX=dx<0?-1:1,stepY=dy<0?-1:1;
@@ -61,13 +82,14 @@ function ray(ox,oy,angle,hops=0){
 }
 function say(text){hint.textContent=text;hint.classList.add('show');clearTimeout(say.timer);say.timer=setTimeout(()=>hint.classList.remove('show'),1900)}
 function resetRoom(){
- map=maps[level];player={x:2.5,y:1.5,a:0};blue=null;orange=null;keys={};paused=false;health=100;damageFlash=0;turretBolts=[];turrets=(turretLayouts[level]||[]).map(p=>({...p,a:Math.atan2(2.5-p.y,2.5-p.x),cooldown:1+Math.random()*1.5,flash:0,alive:true}));overlay.classList.remove('visible');
+ if(completionTimer){clearTimeout(completionTimer);completionTimer=null}
+ map=maps[level];player={...findSpawn(),a:0};blue=null;orange=null;keys={};paused=false;health=100;damageFlash=0;roomElapsed=0;walkCycle=0;portalTransfers=0;turretBolts=[];turrets=(turretLayouts[level]||[]).map(p=>({...p,a:Math.atan2(player.y-p.y,player.x-p.x),cooldown:1+Math.random()*1.5,flash:0,alive:true}));overlay.classList.remove('visible');
  status.textContent='AWAITING SUBJECT';
  $('levelName').textContent=levelNames[level];
  $('objective').textContent=objectives[level];
  $('progressLabel').textContent=completed.filter(Boolean).length+' / '+maps.length+' COMPLETE';
  $('trackFill').style.width=(completed.filter(Boolean).length/maps.length*100)+'%';
- $('nextBtn').disabled=!completed[level]||level>=maps.length-1;draw();
+ $('nextBtn').disabled=!completed[level]||level>=maps.length-1;updateHud();draw();
 }
 function placePortal(which){
  if(!running||paused)return;
@@ -76,6 +98,8 @@ function placePortal(which){
  // Portals can be placed anywhere the crosshair hits a wall surface;
  // no more forced center-of-panel placement.
  const p={x:hit.x,y:hit.y,nx:hit.nx,ny:hit.ny,angle:Math.atan2(hit.ny,hit.nx),color:which};
+ const other=which==='blue'?orange:blue;
+ if(other&&Math.hypot(p.x-other.x,p.y-other.y)<.82){say('Portal anchors need more space between them.');return}
  if(which==='blue')blue=p;else orange=p;
  say((which==='blue'?'BLUE':'ORANGE')+' portal placed at target location');draw();
 }
@@ -106,15 +130,23 @@ function step(dt){
  if(keys.s||keys.arrowdown){dx-=Math.cos(player.a)*speed;dy-=Math.sin(player.a)*speed}
  if(keys.a){dx+=Math.cos(player.a-Math.PI/2)*speed;dy+=Math.sin(player.a-Math.PI/2)*speed}
  if(keys.d){dx+=Math.cos(player.a+Math.PI/2)*speed;dy+=Math.sin(player.a+Math.PI/2)*speed}
- if(dx||dy)tryMove(player.x+dx,player.y+dy);
+ if(keys.arrowleft)player.a-=1.9*dt;
+ if(keys.arrowright)player.a+=1.9*dt;
+ if(dx||dy){
+  const length=Math.hypot(dx,dy);
+  if(length>speed){dx=dx/length*speed;dy=dy/length*speed}
+  tryMove(player.x+dx,player.y+dy);walkCycle+=dt*(keys.shift?13:9);
+ }else walkCycle*=Math.max(0,1-dt*5);
+ roomElapsed+=dt;
  updateTurrets(dt);
+ updateTurretBolts(dt);
  if(Math.hypot(player.x-exitPoint.x,player.y-exitPoint.y)<.62){
   if(!blue||!orange){if(messageCooldown<=0){say('Place both portals before ending the test.');messageCooldown=2}}
   else if(!completed[level]){
-   completed[level]=true;running=false;document.exitPointerLock?.();status.textContent='CHAMBER COMPLETE';
-   $('nextBtn').disabled=false;$('progressLabel').textContent=completed.filter(Boolean).length+' / '+maps.length+' COMPLETE';
+   const finishedLevel=level;completed[level]=true;saveProgress();running=false;document.exitPointerLock?.();status.textContent='CHAMBER COMPLETE';
+   $('nextBtn').disabled=false;$('progressLabel').textContent=completed.filter(Boolean).length+' / '+maps.length+' COMPLETE';updateHud();
    $('trackFill').style.width=(completed.filter(Boolean).length/maps.length*100)+'%';
-   if(level<maps.length-1){$('nextBtn').disabled=true;say('EXIT OPEN — ENTERING NEXT CHAMBER');setTimeout(()=>{if(completed[level]&&level<maps.length-1){level++;resetRoom();running=true;status.textContent='TEST IN PROGRESS';canvas.requestPointerLock?.()}},1400)}else{say('ALL 10 CHAMBERS COMPLETE — YOU ESCAPED SMOKE LABS!');status.textContent='ALL TESTS COMPLETE';}
+   if(level<maps.length-1){$('nextBtn').disabled=true;say('EXIT OPEN — ENTERING NEXT CHAMBER');completionTimer=setTimeout(()=>{completionTimer=null;if(level===finishedLevel&&completed[finishedLevel]&&finishedLevel<maps.length-1){level=finishedLevel+1;resetRoom();running=true;status.textContent='TEST IN PROGRESS';canvas.requestPointerLock?.()}},1400)}else{say('ALL 10 CHAMBERS COMPLETE — YOU ESCAPED SMOKE LABS!');status.textContent='ALL TESTS COMPLETE';}
   }
  }
  messageCooldown=Math.max(0,messageCooldown-dt);
@@ -123,14 +155,51 @@ function updateTurrets(dt){
  for(const t of turrets){
   if(!t.alive)continue;
   const dx=player.x-t.x,dy=player.y-t.y,dist=Math.hypot(dx,dy),target=Math.atan2(dy,dx);
-  const da=Math.atan2(Math.sin(target-t.a),Math.cos(target-t.a));t.a+=Math.max(-dt*1.8,Math.min(dt*1.8,da));t.cooldown-=dt;t.flash=Math.max(0,t.flash-dt);
+  const da=Math.atan2(Math.sin(target-t.a),Math.cos(target-t.a));
+  t.a+=Math.max(-dt*1.8,Math.min(dt*1.8,da));t.cooldown-=dt;t.flash=Math.max(0,t.flash-dt);
   const sight=rawRay(t.x,t.y,target);
   if(dist<9&&Math.abs(da)<.22&&sight.d>=dist-.25&&t.cooldown<=0){
-   t.cooldown=1.35+Math.random()*.6;t.flash=.16;health-=20;damageFlash=.75;say('TURRET HIT — HEALTH '+Math.max(0,health)+'%');
-   if(health<=0){say('SUBJECT TERMINATED — RESTARTING CHAMBER');resetRoom();running=true;status.textContent='TEST IN PROGRESS';break;}
+   t.cooldown=1.55+Math.random()*.85;t.flash=.22;
+   const speed=5.1;
+   turretBolts.push({x:t.x+Math.cos(t.a)*.28,y:t.y+Math.sin(t.a)*.28,vx:Math.cos(t.a)*speed,vy:Math.sin(t.a)*speed,life:2.3});
+   say('INCOMING ROUND — KEEP MOVING');
   }
  }
  damageFlash=Math.max(0,damageFlash-dt);
+}
+function updateTurretBolts(dt){
+ const remaining=[];
+ for(const bolt of turretBolts){
+  bolt.life-=dt;
+  const nx=bolt.x+bolt.vx*dt,ny=bolt.y+bolt.vy*dt;
+  if(bolt.life<=0||wall(nx,ny))continue;
+  bolt.x=nx;bolt.y=ny;
+  if(Math.hypot(player.x-bolt.x,player.y-bolt.y)<.28){
+   health=Math.max(0,health-20);damageFlash=.62;updateHud();
+   say('TURRET ROUND HIT — INTEGRITY '+health+'%');
+   if(health<=0){
+    say('SUBJECT TERMINATED — RESTARTING CHAMBER');
+    resetRoom();running=true;status.textContent='TEST IN PROGRESS';return;
+   }
+   continue;
+  }
+  remaining.push(bolt);
+ }
+ turretBolts=remaining;
+}
+function drawTurretBolts(){
+ for(const b of turretBolts){
+  const dx=b.x-player.x,dy=b.y-player.y,dist=Math.hypot(dx,dy);
+  const rel=Math.atan2(Math.sin(Math.atan2(dy,dx)-player.a),Math.cos(Math.atan2(dy,dx)-player.a));
+  if(dist<.1||Math.abs(rel)>FOV*.7)continue;
+  const sx=(.5+rel/FOV)*W,col=Math.max(0,Math.min(W-1,Math.floor(sx)));
+  if(dist>depth[col]+.12)continue;
+  const radius=Math.max(2,Math.min(10,22/dist));
+  ctx.save();ctx.fillStyle='#ff4c55';ctx.shadowColor='#ff2637';ctx.shadowBlur=18;
+  ctx.beginPath();ctx.arc(sx,H/2-radius*1.3,radius,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(255,111,109,.85)';ctx.lineWidth=Math.max(1,radius*.45);
+  ctx.beginPath();ctx.moveTo(sx-radius*2,H/2-radius*1.3);ctx.lineTo(sx-radius*.4,H/2-radius*1.3);ctx.stroke();ctx.restore();
+ }
 }
 function drawTurrets(){
  for(const t of turrets){
@@ -146,9 +215,40 @@ function drawTurrets(){
  }
 }
 
+function drawFloorGrid(){
+ ctx.save();ctx.strokeStyle='rgba(133,183,199,.105)';ctx.lineWidth=1;
+ for(let i=1;i<=15;i++){
+  const t=i/15,y=H/2+Math.pow(t,2.15)*(H/2);
+  ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+ }
+ for(let i=-12;i<=12;i++){
+  const x=W/2+i*48;
+  ctx.beginPath();ctx.moveTo(W/2,H/2);ctx.lineTo(x,H);ctx.stroke();
+ }
+ ctx.restore();
+}
+function drawMinimap(){
+ const w=miniMap.width,h=miniMap.height,s=Math.min(w/mw,h/mh),ox=(w-mw*s)/2,oy=(h-mh*s)/2;
+ mctx.clearRect(0,0,w,h);mctx.fillStyle='#08111a';mctx.fillRect(0,0,w,h);
+ for(let y=0;y<mh;y++)for(let x=0;x<mw;x++){
+  mctx.fillStyle=tile(x+.5,y+.5)==='0'?'#14232f':'#647582';
+  mctx.fillRect(ox+x*s,oy+y*s,s-.55,s-.55);
+ }
+ mctx.fillStyle='#9bde48';mctx.fillRect(ox+(exitPoint.x-.23)*s,oy+(exitPoint.y-.23)*s,.46*s,.46*s);
+ for(const p of [blue,orange])if(p){
+  mctx.strokeStyle=p.color==='blue'?'#36d9ff':'#ff9b43';mctx.lineWidth=3;
+  mctx.beginPath();mctx.moveTo(ox+p.x*s-p.ny*4,oy+p.y*s-p.nx*4);mctx.lineTo(ox+p.x*s+p.ny*4,oy+p.y*s+p.nx*4);mctx.stroke();
+ }
+ for(const t of turrets)if(t.alive){mctx.fillStyle='#ff4852';mctx.beginPath();mctx.arc(ox+t.x*s,oy+t.y*s,2.4,0,Math.PI*2);mctx.fill()}
+ mctx.save();mctx.translate(ox+player.x*s,oy+player.y*s);mctx.rotate(player.a);
+ mctx.fillStyle='#f4fbff';mctx.strokeStyle='#6ce3ff';mctx.lineWidth=1.3;
+ mctx.beginPath();mctx.moveTo(5,0);mctx.lineTo(-3.5,-3.1);mctx.lineTo(-2.5,0);mctx.lineTo(-3.5,3.1);mctx.closePath();mctx.fill();mctx.stroke();mctx.restore();
+ mctx.strokeStyle='rgba(190,218,233,.25)';mctx.lineWidth=1;mctx.strokeRect(.5,.5,w-1,h-1);
+}
 function draw(){
+ updateHud();drawMinimap();
  const sky=ctx.createLinearGradient(0,0,0,H/2);sky.addColorStop(0,'#141b25');sky.addColorStop(1,'#596570');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H/2);
- const floor=ctx.createLinearGradient(0,H/2,0,H);floor.addColorStop(0,'#485057');floor.addColorStop(1,'#11161b');ctx.fillStyle=floor;ctx.fillRect(0,H/2,W,H/2);
+ const floor=ctx.createLinearGradient(0,H/2,0,H);floor.addColorStop(0,'#485057');floor.addColorStop(1,'#11161b');ctx.fillStyle=floor;ctx.fillRect(0,H/2,W,H/2);drawFloorGrid();
  for(let x=0;x<W;x++){
   const a=player.a+(x/W-.5)*FOV,h=ray(player.x,player.y,a),dist=Math.max(.02,h.d*Math.cos(a-player.a));depth[x]=dist;
   const hh=Math.min(H*1.8,H/dist),top=(H-hh)/2,shade=Math.max(25,210-dist*13-(h.side?35:0));
@@ -156,7 +256,7 @@ function draw(){
   ctx.fillRect(x,top,1,hh);
   if(x%9===0){ctx.fillStyle='rgba(5,10,14,.15)';ctx.fillRect(x,top,1,hh)}
  }
- drawPortalFrame(blue);drawPortalFrame(orange);drawExit();drawTurrets();drawDevice();
+ drawPortalFrame(blue);drawPortalFrame(orange);drawExit();drawTurrets();drawTurretBolts();drawDevice();
  if(damageFlash>0){ctx.fillStyle='rgba(255,30,35,'+Math.min(.32,damageFlash*.32)+')';ctx.fillRect(0,0,W,H);}
  ctx.strokeStyle='#eafaff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(W/2-8,H/2);ctx.lineTo(W/2+8,H/2);ctx.moveTo(W/2,H/2-8);ctx.lineTo(W/2,H/2+8);ctx.stroke();
 }
@@ -188,9 +288,10 @@ function drawExit(){
  const h=Math.min(H*.8,H/dist*.62);ctx.save();ctx.fillStyle='#35ffab';ctx.shadowColor='#35ffab';ctx.shadowBlur=22;ctx.fillRect(sx-h*.12,H/2-h*.48,h*.24,h*.9);ctx.shadowBlur=0;ctx.fillStyle='#d9ffea';ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.fillText('EXIT',sx,H/2-h*.56);ctx.restore();
 }
 function drawDevice(){
+ const bob=(keys.w||keys.s||keys.a||keys.d)?Math.sin(walkCycle)*3.6:0;ctx.save();ctx.translate(0,bob);
  ctx.fillStyle='#111a20';ctx.beginPath();ctx.moveTo(W*.38,H);ctx.lineTo(W*.43,H*.82);ctx.lineTo(W*.57,H*.82);ctx.lineTo(W*.62,H);ctx.fill();
  ctx.fillStyle='#607681';ctx.fillRect(W*.445,H*.8,W*.11,H*.2);ctx.fillStyle='#b8d3db';ctx.fillRect(W*.475,H*.73,W*.05,H*.09);
- ctx.fillStyle='#18242b';ctx.fillRect(W*.49,H*.68,W*.02,H*.08);ctx.fillStyle=blue?'#29cfff':'#14738a';ctx.fillRect(W*.465,H*.77,W*.025,H*.025);ctx.fillStyle=orange?'#ff9d3e':'#87511f';ctx.fillRect(W*.51,H*.77,W*.025,H*.025);
+ ctx.fillStyle='#18242b';ctx.fillRect(W*.49,H*.68,W*.02,H*.08);ctx.fillStyle=blue?'#29cfff':'#14738a';ctx.fillRect(W*.465,H*.77,W*.025,H*.025);ctx.fillStyle=orange?'#ff9d3e':'#87511f';ctx.fillRect(W*.51,H*.77,W*.025,H*.025);ctx.restore();
 }
 function start(){if(running)return;running=true;paused=false;overlay.classList.remove('visible');status.textContent='TEST IN PROGRESS';canvas.requestPointerLock?.();say('WASD move · mouse look · left blue · right orange')}
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
