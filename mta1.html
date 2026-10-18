@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111820">
+<title>MTA 1: Procedural Map — SMOKE</title>
+<style>
+:root{color-scheme:dark;--bg:#10171e;--panel:#18232d;--line:#334554;--green:#9cde53;--muted:#a9bac7}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#edf5f8;font:14px/1.45 system-ui,Segoe UI,sans-serif}header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px max(16px,calc((100vw - 1180px)/2));background:#111920;border-bottom:1px solid #31404b}a{color:var(--green);text-decoration:none}.brand{font-weight:1000;letter-spacing:3px;font-size:22px}.brand span{color:var(--green)}.header-tag{font-size:11px;color:var(--muted);letter-spacing:1.4px}main{max-width:1180px;margin:0 auto;padding:20px 14px 34px}.intro{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:14px}.kicker{color:var(--green);font-weight:800;font-size:11px;letter-spacing:2px}h1{margin:3px 0 5px;font-size:clamp(25px,4vw,42px);line-height:1.05;letter-spacing:-1px}.intro p{margin:0;color:var(--muted)}.status{display:flex;gap:9px;flex-wrap:wrap;margin:0 0 10px}.stat{background:var(--panel);border:1px solid var(--line);padding:8px 12px;border-radius:7px;min-width:95px}.stat span{display:block;color:var(--muted);font-size:10px;letter-spacing:1.1px}.stat strong{font-size:17px}.game-frame{position:relative;border:1px solid #425665;background:#0b1115;border-radius:9px;overflow:hidden;box-shadow:0 14px 40px #0007}canvas{display:block;width:100%;height:min(67vh,640px);min-height:340px;object-fit:contain;background:#293d2b;image-rendering:pixelated;cursor:crosshair}.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#071017c9;padding:20px}.overlay[hidden]{display:none}.modal{max-width:470px;text-align:center;background:#15222c;border:1px solid #4b6371;border-radius:10px;padding:24px;box-shadow:0 10px 50px #0009}.modal h2{font-size:29px;margin:0 0 7px}.modal p{color:#c1ced7}.primary{border:0;border-radius:5px;background:var(--green);color:#14200d;font-weight:900;padding:12px 19px;cursor:pointer}.under{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin-top:12px}.box{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}.box h3{margin:0 0 8px;font-size:13px;letter-spacing:1px}.box p{margin:4px 0;color:var(--muted)}kbd{background:#0d141a;border:1px solid #52616c;border-radius:4px;padding:2px 5px;color:#fff}.feed{color:var(--green)!important;min-height:23px}.hint{font-size:12px}.touch{display:none;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:10px}.touch button{padding:12px 16px;background:#243744;color:white;border:1px solid #52616c;border-radius:7px;font-weight:800;touch-action:none}@media(max-width:650px){header{align-items:flex-start}.header-tag{display:none}.intro{display:block}.status{gap:5px}.stat{flex:1;min-width:75px;padding:6px}.under{grid-template-columns:1fr}canvas{height:55vh;min-height:300px}.touch{display:flex}}
+</style>
+</head>
+<body>
+<header><a class="brand" href="index.html">SMO<span>K</span>E</a><div class="header-tag">BROWSER ORIGINALS / TOP-DOWN CRIME SIM</div><a href="arcade.html">ARCADE ↗</a></header>
+<main>
+<section class="intro"><div><div class="kicker">SMOKE ORIGINAL • BROWSER GAME</div><h1>MTA 1: PROCEDURAL MAP</h1><p>A retro top-down city that generates as you explore. Find a car. Make your own trouble.</p></div></section>
+<div class="status"><div class="stat"><span>STATUS</span><strong id="mode">ON FOOT</strong></div><div class="stat"><span>CASH</span><strong id="cash">$250</strong></div><div class="stat"><span>WANTED</span><strong id="wanted">☆☆☆☆☆</strong></div><div class="stat"><span>BLOCK</span><strong id="block">0, 0</strong></div><div class="stat"><span>VEHICLE</span><strong id="carname">NONE</strong></div></div>
+<div class="game-frame"><canvas id="game" width="960" height="600" aria-label="MTA 1 top-down procedural city game"></canvas><div class="overlay" id="intro"><div class="modal"><div class="kicker">WELCOME TO THE CITY</div><h2>MTA 1</h2><p>Procedural streets. Random city blocks. Stolen cars. Keep moving, and the city keeps growing.</p><p class="hint">WASD move/drive · E enter/exit cars · Space handbrake · Shift sprint</p><button class="primary" id="start">ENTER THE CITY</button></div></div><div class="overlay" id="end" hidden><div class="modal"><h2 id="endTitle">BUSTED!</h2><p id="endText">The city caught up with you.</p><button class="primary" id="restart">GET BACK OUT THERE</button></div></div></div>
+<div class="touch"><button data-key="w">▲</button><button data-key="a">◀</button><button data-key="s">▼</button><button data-key="d">▶</button><button data-key="e">ENTER / EXIT</button><button data-key=" ">BRAKE</button></div>
+<div class="under"><section class="box"><h3>DISPATCH / CITY FEED</h3><p id="feed" class="feed">Radio quiet. The city is yours to explore.</p><p class="hint">Tip: cars spawn on roads. Walk near one and press <kbd>E</kbd> to take the wheel. Drive recklessly to raise your wanted level; hide out to cool it down.</p></section><section class="box"><h3>CONTROLS</h3><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move / accelerate / steer</p><p><kbd>E</kbd> Enter or leave nearby car</p><p><kbd>SHIFT</kbd> Sprint on foot</p><p><kbd>SPACE</kbd> Handbrake while driving</p><p><kbd>R</kbd> Reset your position</p></section></div>
+<p class="hint" style="text-align:center;color:#8195a4;margin-top:18px">MTA 1 is an original SMOKE parody game inspired by classic top-down city games. No downloads or purchases.</p>
+</main>
+<script>
+(()=>{'use strict';
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const $=id=>document.getElementById(id);const TILE=320,ROAD=76,HALF=ROAD/2;
+let running=false,keys=new Set(),last=0,player,carList=[],police=[],cash=250,wanted=0,crimeClock=0,heatClock=0,cam={x:0,y:0},worldSeed=1337,feedText='Radio quiet. The city is yours to explore.',missionCash=0,worldTime=0;
+const colors=['#9d654b','#777e83','#b39a69','#6d8e87','#9b7f9b','#8d9b65','#a3a6a0'];
+function hash(x,y,s=0){let n=Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+Math.imul((s+worldSeed)|0,1442695041)|0;n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967295}
+function roadX(tx){return tx*TILE+TILE/2}function roadY(ty){return ty*TILE+TILE/2}
+function streetAt(x,y){let rx=((x%TILE)+TILE)%TILE,ry=((y%TILE)+TILE)%TILE;return rx<TILE/2+HALF&&rx>TILE/2-HALF||ry<TILE/2+HALF&&ry>TILE/2-HALF}
+function blockAt(x,y){return {x:Math.floor(x/TILE),y:Math.floor(y/TILE)}}
+function buildBlock(tx,ty){let bx=tx*TILE,by=ty*TILE,r=hash(tx,ty),margin=ROAD/2+17;let x=bx+margin,y=by+margin,w=TILE-ROAD-34,h=TILE-ROAD-34;
+if(r<.13)return {type:'park',x,y,w,h,tx,ty};
+let n=2+Math.floor(hash(tx,ty,1)*3),buildings=[];
+for(let i=0;i<n;i++){let cols=n===2?2:2,rows=Math.ceil(n/cols),cw=w/cols,ch=h/rows;let pad=7;buildings.push({x:x+(i%cols)*cw+pad,y:y+Math.floor(i/cols)*ch+pad,w:cw-pad*2,h:ch-pad*2,c:colors[Math.floor(hash(tx,ty,i+2)*colors.length)],type:hash(tx,ty,i+9)>.6?'shop':'building',roof:Math.floor(hash(tx,ty,i+20)*4)})}
+return {type:'buildings',x,y,w,h,buildings,tx,ty}}
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
+function visibleBounds(){return {minX:Math.floor((cam.x-canvas.width/2)/TILE)-1,maxX:Math.floor((cam.x+canvas.width/2)/TILE)+1,minY:Math.floor((cam.y-canvas.height/2)/TILE)-1,maxY:Math.floor((cam.y+canvas.height/2)/TILE)+1}}
+function drawWorld(){rect(0,0,canvas.width,canvas.height,'#38513a');const b=visibleBounds();
+for(let ty=b.minY;ty<=b.maxY;ty++)for(let tx=b.minX;tx<=b.maxX;tx++){
+let x=tx*TILE-cam.x+canvas.width/2,y=ty*TILE-cam.y+canvas.height/2;
+rect(x,y,TILE,TILE,'#40533c');
+// asphalt crossing streets
+rect(x+TILE/2-HALF,y,ROAD,TILE,'#343a3d');rect(x,y+TILE/2-HALF,TILE,ROAD,'#343a3d');
+// lane dashes
+ctx.strokeStyle='#c7b875';ctx.lineWidth=2;ctx.setLineDash([15,17]);ctx.beginPath();ctx.moveTo(x+TILE/2,y);ctx.lineTo(x+TILE/2,y+TILE);ctx.moveTo(x,y+TILE/2);ctx.lineTo(x+TILE,y+TILE/2);ctx.stroke();ctx.setLineDash([]);
+// sidewalk edging
+ctx.strokeStyle='#7c827b';ctx.lineWidth=4;ctx.strokeRect(x+TILE/2-HALF,y,ROAD,TILE);ctx.strokeRect(x,y+TILE/2-HALF,TILE,ROAD);
+const bl=buildBlock(tx,ty);let ox=bl.x-cam.x+canvas.width/2,oy=bl.y-cam.y+canvas.height/2;
+if(bl.type==='park'){rect(ox,oy,bl.w,bl.h,'#477448');for(let i=0;i<18;i++){let txp=ox+hash(tx,ty,i)*bl.w,typ=oy+hash(tx,ty,i+90)*bl.h;rect(txp,typ,7,7,'#78965a');ctx.fillStyle='#254a2d';ctx.beginPath();ctx.arc(txp,typ,5,0,Math.PI*2);ctx.fill()}rect(ox+bl.w*.42,oy+bl.h*.1,5,bl.h*.8,'#c2b994')}
+else for(const q of bl.buildings){let qx=q.x-cam.x+canvas.width/2,qy=q.y-cam.y+canvas.height/2;rect(qx+5,qy+6,q.w,q.h,'#202b29');rect(qx,qy,q.w,q.h,q.c);rect(qx+5,qy+5,q.w-10,7,'#c2c0a7');rect(qx+7,qy+17,Math.max(5,q.w-14),4,'#424d50');if(q.type==='shop'){rect(qx+q.w*.2,qy+q.h-12,q.w*.6,7,'#d8c28b')}else{for(let wy=qy+26;wy<qy+q.h-12;wy+=23)for(let wx=qx+9;wx<qx+q.w-7;wx+=20)rect(wx,wy,7,9,'#b5c4b7')}rect(qx+q.w*.42,qy+q.h-9,q.w*.16,9,'#293337')}
+}
+}
+function worldToScreen(x,y){return{x:x-cam.x+canvas.width/2,y:y-cam.y+canvas.height/2}}
+function drawCar(c){const p=worldToScreen(c.x,c.y);ctx.save();ctx.translate(p.x,p.y);ctx.rotate(c.angle);rect(-15,-9,31,19,'#202426');rect(-13,-8,26,16,c.color);rect(-6,-7,11,14,'#283c43');rect(-14,-6,4,4,'#e6d7a4');rect(10,-6,4,4,'#d85b45');rect(-10,-11,6,3,'#171a1b');rect(5,-11,6,3,'#171a1b');rect(-10,8,6,3,'#171a1b');rect(5,8,6,3,'#171a1b');if(c.police){rect(-2,-7,6,3,'#e74c4c');rect(-2,-4,6,3,'#4a9fff')}ctx.restore()}
+function drawPerson(){let p=worldToScreen(player.x,player.y);ctx.fillStyle='#172027';ctx.beginPath();ctx.arc(p.x,p.y+2,7,0,Math.PI*2);ctx.fill();rect(p.x-4,p.y-7,8,11,'#e2c34e');ctx.fillStyle='#d7b08b';ctx.beginPath();ctx.arc(p.x,p.y-9,4,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(p.x-2,p.y-10,2,2)}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function collidesBuilding(x,y,r=7){let tx0=Math.floor((x-r)/TILE)-1,tx1=Math.floor((x+r)/TILE)+1,ty0=Math.floor((y-r)/TILE)-1,ty1=Math.floor((y+r)/TILE)+1;for(let ty=ty0;ty<=ty1;ty++)for(let tx=tx0;tx<=tx1;tx++){let bl=buildBlock(tx,ty);if(bl.type==='buildings')for(const q of bl.buildings)if(x+r>q.x&&x-r<q.x+q.w&&y+r>q.y&&y-r<q.y+q.h)return true}return false}
+function nearbyCar(){let best=null,bd=48;for(const c of carList){let d=Math.hypot(c.x-player.x,c.y-player.y);if(d<bd){bd=d;best=c}}return best}
+function setFeed(t){feedText=t;$('feed').textContent=t}
+function addHeat(n){wanted=clamp(wanted+n,0,5);crimeClock=0;heatClock=0;if(wanted)setFeed(['','Dispatch: suspicious activity reported.','Dispatch: units are searching for a suspect.','Dispatch: active pursuit, use caution.','Dispatch: all units respond!','Dispatch: citywide alert — suspect is extremely dangerous.'][wanted])}
+function spawnCar(x,y,angle,pol=false){carList.push({x,y,angle,speed:0,color:pol?'#e6e6dc':['#b34f40','#4c87a2','#c7a94e','#d1d2ca','#64815e','#a66caa'][Math.floor(Math.random()*6)],police:pol,occupied:false,ai:!pol&&Math.random()<.5,turn:0})}
+function populate(){carList=[];police=[];for(let ty=-3;ty<=3;ty++)for(let tx=-3;tx<=3;tx++){let n=hash(tx,ty,66);if(n>.13){let vertical=hash(tx,ty,67)>.5;if(vertical)spawnCar(tx*TILE+TILE/2+(hash(tx,ty,68)>.5?22:-22),ty*TILE+TILE*.25+hash(tx,ty,69)*100,Math.PI/2);else spawnCar(tx*TILE+TILE*.25+hash(tx,ty,70)*100,ty*TILE+TILE/2+(hash(tx,ty,71)>.5?22:-22),0)}}}
+function reset(){player={x:160,y:160,angle:0,car:null};cam={x:player.x,y:player.y};cash=250;wanted=0;crimeClock=0;heatClock=0;worldTime=0;populate();$('end').hidden=true;$('intro').hidden=true;$('mode').textContent='ON FOOT';$('cash').textContent='$'+cash;$('wanted').textContent='☆☆☆☆☆';$('carname').textContent='NONE';setFeed('Radio quiet. The city is yours to explore.');running=true;last=performance.now();requestAnimationFrame(loop)}
+function toggleCar(){if(player.car){let c=player.car;player.x=c.x+Math.cos(c.angle+Math.PI/2)*27;player.y=c.y+Math.sin(c.angle+Math.PI/2)*27;c.occupied=false;c.speed=0;player.car=null;$('mode').textContent='ON FOOT';$('carname').textContent='NONE';setFeed('Exited vehicle. Keep an eye out for patrols.');return}let c=nearbyCar();if(!c){setFeed('No car nearby. Walk up to a vehicle first.');return}if(c.police){addHeat(2);setFeed('You took a patrol car. Dispatch is not amused.')}else addHeat(1);player.car=c;c.occupied=true;c.ai=false;c.speed=0;$('mode').textContent='DRIVING';$('carname').textContent=c.police?'PATROL':c.color.toUpperCase();setFeed(c.police?'Patrol vehicle acquired. Wanted level increased.':'Vehicle acquired. Enjoy the ride.')}
+function actionKey(k){if(k==='e'){if(running)toggleCar()}if(k==='r'&&running){if(player.car){player.car.occupied=false;player.car=null}player.x=160;player.y=160;player.angle=0;cam.x=player.x;cam.y=player.y;setFeed('You made it back to the starting block.')}if(k===' '&&player.car)player.car.speed*=.55}
+function keydown(e){let k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if(!keys.has(k))actionKey(k);keys.add(k)}function keyup(e){keys.delete(e.key.toLowerCase())}
+window.addEventListener('keydown',keydown);window.addEventListener('keyup',keyup);window.addEventListener('blur',()=>keys.clear());
+document.querySelectorAll('[data-key]').forEach(b=>{const k=b.dataset.key;const down=e=>{e.preventDefault();if(!keys.has(k))actionKey(k);keys.add(k)},up=e=>{e.preventDefault();keys.delete(k)};b.addEventListener('pointerdown',down);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up)});
+function update(dt){worldTime+=dt;const up=keys.has('w')||keys.has('arrowup'),down=keys.has('s')||keys.has('arrowdown'),left=keys.has('a')||keys.has('arrowleft'),right=keys.has('d')||keys.has('arrowright'),shift=keys.has('shift');
+if(player.car){let c=player.car;let prev=c.speed;if(up)c.speed+=100*dt;if(down)c.speed-=140*dt;c.speed=clamp(c.speed,-105,220);if(keys.has(' '))c.speed*=Math.pow(.05,dt);else c.speed*=Math.pow(.91,dt);let steer=(left?-1:0)+(right?1:0);c.angle+=steer*dt*(1.7+Math.min(1.4,Math.abs(c.speed)/95))*(c.speed<0?-1:1);let nx=c.x+Math.cos(c.angle)*c.speed*dt,ny=c.y+Math.sin(c.angle)*c.speed*dt;if(!collidesBuilding(nx,ny,12)){c.x=nx;c.y=ny}else{c.speed*=-.25;if(Math.abs(prev)>95){addHeat(1);setFeed('Crash! The impact drew attention.')}}if(Math.abs(c.speed)>125&&Math.random()<dt*.25)addHeat(1);player.x=c.x;player.y=c.y;
+}else{let vx=(right?1:0)-(left?1:0),vy=(down?1:0)-(up?1:0),mag=Math.hypot(vx,vy)||1,speed=shift?175:115;vx=vx/mag*speed;vy=vy/mag*speed;if(vx||vy)player.angle=Math.atan2(vy,vx);let nx=player.x+vx*dt,ny=player.y+vy*dt;if(!collidesBuilding(nx,player.y))player.x=nx;if(!collidesBuilding(player.x,ny))player.y=ny;
+}
+// simple ambient traffic rolls along streets; avoid buildings by staying on road axes
+for(const c of carList){if(c.occupied)continue;if(c.ai){if(Math.abs(c.angle%Math.PI)<.2)c.x+=Math.sign(Math.cos(c.angle))*22*dt;else c.y+=Math.sign(Math.sin(c.angle))*22*dt;if(Math.random()<dt*.015)c.ai=false} }
+if(wanted>0){crimeClock+=dt;heatClock+=dt;if(heatClock>24){heatClock=0;if(wanted>0)wanted--;if(wanted===0)setFeed('Dispatch: search called off. Keep it quiet for a while.')}if(police.length<wanted&&crimeClock>3){crimeClock=0;let a=Math.random()*Math.PI*2;let c={x:player.x+Math.cos(a)*330,y:player.y+Math.sin(a)*330,angle:a+Math.PI,speed:65,color:'#e8e9e1',police:true,occupied:false,ai:false};carList.push(c);police.push(c)}for(const p of police){let target=player.car||player;let dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy)||1;p.angle=Math.atan2(dy,dx);p.x+=dx/d*50*dt;p.y+=dy/d*50*dt;if(d<26){if(player.car){player.car.speed=0}wanted=0;cash=Math.max(0,cash-75);player.car=null;player.x+=70;player.y+=40;police=[];$('mode').textContent='ON FOOT';$('carname').textContent='NONE';setFeed('BUSTED! Fine paid: $75. The streets are watching.');$('endTitle').textContent='BUSTED!';$('endText').textContent='You paid a $75 fine and were dumped nearby. Back to the streets.';$('end').hidden=false;running=false;break}}}
+cam.x+=(player.x-cam.x)*Math.min(1,dt*7);cam.y+=(player.y-cam.y)*Math.min(1,dt*7);let bl=blockAt(player.x,player.y);$('block').textContent=bl.x+', '+bl.y;$('cash').textContent='$'+cash;$('wanted').textContent='★'.repeat(wanted)+'☆'.repeat(5-wanted)}
+function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);drawWorld();for(const c of carList)drawCar(c);if(!player.car)drawPerson();else{const p=worldToScreen(player.x,player.y);ctx.strokeStyle='#fff3a0';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,24,0,Math.PI*2);ctx.stroke()}
+// HUD overlay
+rect(12,12,175,45,'#10171dcc');ctx.fillStyle='#d8e4d8';ctx.font='bold 12px monospace';ctx.fillText('MTA CITY // LIVE',22,30);ctx.font='11px monospace';ctx.fillStyle='#9cde53';ctx.fillText('BLOCK '+blockAt(player.x,player.y).x+','+blockAt(player.x,player.y).y,22,46);
+let target=nearbyCar();if(!player.car&&target){let p=worldToScreen(target.x,target.y);ctx.strokeStyle='#c4ec78';ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(p.x,p.y,23,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);rect(12,canvas.height-39,220,26,'#10171ddd');ctx.fillStyle='#fff';ctx.font='bold 12px monospace';ctx.fillText('PRESS E TO ENTER VEHICLE',21,canvas.height-22)}
+}
+function loop(t){if(!running)return;let dt=Math.min(.035,(t-last)/1000||0);last=t;update(dt);draw();requestAnimationFrame(loop)}
+$('start').addEventListener('click',reset);$('restart').addEventListener('click',reset);
+// make the initial canvas attractive before starting
+player={x:160,y:160,angle:0,car:null};cam={x:160,y:160};populate();draw();$('start').focus();
+})();
+</script>
+</body>
+</html>
