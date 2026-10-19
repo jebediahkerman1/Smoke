@@ -20,12 +20,12 @@
 <div class="game-frame">
 <div id="game" role="img" aria-label="Interactive low-poly 3D city driving game"></div>
 <div class="hud"><div class="hud-top"><div class="pill"><strong>SMOKE CITY</strong><br><span id="district">DOWNTOWN</span></div><canvas id="minimap" width="180" height="180" aria-label="City minimap"></canvas></div><div class="hud-bottom"><div class="pill speed"><span id="speed">000</span> <small>KM/H</small></div><div class="toast" id="toast">Find the yellow car and press E to enter.</div></div></div>
-<div class="overlay" id="startOverlay"><div class="modal"><div class="eyebrow">WELCOME TO THE CITY</div><h2>MTA 3</h2><p>A fixed-angle, low-poly 3D city to explore. Drive through downtown, discover the beach road, and collect glowing cash pickups.</p><p><b>WASD / arrow keys</b> to drive · <b>E</b> enter/exit · <b>Space</b> handbrake</p><button class="btn" id="startBtn">ENTER THE CITY</button></div></div>
+<div class="overlay" id="startOverlay"><div class="modal"><div class="eyebrow">WELCOME TO THE CITY</div><h2>MTA 3</h2><p>A fixed-angle, low-poly 3D city to explore. Drive through downtown, discover the beach road, and collect glowing cash pickups.</p><p><b>WASD / arrows</b> to drive or walk · <b>E</b> near your car · <b>Click / F</b> to shoot on foot</p><button class="btn" id="startBtn">ENTER THE CITY</button></div></div>
 </div>
-<div class="mobile-controls" aria-label="Touch driving controls"><div class="steer"><button data-key="a">◀</button><button data-key="d">▶</button></div><div class="pedals"><button data-key="s">▼</button><button data-key="w">▲ GAS</button><button data-key="space">DRIFT</button></div><button id="enterMobile">E</button></div>
+<div class="mobile-controls" aria-label="Touch driving controls"><div class="steer"><button data-key="a">◀</button><button data-key="d">▶</button></div><div class="pedals"><button data-key="s">▼</button><button data-key="w">▲ GAS</button><button data-key="space">DRIFT</button></div><button id="enterMobile">E</button><button id="shootMobile">FIRE</button></div>
 </section>
 <aside class="side">
-<div class="panel"><h2>DRIVING CONTROLS</h2><div class="keyrow"><kbd>W</kbd><span>Accelerate</span></div><div class="keyrow"><kbd>S</kbd><span>Reverse / brake</span></div><div class="keyrow"><kbd>A</kbd><kbd>D</kbd><span>Steer</span></div><div class="keyrow"><kbd>E</kbd><span>Enter or exit your car</span></div><div class="keyrow"><kbd>SPACE</kbd><span>Handbrake turn</span></div><p class="note">The camera follows from a fixed elevated angle. This demo saves no data.</p></div>
+<div class="panel"><h2>DRIVING CONTROLS</h2><div class="keyrow"><kbd>W</kbd><span>Accelerate</span></div><div class="keyrow"><kbd>S</kbd><span>Reverse / brake</span></div><div class="keyrow"><kbd>A</kbd><kbd>D</kbd><span>Steer</span></div><div class="keyrow"><kbd>E</kbd><span>Enter / exit near your car</span></div><div class="keyrow"><kbd>CLICK / F</kbd><span>Shoot while on foot</span></div><div class="keyrow"><kbd>SPACE</kbd><span>Handbrake turn</span></div><p class="note">The camera follows from a fixed elevated angle. This demo saves no data.</p></div>
 <div class="panel"><h2>CITY ACTIVITIES</h2><div class="mission"><span>Collect cash pickups</span><b>+$50</b></div><div class="mission"><span>Discover districts</span><b>+REP</b></div><div class="mission"><span>Take a scenic drive</span><b>FREE</b></div><p class="note">This is an original parody game inspired by open-world driving games, not an official GTA game.</p></div>
 <div class="panel"><h2>CITY GUIDE</h2><p>🏙️ Downtown towers</p><p>🏘️ Low-rise suburbs</p><p>🌴 Palm-lined coast</p><p>🛣️ Crossroads and ring roads</p><p>🟡 Yellow car = your ride</p></div>
 </aside>
@@ -63,26 +63,84 @@ function makeTree(x,y,z){const g=new THREE.Group();const trunk=new THREE.Mesh(ne
 for(let i=0;i<42;i++){const x=(Math.random()-.5)*310,z=(Math.random()-.5)*250;if(Math.abs(x%48)<11||Math.abs(z%48)<11)continue;makeTree(x,.15,z);}
 function makeCar(color,x,z,angle=0){const g=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(2.4,.8,4.2),mat(color));body.position.y=.85;body.castShadow=true;g.add(body);const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.8,.8,1.9),mat(0xb5d5d9,.55));cabin.position.set(0,1.55,-.25);cabin.castShadow=true;g.add(cabin);const hood=new THREE.Mesh(new THREE.BoxGeometry(2.1,.35,1.1),mat(color));hood.position.set(0,1.05,1.3);g.add(hood);for(const xx of [-1.22,1.22])for(const zz of [-1.25,1.25]){const tire=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.25,8),black);tire.rotation.z=Math.PI/2;tire.position.set(xx,.45,zz);g.add(tire);}g.position.set(x,0,z);g.rotation.y=angle;world.add(g);return g;}
 const car=makeCar(0xf2c94c,4,5,Math.PI);
+function makePlayer(){
+ const g=new THREE.Group();
+ const skin=mat(0xdca77e),shirt=mat(0x326d9b),pants=mat(0x303b4c),shoe=mat(0x202328),gunMat=mat(0x252a2c);
+ block(.8,1.05,.45,shirt,0,0,0,g);
+ const head=new THREE.Mesh(new THREE.BoxGeometry(.48,.48,.48),skin);head.position.set(0,1.85,0);g.add(head);
+ for(const x of [-.25,.25]){const leg=block(.28,.65,.3,pants,x,0,.02,g);block(.3,.16,.4,shoe,x,-.02,.08,g);}
+ for(const x of [-.55,.55]){const arm=block(.22,.8,.24,shirt,x,.82,0,g);arm.rotation.z=x<0?-.12:.12;}
+ const gun=block(.16,.16,.65,gunMat,.43,1.12,-.42,g);
+ g.visible=false;world.add(g);return g;
+}
+const player=makePlayer();
+const playerPos=new THREE.Vector3(7,0,5);
+const targets=[];
+for(let i=0;i<10;i++){
+ const x=(Math.floor(Math.random()*7)-3)*24+7,z=(Math.floor(Math.random()*7)-3)*24+7;
+ if(Math.hypot(x-4,z-5)<18)continue;
+ const npc=new THREE.Group();const shirt=mat(0xb84b42),skin=mat(0xdca77e),pants=mat(0x3b3b45);
+ block(.8,1.1,.45,shirt,0,0,0,npc);
+ const head=new THREE.Mesh(new THREE.BoxGeometry(.45,.45,.45),skin);head.position.y=1.85;npc.add(head);
+ block(.28,.7,.3,pants,-.22,-.05,0,npc);block(.28,.7,.3,pants,.22,-.05,0,npc);
+ npc.position.set(x,0,z);world.add(npc);targets.push({mesh:npc,alive:true});
+}
+const bullets=[];let shootCooldown=0;
+function shoot(){
+ if(!started||inCar||shootCooldown>0)return;
+ shootCooldown=.28;
+ const origin=playerPos.clone();origin.y=1.35;
+ const dir=new THREE.Vector3(Math.sin(heading),0,Math.cos(heading));
+ const mesh=new THREE.Mesh(new THREE.SphereGeometry(.16,6,6),new THREE.MeshBasicMaterial({color:0xffef9a}));
+ mesh.position.copy(origin);world.add(mesh);bullets.push({mesh,dir,life:1.25});
+ say('POP! You fired a shot.');
+}
 for(let i=0;i<14;i++){const x=(Math.floor(Math.random()*7)-3)*24+9,z=(Math.floor(Math.random()*7)-3)*24+9;if(Math.hypot(x-4,z-5)<14)continue;makeCar([0xc55b49,0x477d9b,0xd8dedb,0x4b6e53,0x30363b][i%5],x,z,Math.random()*Math.PI*2);}
 const pickups=[];const pickupMat=new THREE.MeshStandardMaterial({color:0xffdc48,emissive:0x8b6400,emissiveIntensity:1.3,flatShading:true});
 for(let i=0;i<14;i++){const coin=new THREE.Mesh(new THREE.OctahedronGeometry(.8,0),pickupMat);coin.position.set((Math.floor(Math.random()*7)-3)*24+12,1.2,(Math.floor(Math.random()*7)-3)*24+12);coin.castShadow=true;world.add(coin);pickups.push(coin);}
 const keys={};let started=false,inCar=false,speed=0,heading=0,cash=250,rep=0,lastTime=0;let toastTimer=0;const seen=new Set();
 function say(s){toastEl.textContent=s;toastTimer=3.4;}
-function enter(){if(!started){started=true;overlay.hidden=true;}if(!inCar){inCar=true;car.position.set(car.position.x,0,car.position.z);say('You hopped into the compact. Drive safe-ish.');}else{inCar=false;speed=0;say('You stepped out. Press E near the car to get back in.');}}
+function enter(){
+ if(!started){started=true;overlay.hidden=true;}
+ if(!inCar){
+  if(playerPos.distanceTo(car.position)>6){say('Get closer to the yellow car to enter it.');return;}
+  inCar=true;player.visible=false;say('You hopped into the compact. Drive safe-ish.');
+ }else{
+  inCar=false;speed=0;playerPos.set(car.position.x+Math.cos(heading)*3,0,car.position.z-Math.sin(heading)*3);
+  player.position.copy(playerPos);player.rotation.y=heading;player.visible=true;say('On foot! Click or press F to shoot. Stay close to your car to re-enter.');
+ }
+}
 document.getElementById('startBtn').addEventListener('click',()=>{if(!started){started=true;overlay.hidden=true;}inCar=true;say('Welcome to Smoke City. Go explore!');});
-document.getElementById('enterMobile').addEventListener('click',enter);
-window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if(k==='e'&&!e.repeat)enter();if(k==='r'&&!e.repeat){car.position.set(4,0,5);heading=Math.PI;speed=0;say('Vehicle recovered.');}});
+document.getElementById('enterMobile').addEventListener('click',enter);document.getElementById('shootMobile').addEventListener('click',shoot);renderer.domElement.addEventListener('pointerdown',e=>{if(e.button===0)shoot();});
+window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if(k==='e'&&!e.repeat)enter();if(k==='f'&&!e.repeat)shoot();if(k==='r'&&!e.repeat){car.position.set(4,0,5);heading=Math.PI;speed=0;say('Vehicle recovered.');}});
 window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 document.querySelectorAll('[data-key]').forEach(btn=>{const k=btn.dataset.key;const down=e=>{e.preventDefault();keys[k==='space'?' ':k]=true;};const up=e=>{e.preventDefault();keys[k==='space'?' ':k]=false;};btn.addEventListener('pointerdown',down);btn.addEventListener('pointerup',up);btn.addEventListener('pointerleave',up);btn.addEventListener('pointercancel',up);});
 function resize(){const w=mount.clientWidth,h=mount.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}new ResizeObserver(resize).observe(mount);resize();
 const mini=document.getElementById('minimap'),ctx=mini.getContext('2d');
-function drawMini(){const w=mini.width;ctx.clearRect(0,0,w,w);ctx.fillStyle='#203a2a';ctx.fillRect(0,0,w,w);ctx.fillStyle='#65736c';for(let x=12;x<w;x+=24)ctx.fillRect(x,0,8,w);for(let y=12;y<w;y+=24)ctx.fillRect(0,y,w,8);ctx.fillStyle='#e8ca56';ctx.beginPath();ctx.arc(w/2+(car.position.x/360)*w,w/2+(car.position.z/360)*w,6,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(w/2+(car.position.x/360)*w,w/2+(car.position.z/360)*w);ctx.lineTo(w/2+(car.position.x/360)*w+Math.sin(heading)*12,w/2+(car.position.z/360)*w+Math.cos(heading)*12);ctx.stroke();}
-function update(dt){if(inCar){const accel=(keys.w||keys.arrowup)?21:0,brake=(keys.s||keys.arrowdown)?25:0;speed+=accel*dt;speed-=brake*dt;if(!accel&&!brake)speed*=Math.pow(.965,dt*60);speed=Math.max(-10,Math.min(48,speed));const steer=(keys.a||keys.arrowleft?1:0)+(keys.d||keys.arrowright?-1:0);if(steer)heading+=steer*dt*(1.45+Math.min(Math.abs(speed)/25,1.2))*(speed<0?-1:1)*(keys[' ']?1.6:1);car.rotation.y=heading;car.position.x+=Math.sin(heading)*speed*dt;car.position.z+=Math.cos(heading)*speed*dt;car.position.x=Math.max(-166,Math.min(166,car.position.x));car.position.z=Math.max(-166,Math.min(166,car.position.z));}else{speed=0;}
-const target=new THREE.Vector3(car.position.x+Math.sin(heading)*13,0,car.position.z+Math.cos(heading)*13);const desired=new THREE.Vector3(car.position.x-Math.sin(heading)*18,20,car.position.z-Math.cos(heading)*18);camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(target);
-for(const coin of pickups){coin.rotation.y+=dt*1.8;coin.rotation.x+=dt*.4;if(coin.visible&&car.position.distanceTo(coin.position)<3.3){coin.visible=false;cash+=50;rep+=1;cashEl.textContent=cash;repEl.textContent=rep;say('Cash collected! +$50');}}
-const district=Math.abs(car.position.z)>75?'COAST ROAD':Math.abs(car.position.x)>75?'OUTER SUBURBS':Math.abs(car.position.x)<30&&Math.abs(car.position.z)<30?'DOWNTOWN':'RESIDENTIAL';districtEl.textContent=district;if(!seen.has(district)){seen.add(district);rep+=5;repEl.textContent=rep;if(seen.size>1)say('New district discovered: '+district+' (+5 REP)');}
+function drawMini(pos){const w=mini.width;ctx.clearRect(0,0,w,w);ctx.fillStyle='#203a2a';ctx.fillRect(0,0,w,w);ctx.fillStyle='#65736c';for(let x=12;x<w;x+=24)ctx.fillRect(x,0,8,w);for(let y=12;y<w;y+=24)ctx.fillRect(0,y,w,8);ctx.fillStyle=inCar?'#e8ca56':'#66e3ff';ctx.beginPath();ctx.arc(w/2+(pos.x/360)*w,w/2+(pos.z/360)*w,6,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(w/2+(pos.x/360)*w,w/2+(pos.z/360)*w);ctx.lineTo(w/2+(pos.x/360)*w+Math.sin(heading)*12,w/2+(pos.z/360)*w+Math.cos(heading)*12);ctx.stroke();}
+function update(dt){if(inCar){const accel=(keys.w||keys.arrowup)?21:0,brake=(keys.s||keys.arrowdown)?25:0;speed+=accel*dt;speed-=brake*dt;if(!accel&&!brake)speed*=Math.pow(.965,dt*60);speed=Math.max(-10,Math.min(48,speed));const steer=(keys.a||keys.arrowleft?1:0)+(keys.d||keys.arrowright?-1:0);if(steer)heading+=steer*dt*(1.45+Math.min(Math.abs(speed)/25,1.2))*(speed<0?-1:1)*(keys[' ']?1.6:1);car.rotation.y=heading;car.position.x+=Math.sin(heading)*speed*dt;car.position.z+=Math.cos(heading)*speed*dt;car.position.x=Math.max(-166,Math.min(166,car.position.x));car.position.z=Math.max(-166,Math.min(166,car.position.z));}else{
+ speed=0;
+ const walk=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0);
+ const turn=(keys.a||keys.arrowleft?-1:0)+(keys.d||keys.arrowright?1:0);
+ heading+=turn*dt*2.2;
+ playerPos.x+=Math.sin(heading)*walk*dt*8;
+ playerPos.z+=Math.cos(heading)*walk*dt*8;
+ playerPos.x=Math.max(-166,Math.min(166,playerPos.x));playerPos.z=Math.max(-166,Math.min(166,playerPos.z));
+ player.position.copy(playerPos);player.rotation.y=heading;
+}
+shootCooldown=Math.max(0,shootCooldown-dt);
+const activePos=inCar?car.position:playerPos;
+for(let i=bullets.length-1;i>=0;i--){
+ const b=bullets[i];b.mesh.position.x+=b.dir.x*dt*75;b.mesh.position.z+=b.dir.z*dt*75;b.life-=dt;
+ let hit=false;
+ for(const npc of targets){if(npc.alive&&b.mesh.position.distanceTo(npc.mesh.position.clone().add(new THREE.Vector3(0,1,0)))<1.35){npc.alive=false;npc.mesh.visible=false;cash+=100;rep+=2;cashEl.textContent=cash;repEl.textContent=rep;say('Target hit! +$100');hit=true;break;}}
+ if(hit||b.life<=0){world.remove(b.mesh);bullets.splice(i,1);}
+}
+const target=new THREE.Vector3(activePos.x+Math.sin(heading)*13,0,activePos.z+Math.cos(heading)*13);const desired=new THREE.Vector3(activePos.x-Math.sin(heading)*18,20,activePos.z-Math.cos(heading)*18);camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(target);
+for(const coin of pickups){coin.rotation.y+=dt*1.8;coin.rotation.x+=dt*.4;if(coin.visible&&activePos.distanceTo(coin.position)<3.3){coin.visible=false;cash+=50;rep+=1;cashEl.textContent=cash;repEl.textContent=rep;say('Cash collected! +$50');}}
+const district=Math.abs(activePos.z)>75?'COAST ROAD':Math.abs(activePos.x)>75?'OUTER SUBURBS':Math.abs(activePos.x)<30&&Math.abs(activePos.z)<30?'DOWNTOWN':'RESIDENTIAL';districtEl.textContent=district;if(!seen.has(district)){seen.add(district);rep+=5;repEl.textContent=rep;if(seen.size>1)say('New district discovered: '+district+' (+5 REP)');}
 speedEl.textContent=String(Math.round(Math.abs(speed)*2.5)).padStart(3,'0');document.getElementById('vehicleStat').textContent=inCar?'COMPACT':'ON FOOT';if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)toastEl.textContent=inCar?'Cruise around and look for glowing cash.':'Press E near the yellow car to enter.';}
-drawMini();}
+drawMini(activePos);}
 function animate(t){requestAnimationFrame(animate);const dt=Math.min(.045,(t-lastTime)/1000||0);lastTime=t;update(dt);renderer.render(scene,camera);}requestAnimationFrame(animate);
 window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 })();
