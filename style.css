@@ -39,3 +39,7 @@
 .community-error{padding:12px;background:#392a2a;border-left:3px solid #d87979;color:#ffd1c8}
 .community-footnote{margin-top:14px;color:#718696}
 @media(max-width:520px){.community-form-row{grid-template-columns:1fr}.community-submit-row{align-items:flex-start;flex-direction:column}.community-submit-row button{align-self:flex-end}.community-post-top{align-items:flex-start;flex-direction:column}.community-category{white-space:normal}}
+
+/* Live store-search result count */
+.search-count{margin:0 0 9px;padding:7px 10px;background:#16202d;border-left:2px solid #66c0f4;color:#acdbf5;font-size:11px}.search-count[hidden]{display:none!important}
+.game-card[hidden]{display:none!important}
