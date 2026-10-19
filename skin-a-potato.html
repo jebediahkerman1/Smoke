@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#151d20">
+<title>Skin a Potato — SMOKE</title>
+<style>
+:root{color-scheme:dark;--lime:#b7f36a;--panel:#202b2e;--line:#405155;--muted:#a8b8b5}*{box-sizing:border-box}body{margin:0;background:#11191b;color:#f1f5ee;font:14px/1.5 system-ui,Segoe UI,sans-serif}a{color:var(--lime);text-decoration:none}header{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 max(16px,calc((100vw - 1200px)/2));background:#172124;border-bottom:1px solid #344246}.brand{font-size:22px;font-weight:1000;letter-spacing:3px;color:white}.brand span{color:var(--lime)}main{max-width:1200px;margin:auto;padding:20px 14px 35px}.eyebrow{color:var(--lime);font-size:11px;letter-spacing:2px;font-weight:900}h1{font-size:clamp(28px,4vw,44px);line-height:1.05;margin:4px 0 8px;letter-spacing:-1px}.intro{display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:14px}.intro p{color:var(--muted);margin:0}.stats{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.stat{background:#202b2e;border:1px solid var(--line);border-radius:7px;padding:7px 12px;min-width:110px}.stat small{display:block;color:var(--muted);font-size:10px;letter-spacing:1px}.stat strong{font-size:19px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 245px;gap:13px;align-items:start}.frame{position:relative;overflow:hidden;border:1px solid #4c6261;border-radius:10px;background:#9cb5a0;box-shadow:0 18px 50px #0008}#game{display:block;width:100%;height:min(70vh,680px);min-height:400px;outline:0}.hud{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:13px}.hudtop,.hudbottom{display:flex;justify-content:space-between;align-items:start;gap:10px}.chip{background:#10191cdd;border:1px solid #ffffff30;border-radius:6px;padding:8px 11px;text-shadow:0 1px 2px #000}.chip b{color:var(--lime)}.toast{max-width:70%;background:#10191ce8;padding:10px 12px;border:1px solid #ffffff30;border-radius:7px}.progresswrap{width:min(240px,48%);background:#10191ce8;border:1px solid #ffffff30;padding:8px;border-radius:7px}.progresslabel{font-size:10px;letter-spacing:1px;margin-bottom:5px}.bar{height:8px;background:#3c4a48;border-radius:9px;overflow:hidden}.bar span{display:block;width:0;height:100%;background:var(--lime);transition:width .08s linear}.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:#091211b8}.overlay[hidden]{display:none}.modal{max-width:440px;text-align:center;padding:24px;border-radius:12px;border:1px solid #718681;background:#1b2929f5;box-shadow:0 15px 50px #0008}.modal h2{font-size:30px;margin:0 0 8px}.modal p{color:#d0dbd4}.btn{background:var(--lime);color:#17210f;border:0;border-radius:6px;padding:12px 19px;font-weight:950;cursor:pointer}.side{display:flex;flex-direction:column;gap:10px}.panel{background:#202b2e;border:1px solid var(--line);border-radius:8px;padding:13px}.panel h2{font-size:12px;letter-spacing:1.3px;margin:0 0 8px}.panel p{color:var(--muted);margin:6px 0}.key{display:flex;gap:8px;align-items:center;margin:7px 0;color:#dce6df}.key kbd{background:#101719;border:1px solid #50605f;padding:3px 7px;border-radius:4px;min-width:28px;text-align:center}.note{font-size:11px;color:#91a4a0}.touch{display:none;justify-content:space-between;gap:8px;margin-top:9px}.touch button{background:#263a39;color:#fff;border:1px solid #5a7770;border-radius:7px;min-width:52px;min-height:46px;font-weight:bold;touch-action:none}.touch .dpad{display:flex;gap:6px}@media(max-width:850px){.layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.side .panel:last-child{grid-column:1/-1}}@media(max-width:600px){header{height:52px}.intro{display:block}.intro p{margin-top:6px}.layout{display:flex;flex-direction:column}.frame{width:100%}#game{height:58vh;min-height:350px}.hud{padding:8px}.chip{font-size:11px;padding:6px}.side{display:flex;width:100%}.touch{display:flex}.progresswrap{width:48%}.toast{font-size:11px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+</head>
+<body>
+<header><a class="brand" href="index.html">SM<span>O</span>KE</a><span style="color:#a8b8b5;font-size:11px;letter-spacing:1px">FACTORY SIMULATOR · SHIFT 01</span><a href="workshop.html">← ALL GAMES</a></header>
+<main>
+<div class="intro"><div><div class="eyebrow">SMOKE INDUSTRIES PRESENTS</div><h1>SKIN A POTATO</h1><p>Clock in. Grab a potato. Walk to the machine. Peel the potato. Repeat. The factory must be fed.</p></div></div>
+<div class="stats"><div class="stat"><small>POTATOES SKINNED</small><strong id="count">0</strong></div><div class="stat"><small>SHIFT PAY</small><strong>$<span id="pay">0</span></strong></div><div class="stat"><small>IN YOUR HANDS</small><strong id="held">NONE</strong></div></div>
+<div class="layout"><section>
+<div class="frame"><div id="game" aria-label="Interactive 3D potato factory"></div>
+<div class="hud"><div class="hudtop"><div class="chip"><b>POTATO PROCESSING PLANT</b><br><span id="status">SHIFT NOT STARTED</span></div><div class="chip">SHIFT <b>01</b><br><span id="clock">00:00</span></div></div><div class="hudbottom"><div class="toast" id="toast">Start your shift, then grab a potato from the crate.</div><div class="progresswrap"><div class="progresslabel" id="progressLabel">SKINNING PROGRESS</div><div class="bar"><span id="progress"></span></div></div></div></div>
+<div class="overlay" id="overlay"><div class="modal"><div class="eyebrow">WELCOME, TEMPORARY EMPLOYEE</div><h2>SKIN A POTATO</h2><p>Welcome to the potato processing factory. Pick up a potato, carry it to the glowing skinning station, and hold <b>E</b> to peel it. Try not to think about your career choices.</p><p><b>WASD</b> move · <b>E</b> grab / skin · <b>Shift</b> jog</p><button class="btn" id="start">CLOCK IN</button></div></div>
+</div>
+<div class="touch"><div class="dpad"><button data-key="a">◀</button><button data-key="d">▶</button></div><div class="dpad"><button data-key="s">▼</button><button data-key="w">▲</button></div><button id="actionTouch">E · ACTION</button></div>
+</section><aside class="side">
+<div class="panel"><h2>HOW TO WORK</h2><div class="key"><kbd>W A S D</kbd><span>Walk around the factory</span></div><div class="key"><kbd>E</kbd><span>Pick up / put down potato</span></div><div class="key"><kbd>HOLD E</kbd><span>Skin potato at the station</span></div><div class="key"><kbd>SHIFT</kbd><span>Jog to your next potato</span></div><p class="note">Stand beside the station and hold E until the bar fills. The machine does the hard work. Mostly.</p></div>
+<div class="panel"><h2>SHIFT TARGET</h2><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #405155"><span>Daily quota</span><b style="color:#b7f36a">10 potatoes</b></div><div style="display:flex;justify-content:space-between;padding:8px 0"><span>Pay per potato</span><b>$25</b></div><div class="bar"><span id="quotaBar"></span></div><p id="quotaText">0 / 10 potatoes completed</p></div>
+<div class="panel"><h2>FACTORY FLOOR</h2><p>📦 Potato delivery crate</p><p>🟡 Yellow marker = skinning station</p><p>🥔 Pick up one potato at a time</p><p>🏭 Complete the quota for a tiny sense of accomplishment</p></div>
+</aside></div>
+</main>
+<script>
+(function(){
+const mount=document.getElementById('game'),toast=document.getElementById('toast'),overlay=document.getElementById('overlay');
+if(!window.THREE){mount.innerHTML='<div style="padding:35px;color:#fff">The 3D engine could not load. Check your internet connection and refresh.</div>';return;}
+const T=window.THREE,scene=new T.Scene();scene.background=new T.Color(0x9db7ad);scene.fog=new T.Fog(0x9db7ad,35,100);
+const camera=new T.PerspectiveCamera(53,1,.1,180);
+const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.6));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;mount.appendChild(renderer.domElement);
+scene.add(new T.HemisphereLight(0xe4fff3,0x5b6250,2.0));const sun=new T.DirectionalLight(0xffe8c2,2.3);sun.position.set(-12,25,10);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-28;sun.shadow.camera.right=28;sun.shadow.camera.top=28;sun.shadow.camera.bottom=-28;scene.add(sun);
+const material=(c,r=1)=>new T.MeshStandardMaterial({color:c,roughness:r,flatShading:true});
+const floor=material(0x65776b),wall=material(0x7f9388),cream=material(0xd6d2b7),steel=material(0x71858a,.55),dark=material(0x29383a),yellow=material(0xf1c84d),red=material(0xb9503f),green=material(0x5b9068),glass=material(0x8fc7c4,.35),skin=material(0xdca67b),shirt=material(0x326b94),pants=material(0x35404b),boot=material(0x22282b);
+const factory=new T.Group();scene.add(factory);
+function box(parent,w,h,d,x,y,z,m){const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y+h/2,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;}
+box(factory,42,.5,32,0,-.25,0,floor);
+box(factory,42,8,.5,0,0,-16,wall);box(factory,42,8,.5,0,0,16,wall);box(factory,.5,8,32,-21,0,0,wall);box(factory,.5,8,32,21,0,0,wall);
+for(let x=-16;x<=16;x+=8){box(factory,.22,7,.22,x,0,-15.65,dark);box(factory,.22,7,.22,x,0,15.65,dark);}
+for(let x=-18;x<=18;x+=6){box(factory,5,.15,.25,x,7.2,-13,steel);box(factory,5,.15,.25,x,7.2,13,steel);}
+for(let x=-14;x<=14;x+=7){box(factory,2,.15,1.2,x,7.4,0,cream);const lamp=new T.PointLight(0xffe5ad,9,12);lamp.position.set(x,6.6,0);scene.add(lamp);}
+for(let x=-18;x<=18;x+=6){box(factory,5,.18,3,x,.02,-8,cream);box(factory,5,.18,3,x,.02,8,cream);}
+for(let x=-18;x<=18;x+=4){box(factory,.06,.02,1.5,x,.13,0,yellow);}
+function machine(x,z){
+ const g=new T.Group();g.position.set(x,0,z);factory.add(g);
+ box(g,3.5,1.5,2.6,0,0,0,steel);box(g,2.8,1.1,2.1,0,1.5,0,dark);
+ box(g,2.9,.16,2.2,0,2.6,0,yellow);box(g,.2,1.2,.2,-1.1,1.4,1.1,red);box(g,.2,1.2,.2,1.1,1.4,1.1,red);
+ const blade=new T.Mesh(new T.CylinderGeometry(.13,.13,1.8,8),material(0xd5dfdc,.35));blade.rotation.z=Math.PI/2;blade.position.set(0,2.15,0);g.add(blade);
+ const lamp=new T.PointLight(0xffd34d,3,8);lamp.position.set(0,3.3,0);g.add(lamp);
+ return {group:g,blade:blade,lamp:lamp};
+}
+const station=machine(8,0);
+box(factory,4,.6,3,-10,.2,-3,steel);box(factory,3,.4,2,-10,.8,-3,cream);
+for(let i=0;i<5;i++){box(factory,.15,.8,.15,-11.3+i*.65,1,-3.65,dark);}
+box(factory,4,2.1,3,-15,.1,4,red);box(factory,4,.25,3,-15,2.2,4,dark);
+for(let i=0;i<6;i++){const potato=new T.Mesh(new T.SphereGeometry(.42,10,8),material([0xb18a52,0xc29a5d,0x9c7947][i%3]));potato.scale.set(1.25,.85,1);potato.position.set(-16+(i%3)*.9,2.7+Math.floor(i/3)*.5,3.3+Math.floor(i/3)*.8);potato.rotation.set(Math.random(),Math.random(),Math.random());factory.add(potato);}
+box(factory,3,.1,2,-5,.05,10,steel);box(factory,2.8,.7,1.8,-5,.15,10,green);
+for(let i=0;i<4;i++)box(factory,.12,.5,.12,-6+i*.65,.9,10,dark);
+const crate=box(factory,3,1.2,2,-15,.1,-3,material(0x997047));for(let i=0;i<4;i++)box(factory,3.05,.09,.1,-15,.35+i*.24,-4,cream);
+const potatoes=[];const potatoMat=material(0xb78d50);const peelMat=material(0x7e5531);const peeledMat=material(0xf0d7a0);
+function makePotato(x,z){const g=new T.Group();const core=new T.Mesh(new T.SphereGeometry(.48,12,9),potatoMat);core.scale.set(1.25,.83,.9);core.castShadow=true;g.add(core);for(let i=0;i<3;i++){const eye=new T.Mesh(new T.SphereGeometry(.045,6,5),peelMat);eye.position.set(Math.cos(i*2.1)*.4,.12,Math.sin(i*2.1)*.34);g.add(eye);}g.position.set(x,.72,z);factory.add(g);potatoes.push({mesh:g,available:true});return g;}
+for(let i=0;i<8;i++)makePotato(-16+(i%4)*.9,-3.4+Math.floor(i/4)*.8);
+const player=new T.Group();scene.add(player);
+const torso=box(player,.8,1.05,.46,0,.85,0,shirt);const head=new T.Mesh(new T.BoxGeometry(.48,.48,.48),skin);head.position.set(0,1.92,0);player.add(head);box(player,.28,.72,.3,-.23,.12,0,pants);box(player,.28,.72,.3,.23,.12,0,pants);box(player,.3,.16,.42,-.23,.04,.07,boot);box(player,.3,.16,.42,.23,.04,.07,boot);box(player,.22,.8,.24,-.53,.92,0,shirt);box(player,.22,.8,.24,.53,.92,0,shirt);scene.add(player);player.position.set(-7,0,3);
+let started=false,held=null,skinning=false,progress=0,skinned=0,pay=0,elapsed=0,toastTimer=0;const keys={};let actionDown=false;const progressEl=document.getElementById('progress');
+function say(s){toast.textContent=s;toastTimer=3.5;}
+function near(a,b,dist){return a.distanceTo(b)<dist;}
+function nearestPotato(){let best=null,d=2.1;for(const p of potatoes){if(!p.available)continue;const n=player.position.distanceTo(p.mesh.position);if(n<d){best=p;d=n;}}return best;}
+function interact(){
+ if(!started){return;}
+ if(held){if(player.position.distanceTo(new T.Vector3(8,0,0))<4.4){skinning=true;say('Hold E to peel the potato!');}else{held.mesh.position.set(player.position.x+.8,.95,player.position.z+.2);held.mesh.visible=true;held.available=true;held=null;skinning=false;progress=0;progressEl.style.width='0%';document.getElementById('held').textContent='NONE';say('Potato put down.');}return;}
+ const p=nearestPotato();if(p){held=p;p.available=false;p.mesh.position.set(player.position.x+.7,1.25,player.position.z-.35);say('Potato grabbed! Take it to the yellow skinning station.');document.getElementById('held').textContent='🥔 POTATO';return;}
+ if(player.position.distanceTo(new T.Vector3(8,0,0))<4.4){say('You need to grab a potato from the crate first.');return;}
+ say('No potato in reach. Find one beside the delivery crate.');}
+document.getElementById('start').addEventListener('click',()=>{started=true;overlay.hidden=true;say('Shift started. Go grab a potato!');});
+document.getElementById('actionTouch').addEventListener('pointerdown',e=>{e.preventDefault();actionDown=true;interact();});document.getElementById('actionTouch').addEventListener('pointerup',()=>actionDown=false);document.getElementById('actionTouch').addEventListener('pointercancel',()=>actionDown=false);
+window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if(k==='e'&&!e.repeat)interact();});
+window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
+document.querySelectorAll('[data-key]').forEach(b=>{const k=b.dataset.key;const down=e=>{e.preventDefault();keys[k]=true;};const up=e=>{e.preventDefault();keys[k]=false;};b.addEventListener('pointerdown',down);b.addEventListener('pointerup',up);b.addEventListener('pointerleave',up);b.addEventListener('pointercancel',up);});
+function resize(){const w=mount.clientWidth,h=mount.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}new ResizeObserver(resize).observe(mount);resize();
+const clockEl=document.getElementById('clock'),statusEl=document.getElementById('status');
+function update(dt){
+ if(started)elapsed+=dt;
+ const forward=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0),turn=(keys.a||keys.arrowleft?-1:0)+(keys.d||keys.arrowright?1:0);
+ player.rotation.y+=turn*dt*2.2;
+ const dir=new T.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));const moveSpeed=(keys.shift?7:4.3);
+ if(!skinning){player.position.addScaledVector(dir,forward*moveSpeed*dt);player.position.x=Math.max(-18.8,Math.min(18.8,player.position.x));player.position.z=Math.max(-13.8,Math.min(13.8,player.position.z));}
+ if(held){held.mesh.position.set(player.position.x+dir.x*.8,.98,player.position.z+dir.z*.8);held.mesh.rotation.z=Math.sin(elapsed*7)*.08;}
+ if(held&&player.position.distanceTo(new T.Vector3(8,0,0))<4.4&&actionDown){skinning=true;progress+=dt/3.2;progressEl.style.width=Math.min(100,progress*100)+'%';document.getElementById('progressLabel').textContent='PEELING... '+Math.floor(Math.min(100,progress*100))+'%';station.blade.rotation.x+=dt*13;station.lamp.intensity=5+Math.sin(elapsed*15)*2;if(progress>=1){skinning=false;progress=0;actionDown=false;held.mesh.visible=false;held=null;skinned++;pay+=25;document.getElementById('count').textContent=skinned;document.getElementById('pay').textContent=pay;document.getElementById('held').textContent='NONE';document.getElementById('quotaBar').style.width=Math.min(100,skinned*10)+'%';document.getElementById('quotaText').textContent=skinned+' / 10 potatoes completed';document.getElementById('progressLabel').textContent='SKINNING PROGRESS';progressEl.style.width='0%';say('Potato skinned! +$25. Grab the next one.');}}
+ else if(skinning){skinning=false;progress=0;progressEl.style.width='0%';document.getElementById('progressLabel').textContent='SKINNING PROGRESS';}
+ const target=player.position.clone().add(new T.Vector3(0,1,0));const desired=player.position.clone().add(new T.Vector3(-Math.sin(player.rotation.y)*10,8,-Math.cos(player.rotation.y)*10));camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(target);
+ station.group.position.y=Math.sin(elapsed*2)*.025;
+ if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)toast.textContent=held?'Walk to the yellow station and hold E to skin.':'Grab a potato from the crate area.';}
+ clockEl.textContent=String(Math.floor(elapsed/60)).padStart(2,'0')+':'+String(Math.floor(elapsed%60)).padStart(2,'0');statusEl.textContent=!started?'SHIFT NOT STARTED':skinning?'SKINNING POTATO':held?'CARRYING POTATO':'ON THE CLOCK';
+}
+let last=0;function animate(t){requestAnimationFrame(animate);const dt=Math.min(.04,(t-last)/1000||0);last=t;update(dt);renderer.render(scene,camera);}requestAnimationFrame(animate);
+window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;actionDown=false;});
+})();
+</script>
+</body></html>
