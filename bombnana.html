@@ -5,6 +5,55 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script><script>
 (()=>{
 const $=id=>document.getElementById(id);let role='blind',live=false,done=false,remaining=120,fuses=0,switches=0,sonar=0;const keys={};
+let lobbyClient=null,lobbyChannel=null,lobbyRoom='',lobbyConnected=false,lobbyHost=false,lobbyReady=false,lobbyStarted=false,chosenRole=null;
+const lobbyId=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now());
+function lobbyPlayers(){if(!lobbyChannel)return [];const state=lobbyChannel.presenceState();return Object.entries(state).flatMap(([key,arr])=>(arr||[]).map(p=>({...p,presenceKey:key}))).filter((p,i,a)=>a.findIndex(q=>q.playerId===p.playerId)===i).slice(0,3)}
+function lobbyStatus(t){$('lobbyStatus').textContent=t}
+async function trackLobby(){if(lobbyChannel&&lobbyConnected){try{await lobbyChannel.track({playerId:lobbyId,role:chosenRole,ready:lobbyReady,joinedAt:Date.now(),host:lobbyHost})}catch(e){lobbyStatus('Connection update failed. Try leaving and rejoining.')}}}
+function refreshLobby(){
+ const players=lobbyPlayers(),mine=players.find(p=>p.playerId===lobbyId),taken=players.filter(p=>p.playerId!==lobbyId&&p.role).map(p=>p.role);
+ document.querySelectorAll('[data-lobby-role]').forEach(el=>{const r=el.dataset.lobbyRole;el.classList.toggle('selected',chosenRole===r);el.classList.toggle('taken',taken.includes(r));el.setAttribute('aria-disabled',String(taken.includes(r)))});
+ $('roster').innerHTML=[0,1,2].map(i=>{const p=players[i];if(!p)return '<div class="slot"><b>PLAYER '+(i+1)+'</b><span class="small">Waiting for player…</span></div>';const labels={blind:'🙈 BLIND',mute:'🙊 MUTE',deaf:'🙉 DEAF'};return '<div class="slot"><b>'+(p.playerId===lobbyId?'YOU':(p.host?'HOST':'PLAYER'))+'</b><span>'+(labels[p.role]||'Choosing role…')+'</span><div class="ready-state">'+(p.ready?'✓ READY':'NOT READY')+'</div></div>'}).join('');
+ $('readyBtn').disabled=!lobbyConnected||!chosenRole||!lobbyChannel||taken.includes(chosenRole);
+ $('readyBtn').textContent=lobbyReady?'CANCEL READY':'READY';
+ $('roomCode').textContent=lobbyRoom||'------';
+ if(!lobbyChannel){lobbyStatus('Create a room or enter a friend’s code. Three players are required.');return}
+ if(!lobbyConnected){lobbyStatus('Connecting to room '+lobbyRoom+'…');return}
+ if(players.length<3)lobbyStatus('Room '+lobbyRoom+' · '+players.length+'/3 players. Share the code with two friends.');
+ else if(!players.every(p=>p.role)&&players.length===3)lobbyStatus('Squad full! Everyone choose a different monkey.');
+ else if(players.length===3&&players.every(p=>p.role)&&!players.every(p=>p.ready))lobbyStatus('Roles locked in. Everyone click READY to start together!');
+ else if(players.length===3&&players.every(p=>p.role&&p.ready))lobbyStatus('ALL MONKEYS READY. Starting the escape…');
+ if(lobbyHost&&players.length===3&&players.every(p=>p.role&&p.ready)&&new Set(players.map(p=>p.role)).size===3&&!lobbyStarted){
+   lobbyStarted=true;const startAt=Date.now()+1200;const payload={startAt,players:players.map(p=>({playerId:p.playerId,role:p.role}))};
+   lobbyChannel.send({type:'broadcast',event:'game-start',payload}).catch(()=>{});
+   const own=payload.players.find(p=>p.playerId===lobbyId);if(own){chosenRole=own.role;role=own.role}
+   setTimeout(()=>{if(lobbyStarted){role=chosenRole||role;start()}},Math.max(0,startAt-Date.now()));
+ }
+}
+async function connectLobby(code,host){
+ if(lobbyChannel){lobbyStatus('Leave your current room before joining another.');return}
+ if(!window.SMOKE_SUPABASE_CONFIG||!window.supabase){lobbyStatus('Online service did not load. Refresh the page and try again.');return}
+ lobbyRoom=code;lobbyHost=host;lobbyConnected=false;lobbyReady=false;lobbyStarted=false;chosenRole=null;
+ $('roomInput').disabled=true;$('createRoom').disabled=true;$('joinRoom').disabled=true;
+ lobbyClient=window.supabase.createClient(window.SMOKE_SUPABASE_CONFIG.url,window.SMOKE_SUPABASE_CONFIG.anonKey,{realtime:{params:{eventsPerSecond:20}}});
+ lobbyChannel=lobbyClient.channel('bombnana-room-'+code,{config:{broadcast:{self:false},presence:{key:lobbyId}}});
+ lobbyChannel.on('presence',{event:'sync'},()=>{refreshLobby()});
+ lobbyChannel.on('presence',{event:'join'},()=>refreshLobby());
+ lobbyChannel.on('presence',{event:'leave'},()=>refreshLobby());
+ lobbyChannel.on('broadcast',{event:'game-start'},({payload})=>{if(!payload||lobbyStarted)return;lobbyStarted=true;const me=(payload.players||[]).find(p=>p.playerId===lobbyId);if(me){chosenRole=me.role;role=me.role;const delay=Math.max(0,(payload.startAt||Date.now())-Date.now());setTimeout(()=>start(),delay)}});
+ lobbyChannel.on('broadcast',{event:'objective-done'},({payload})=>{if(payload&&Number.isInteger(payload.index))applyObjective(payload.index)});
+ lobbyChannel.subscribe(async state=>{if(state==='SUBSCRIBED'){lobbyConnected=true;await trackLobby();lobbyStatus('Connected! Room '+code+' is ready.');refreshLobby()}else if(state==='CHANNEL_ERROR'||state==='TIMED_OUT'||state==='CLOSED'){lobbyConnected=false;lobbyStatus('Could not connect. Check SMOKE’s Supabase Realtime connection and retry.');refreshLobby()}});
+ refreshLobby();
+}
+async function leaveLobby(){const old=lobbyChannel;lobbyChannel=null;lobbyConnected=false;lobbyRoom='';lobbyHost=false;lobbyReady=false;lobbyStarted=false;chosenRole=null;$('roomInput').disabled=false;$('createRoom').disabled=false;$('joinRoom').disabled=false;if(old){try{await old.unsubscribe()}catch(e){}}refreshLobby()}
+$('createRoom').onclick=()=>{if(lobbyChannel)return;connectLobby(Math.random().toString(36).slice(2,8).toUpperCase(),true)};
+$('joinRoom').onclick=()=>{const code=$('roomInput').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length<4){lobbyStatus('Enter the room code your friend shared.');return}connectLobby(code,false)};
+$('roomInput').addEventListener('input',()=>{$('roomInput').value=$('roomInput').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)});
+$('copyRoom').onclick=async()=>{if(!lobbyRoom)return;try{await navigator.clipboard.writeText(lobbyRoom);lobbyStatus('Room code copied! Send it to your two friends.')}catch(e){lobbyStatus('Your room code is '+lobbyRoom+'. Select it and copy manually.')}};
+$('leaveRoom').onclick=leaveLobby;
+$('lobbyRoles').onclick=async e=>{const el=e.target.closest('[data-lobby-role]');if(!el||!lobbyChannel||!lobbyConnected)return;const r=el.dataset.lobbyRole;const taken=lobbyPlayers().some(p=>p.playerId!==lobbyId&&p.role===r);if(taken){lobbyStatus('That role is already taken. Pick one of the other monkeys!');return}chosenRole=r;lobbyReady=false;await trackLobby();refreshLobby()};
+$('readyBtn').onclick=async()=>{if(!lobbyChannel||!chosenRole)return;lobbyReady=!lobbyReady;await trackLobby();refreshLobby()};
+
 $('roles').onclick=e=>{let r=e.target.closest('[data-role]');if(!r)return;role=r.dataset.role;document.querySelectorAll('.role').forEach(x=>x.classList.toggle('selected',x===r))};$('how').onclick=()=>$('howText').hidden=!$('howText').hidden;
 const renderer=new THREE.WebGLRenderer({canvas:$('view'),antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x9cc5a0);scene.fog=new THREE.Fog(0x9cc5a0,25,55);const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,100);camera.rotation.order='YXZ';scene.add(new THREE.HemisphereLight(0xe4fff2,0x27391d,2));const sun=new THREE.DirectionalLight(0xffedbe,2);sun.position.set(-10,20,10);sun.castShadow=true;scene.add(sun);
