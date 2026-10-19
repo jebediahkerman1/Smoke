@@ -23,8 +23,9 @@
     const query = search.value.trim().toLowerCase();
     let visible = 0;
     document.querySelectorAll('.game-card').forEach(card => {
-      const searchableText = (card.dataset.name || '') + ' ' + card.innerText;
-      const matchesQuery = searchableText.toLowerCase().includes(query);
+      const normalize = value => value.toLowerCase().replace(/[^\\p{L}\\p{N}\\s]/gu, ' ').replace(/\\s+/g, ' ').trim();
+      const searchableText = normalize((card.dataset.name || '') + ' ' + card.innerText);
+      const matchesQuery = searchableText.includes(normalize(query));
       // A search checks the full catalog, regardless of the currently selected category.
       const matchesFilter = query !== '' || activeFilter === 'all' || card.dataset.category === activeFilter;
       const show = matchesQuery && matchesFilter;
