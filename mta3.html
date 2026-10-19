@@ -13,7 +13,7 @@
 <body>
 <header><a class="brand" href="index.html">SM<span>O</span>KE</a><div class="header-tag">MTA SERIES · OPEN-CITY EXPERIMENT</div><a href="workshop.html">← ALL GAMES</a></header>
 <main>
-<div class="intro"><div><div class="eyebrow">MINE THEFT AUTO PRESENTS</div><h1>MTA 3: LOW-POLY CITY</h1><p>A tiny 3D crime-game-inspired city. Find a car, cruise downtown, and cause some harmless chaos.</p></div></div>
+<div class="intro"><div><div class="eyebrow">MINE THEFT AUTO PRESENTS</div><h1>MTA 3: LOW-POLY CITY</h1><p>A tiny 3D crime-game-inspired city. Find a car, steal rides, cruise downtown, and cause some harmless chaos.</p></div></div>
 <div class="stats"><div class="stat"><small>LOCATION</small><strong>SMOKE CITY</strong></div><div class="stat"><small>VEHICLE</small><strong id="vehicleStat">COMPACT</strong></div><div class="stat"><small>CASH</small><strong>$<span id="cash">250</span></strong></div><div class="stat"><small>STREET REP</small><strong id="rep">0</strong></div></div>
 <div class="layout">
 <section>
@@ -25,7 +25,7 @@
 <div class="mobile-controls" aria-label="Touch driving controls"><div class="steer"><button data-key="a">◀</button><button data-key="d">▶</button></div><div class="pedals"><button data-key="s">▼</button><button data-key="w">▲ GAS</button><button data-key="space">DRIFT</button></div><button id="enterMobile">E</button><button id="shootMobile">FIRE</button></div>
 </section>
 <aside class="side">
-<div class="panel"><h2>DRIVING CONTROLS</h2><div class="keyrow"><kbd>W</kbd><span>Accelerate</span></div><div class="keyrow"><kbd>S</kbd><span>Reverse / brake</span></div><div class="keyrow"><kbd>A</kbd><kbd>D</kbd><span>Steer</span></div><div class="keyrow"><kbd>E</kbd><span>Enter / exit near your car</span></div><div class="keyrow"><kbd>CLICK / F</kbd><span>Shoot while on foot</span></div><div class="keyrow"><kbd>SPACE</kbd><span>Handbrake turn</span></div><p class="note">The camera follows from a fixed elevated angle. This demo saves no data.</p></div>
+<div class="panel"><h2>DRIVING CONTROLS</h2><div class="keyrow"><kbd>W</kbd><span>Accelerate</span></div><div class="keyrow"><kbd>S</kbd><span>Reverse / brake</span></div><div class="keyrow"><kbd>A</kbd><kbd>D</kbd><span>Steer</span></div><div class="keyrow"><kbd>E</kbd><span>Steal / exit nearby cars</span></div><div class="keyrow"><kbd>CLICK / F</kbd><span>Shoot while on foot</span></div><div class="keyrow"><kbd>SPACE</kbd><span>Handbrake turn</span></div><p class="note">Walk up to ANY car and press E to take it. Press E again to get out. This demo saves no data.</p></div>
 <div class="panel"><h2>CITY ACTIVITIES</h2><div class="mission"><span>Collect cash pickups</span><b>+$50</b></div><div class="mission"><span>Discover districts</span><b>+REP</b></div><div class="mission"><span>Take a scenic drive</span><b>FREE</b></div><p class="note">This is an original parody game inspired by open-world driving games, not an official GTA game.</p></div>
 <div class="panel"><h2>CITY GUIDE</h2><p>🏙️ Downtown towers</p><p>🏘️ Low-rise suburbs</p><p>🌴 Palm-lined coast</p><p>🛣️ Crossroads and ring roads</p><p>🟡 Yellow car = your ride</p></div>
 </aside>
@@ -62,7 +62,7 @@ for(let x=-144;x<=144;x+=48){for(let z=-120;z<=120;z+=48){if(Math.abs(x)<15||Mat
 function makeTree(x,y,z){const g=new THREE.Group();const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.45,.65,3,5),mat(0x76533a));trunk.position.y=1.5;g.add(trunk);const crown=new THREE.Mesh(new THREE.ConeGeometry(2.8,6,5),mat([0x33744a,0x4b8a50,0x659b50][Math.floor(Math.random()*3)]));crown.position.y=5; crown.castShadow=true;g.add(crown);g.position.set(x,y,z);world.add(g);}
 for(let i=0;i<42;i++){const x=(Math.random()-.5)*310,z=(Math.random()-.5)*250;if(Math.abs(x%48)<11||Math.abs(z%48)<11)continue;makeTree(x,.15,z);}
 function makeCar(color,x,z,angle=0){const g=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(2.4,.8,4.2),mat(color));body.position.y=.85;body.castShadow=true;g.add(body);const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.8,.8,1.9),mat(0xb5d5d9,.55));cabin.position.set(0,1.55,-.25);cabin.castShadow=true;g.add(cabin);const hood=new THREE.Mesh(new THREE.BoxGeometry(2.1,.35,1.1),mat(color));hood.position.set(0,1.05,1.3);g.add(hood);for(const xx of [-1.22,1.22])for(const zz of [-1.25,1.25]){const tire=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.25,8),black);tire.rotation.z=Math.PI/2;tire.position.set(xx,.45,zz);g.add(tire);}g.position.set(x,0,z);g.rotation.y=angle;world.add(g);return g;}
-const car=makeCar(0xf2c94c,4,5,Math.PI);
+let car=makeCar(0xf2c94c,4,5,Math.PI);const vehicles=[car];
 function makePlayer(){
  const g=new THREE.Group();
  const skin=mat(0xdca77e),shirt=mat(0x326d9b),pants=mat(0x303b4c),shoe=mat(0x202328),gunMat=mat(0x252a2c);
@@ -95,7 +95,7 @@ function shoot(){
  mesh.position.copy(origin);world.add(mesh);bullets.push({mesh,dir,life:1.25});
  say('POP! You fired a shot.');
 }
-for(let i=0;i<14;i++){const x=(Math.floor(Math.random()*7)-3)*24+9,z=(Math.floor(Math.random()*7)-3)*24+9;if(Math.hypot(x-4,z-5)<14)continue;makeCar([0xc55b49,0x477d9b,0xd8dedb,0x4b6e53,0x30363b][i%5],x,z,Math.random()*Math.PI*2);}
+for(let i=0;i<14;i++){const x=(Math.floor(Math.random()*7)-3)*24+9,z=(Math.floor(Math.random()*7)-3)*24+9;if(Math.hypot(x-4,z-5)<14)continue;vehicles.push(makeCar([0xc55b49,0x477d9b,0xd8dedb,0x4b6e53,0x30363b][i%5],x,z,Math.random()*Math.PI*2));}
 const pickups=[];const pickupMat=new THREE.MeshStandardMaterial({color:0xffdc48,emissive:0x8b6400,emissiveIntensity:1.3,flatShading:true});
 for(let i=0;i<14;i++){const coin=new THREE.Mesh(new THREE.OctahedronGeometry(.8,0),pickupMat);coin.position.set((Math.floor(Math.random()*7)-3)*24+12,1.2,(Math.floor(Math.random()*7)-3)*24+12);coin.castShadow=true;world.add(coin);pickups.push(coin);}
 const keys={};let started=false,inCar=false,speed=0,heading=0,cash=250,rep=0,lastTime=0;let toastTimer=0;const seen=new Set();
@@ -103,14 +103,15 @@ function say(s){toastEl.textContent=s;toastTimer=3.4;}
 function enter(){
  if(!started){started=true;overlay.hidden=true;}
  if(!inCar){
-  if(playerPos.distanceTo(car.position)>6){say('Get closer to the yellow car to enter it.');return;}
-  inCar=true;player.visible=false;say('You hopped into the compact. Drive safe-ish.');
+  let nearest=null,nearestDistance=Infinity;for(const vehicle of vehicles){const distance=playerPos.distanceTo(vehicle.position);if(distance<nearestDistance){nearest=vehicle;nearestDistance=distance;}}
+  if(!nearest||nearestDistance>7){say('Get close to a parked car to steal it.');return;}
+  car=nearest;heading=car.rotation.y;inCar=true;player.visible=false;say(car===vehicles[0]?'You got back into your compact.':'CAR STOLEN! You took a new ride.');
  }else{
   inCar=false;speed=0;playerPos.set(car.position.x+Math.cos(heading)*3,0,car.position.z-Math.sin(heading)*3);
   player.position.copy(playerPos);player.rotation.y=heading;player.visible=true;say('On foot! Click or press F to shoot. Stay close to your car to re-enter.');
  }
 }
-document.getElementById('startBtn').addEventListener('click',()=>{if(!started){started=true;overlay.hidden=true;}inCar=true;say('Welcome to Smoke City. Go explore!');});
+document.getElementById('startBtn').addEventListener('click',()=>{if(!started){started=true;overlay.hidden=true;}inCar=true;player.visible=false;say('Welcome to Smoke City. Press E near any car to take it!');});
 document.getElementById('enterMobile').addEventListener('click',enter);document.getElementById('shootMobile').addEventListener('click',shoot);renderer.domElement.addEventListener('pointerdown',e=>{if(e.button===0)shoot();});
 window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if(k==='e'&&!e.repeat)enter();if(k==='f'&&!e.repeat)shoot();if(k==='r'&&!e.repeat){car.position.set(4,0,5);heading=Math.PI;speed=0;say('Vehicle recovered.');}});
 window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
@@ -139,7 +140,7 @@ for(let i=bullets.length-1;i>=0;i--){
 const target=new THREE.Vector3(activePos.x+Math.sin(heading)*13,0,activePos.z+Math.cos(heading)*13);const desired=new THREE.Vector3(activePos.x-Math.sin(heading)*18,20,activePos.z-Math.cos(heading)*18);camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(target);
 for(const coin of pickups){coin.rotation.y+=dt*1.8;coin.rotation.x+=dt*.4;if(coin.visible&&activePos.distanceTo(coin.position)<3.3){coin.visible=false;cash+=50;rep+=1;cashEl.textContent=cash;repEl.textContent=rep;say('Cash collected! +$50');}}
 const district=Math.abs(activePos.z)>75?'COAST ROAD':Math.abs(activePos.x)>75?'OUTER SUBURBS':Math.abs(activePos.x)<30&&Math.abs(activePos.z)<30?'DOWNTOWN':'RESIDENTIAL';districtEl.textContent=district;if(!seen.has(district)){seen.add(district);rep+=5;repEl.textContent=rep;if(seen.size>1)say('New district discovered: '+district+' (+5 REP)');}
-speedEl.textContent=String(Math.round(Math.abs(speed)*2.5)).padStart(3,'0');document.getElementById('vehicleStat').textContent=inCar?'COMPACT':'ON FOOT';if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)toastEl.textContent=inCar?'Cruise around and look for glowing cash.':'Press E near the yellow car to enter.';}
+speedEl.textContent=String(Math.round(Math.abs(speed)*2.5)).padStart(3,'0');document.getElementById('vehicleStat').textContent=inCar?'COMPACT':'ON FOOT';if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)toastEl.textContent=inCar?'Cruise around and look for glowing cash.':'Walk up to any car and press E to take it.';}
 drawMini(activePos);}
 function animate(t){requestAnimationFrame(animate);const dt=Math.min(.045,(t-lastTime)/1000||0);lastTime=t;update(dt);renderer.render(scene,camera);}requestAnimationFrame(animate);
 window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
