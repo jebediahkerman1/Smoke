@@ -88,8 +88,8 @@ function update3d(dt){
  if(!playing)return;
  let f=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0),side=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);
  const len=Math.hypot(f,side)||1;f/=len;side/=len;
- px+=(-Math.sin(yaw)*f+Math.cos(yaw)*side)*moveSpeed*dt;pz+=(-Math.cos(yaw)*f-Math.sin(yaw)*side)*moveSpeed*dt;
- px=THREE.MathUtils.clamp(px,-15.5,15.5);pz=THREE.MathUtils.clamp(pz,-15.5,15.5);
+ const oldX=px,oldZ=pz;px+=(-Math.sin(yaw)*f+Math.cos(yaw)*side)*moveSpeed*dt;pz+=(-Math.cos(yaw)*f-Math.sin(yaw)*side)*moveSpeed*dt;
+ px=THREE.MathUtils.clamp(px,-15.5,15.5);pz=THREE.MathUtils.clamp(pz,-15.5,15.5);if(collisionAt(px,pz,'block')){px=oldX;pz=oldZ;}
  if(keys[' ']&&Math.abs(vy)<.001)vy=7.5;vy-=18*dt;player.position.y=Math.max(0,player.position.y+vy*dt);if(player.position.y<=0){player.position.y=0;vy=0}
  if(collisionAt(px,pz,'hazard')){const s=objects.find(o=>o.userData.kind==='start');px=s?s.position.x:0;pz=s?s.position.z:5;player.position.y=0;vy=0;$('builderStatus').textContent='Hazard hit! Respawned at the start.'}
  const coin=collisionAt(px,pz,'coin');if(coin){scene.remove(coin);objects=objects.filter(o=>o!==coin);$('builderStatus').textContent='Coin collected!'}
