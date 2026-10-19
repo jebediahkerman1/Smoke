@@ -148,8 +148,9 @@ const translations={
       gamesFound:n=>n+' Spiele', gameFound:n=>n+' Spiel'
     }
   };
+let currentLanguage='en';
 function applyLanguage(code){
- const lang=translations[code]?code:'en',t=translations[lang];
+ const lang=translations[code]?code:'en',t=translations[lang];currentLanguage=lang;
  document.documentElement.lang=lang;
  document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(typeof t[key]==='string')el.textContent=t[key]});
  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{const key=el.dataset.i18nPlaceholder;if(t[key])el.placeholder=t[key]});
@@ -163,7 +164,7 @@ let saved='en';try{saved=localStorage.getItem('smoke-language')||'en'}catch(e){}
 languageSelect.addEventListener('change',()=>applyLanguage(languageSelect.value));
 applyLanguage(saved);
 const search=document.getElementById('search'),cards=[...document.querySelectorAll('.card')],count=document.getElementById('count'),empty=document.getElementById('empty');
-function filter(){const q=search.value.trim().toLowerCase();let shown=0;cards.forEach(card=>{const match=(card.dataset.name+' '+card.innerText).toLowerCase().includes(q);card.style.display=match?'flex':'none';if(match)shown++});count.textContent=shown+' game'+(shown===1?'':'s');empty.style.display=shown?'none':'block'}
+function filter(){const q=search.value.trim().toLowerCase();let shown=0;cards.forEach(card=>{const match=(card.dataset.name+' '+card.innerText).toLowerCase().includes(q);card.style.display=match?'flex':'none';if(match)shown++});const t=translations[currentLanguage];count.textContent=currentLanguage==='en'?shown+' game'+(shown===1?'':'s'):(shown===1?t.gameFound(shown):t.gamesFound(shown));empty.style.display=shown?'none':'block'}
 search.addEventListener('input',filter);filter();
 </script>
 </body></html>
