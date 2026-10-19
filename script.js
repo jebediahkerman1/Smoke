@@ -23,13 +23,20 @@
     const query = search.value.trim().toLowerCase();
     let visible = 0;
     document.querySelectorAll('.game-card').forEach(card => {
-      const matchesName = card.dataset.name.toLowerCase().includes(query);
-      const matchesFilter = activeFilter === 'all' || card.dataset.category === activeFilter;
-      const show = matchesName && matchesFilter;
+      const searchableText = (card.dataset.name || '') + ' ' + card.innerText;
+      const matchesQuery = searchableText.toLowerCase().includes(query);
+      // A search checks the full catalog, regardless of the currently selected category.
+      const matchesFilter = query !== '' || activeFilter === 'all' || card.dataset.category === activeFilter;
+      const show = matchesQuery && matchesFilter;
       card.hidden = !show;
       if (show) visible++;
     });
     $('noResults').hidden = visible !== 0;
+    const count = $('searchCount');
+    if (count) {
+      count.hidden = query === '';
+      count.textContent = query === '' ? '' : visible + ' game' + (visible === 1 ? '' : 's') + ' found';
+    }
   }
   search.addEventListener('input', filterGames);
   document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => {
