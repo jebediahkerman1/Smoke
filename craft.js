@@ -1,10 +1,10 @@
 (()=>{'use strict';
 const canvas=document.getElementById('world'),ctx=canvas.getContext('2d'),$=id=>document.getElementById(id);
 const W=canvas.width,H=canvas.height,MAP=24,TW=38,TH=20,BH=18;
-const types=['grass','dirt','stone','wood','leaves','sand','glass','planks'];
+const types=['grass','dirt','stone','wood','leaves','water','sand','glass','planks'];
 const colors={grass:'#70c64f',dirt:'#95613e',stone:'#8d9a9c',wood:'#b78149',leaves:'#448e47',sand:'#d7c077',glass:'#91e3ec',planks:'#bd8b55',water:'#4b9fd0'};
-const SAVE='smokecraft-blocklands-v1';
-let blocks=[],terrainHeight=[],player={x:12.5,y:12.5,facingX:0,facingY:-1},inventory={grass:12,dirt:18,stone:16,wood:8,leaves:8,sand:8,glass:4,planks:4},selected=0,mode='mine',mined=0,placed=0,elapsed=0,clockTime=8,toastTimer=0,keys={},last=0,particles=[],walkTime=0,worldSeed=73129,autosaveAt=0;
+const SAVE='smokeblocks-world-v1',LEGACY_SAVE='smokecraft-blocklands-v1';
+let blocks=[],terrainHeight=[],player={x:12.5,y:12.5,facingX:0,facingY:-1},inventory={grass:12,dirt:18,stone:16,wood:8,leaves:8,water:8,sand:8,glass:4,planks:4},selected=0,mode='mine',mined=0,placed=0,elapsed=0,clockTime=8,toastTimer=0,keys={},last=0,particles=[],walkTime=0,worldSeed=73129,autosaveAt=0;
 function hash(x,y){const n=Math.sin(x*127.1+y*311.7+worldSeed*.013)*43758.5453;return n-Math.floor(n)}
 function groundType(h,x,y){return h<=1?'sand':'grass'}
 function generateWorld(){
@@ -13,18 +13,24 @@ function generateWorld(){
   let h=2+Math.round(Math.sin(x*.46)*.8+Math.cos(y*.37)*.7+Math.sin((x+y)*.22)*.6+(hash(x,y)-.5)*1.0);
   h=Math.max(1,Math.min(4,h));terrainHeight[x][y]=h;
   const stack=[];for(let z=0;z<h;z++)stack.push({type:z===h-1?groundType(h,x,y):(z<h-2?'stone':'dirt')});
-  if(h<=1&&hash(x+7,y+19)>.84)stack[stack.length-1].type='water';
+  const pondOne=((x-6.1)/3.6)**2+((y-8.3)/2.5)**2<1;
+  const pondTwo=((x-17.2)/2.5)**2+((y-16.5)/2.1)**2<1;
+  if(h<=2&&(pondOne||pondTwo||hash(x+7,y+19)>.91)){
+   stack[stack.length-1].type='sand';stack.push({type:'water'});
+  }
   blocks[x][y]=stack;
  }
  // A handful of original, block-built trees around a clear spawn meadow.
  for(let x=3;x<MAP-3;x++)for(let y=3;y<MAP-3;y++){
   if(Math.abs(x-12)<3&&Math.abs(y-12)<3)continue;
-  if(hash(x*3+11,y*5+9)>.955&&blocks[x][y].at(-1).type!=='water'){
+  if(hash(x*3+11,y*5+9)>.936&&blocks[x][y].at(-1).type!=='water'){
    const treeH=2+(hash(x+81,y+44)>.55?1:0);
    for(let z=0;z<treeH;z++)blocks[x][y].push({type:'wood'});
-   for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
-    const tx=x+dx,ty=y+dy;if(tx<1||ty<1||tx>=MAP-1||ty>=MAP-1||(dx===0&&dy===0))continue;
-    if(blocks[tx][ty].length===terrainHeight[tx][ty]&&blocks[tx][ty].at(-1).type!=='water')blocks[tx][ty].push({type:'leaves'});
+   for(let dx=-2;dx<=2;dx++)for(let dy=-2;dy<=2;dy++){
+    const tx=x+dx,ty=y+dy,distance=Math.abs(dx)+Math.abs(dy);
+    if(tx<1||ty<1||tx>=MAP-1||ty>=MAP-1||distance>3||(dx===0&&dy===0))continue;
+    if(blocks[tx][ty].length!==terrainHeight[tx][ty]||blocks[tx][ty].at(-1).type==='water')continue;
+    const layers=distance<=1?2:1;for(let z=0;z<layers;z++)blocks[tx][ty].push({type:'leaves'});
    }
   }
  }
@@ -38,7 +44,7 @@ function saveWorld(showMessage=true){
 }
 function loadWorld(){
  try{
-  const s=JSON.parse(localStorage.getItem(SAVE)||'null');
+  const s=JSON.parse(localStorage.getItem(SAVE)||localStorage.getItem(LEGACY_SAVE)||'null');
   if(!s||!Array.isArray(s.blocks)||s.blocks.length!==MAP||!Array.isArray(s.terrainHeight)||s.terrainHeight.length!==MAP)return false;
   blocks=s.blocks;terrainHeight=s.terrainHeight;
   if(blocks.some(col=>!Array.isArray(col)||col.length!==MAP||col.some(stack=>!Array.isArray(stack)||!stack.length||stack.some(b=>!b||!colors[b.type]))))return false;
@@ -50,7 +56,7 @@ function loadWorld(){
 }
 function newWorld(){
  worldSeed=Math.floor(Math.random()*900000)+10000;generateWorld();player={x:12.5,y:12.5,facingX:0,facingY:-1};
- inventory={grass:12,dirt:18,stone:16,wood:8,leaves:8,sand:8,glass:4,planks:4};mined=0;placed=0;elapsed=0;clockTime=8;particles=[];saveWorld(false);render();updateUi();notify('NEW BLOCKLANDS WORLD GENERATED');
+ inventory={grass:12,dirt:18,stone:16,wood:8,leaves:8,water:8,sand:8,glass:4,planks:4};mined=0;placed=0;elapsed=0;clockTime=8;particles=[];saveWorld(false);render();updateUi();notify('NEW SMOKEBLOCKS WORLD GENERATED');
 }
 function notify(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1900)}
 function project(cx,cy,z){
@@ -138,7 +144,10 @@ function mineTile(tile){
  if(!tile)return;const {x,y}=tile,stack=blocks[x][y];if(!stack?.length)return;
  if(x===Math.floor(player.x)&&y===Math.floor(player.y)&&stack.length<=terrainHeight[x][y]){notify('You need the ground beneath your feet.');return}
  const top=stack.at(-1);
- if(top.type==='water'){stack[stack.length-1]={type:'grass'};inventory.grass=(inventory.grass||0)+1;mined++;spawnParticles(tile.p.x,tile.p.y,'grass');notify('Collected grass block');updateUi();saveWorld(false);return}
+ if(top.type==='water'){
+  if(stack.length>terrainHeight[x][y])stack.pop();else stack[stack.length-1]={type:'sand'};
+  inventory.water=(inventory.water||0)+1;mined++;spawnParticles(tile.p.x,tile.p.y,'water');notify('Collected water block');updateUi();saveWorld(false);return;
+ }
  if(stack.length>terrainHeight[x][y])stack.pop();
  else if(terrainHeight[x][y]>1){stack.pop();terrainHeight[x][y]--}
  else {const old=stack[0].type;stack[0]={type:old==='grass'?'dirt':old==='dirt'?'stone':'grass'};inventory[old]=(inventory[old]||0)+1;mined++;spawnParticles(tile.p.x,tile.p.y,old);updateUi();saveWorld(false);return}
@@ -146,7 +155,8 @@ function mineTile(tile){
 }
 function placeTile(tile){
  if(!tile)return;const {x,y}=tile,stack=blocks[x][y],type=types[selected];
- if(isWater(x,y)||(x===Math.floor(player.x)&&y===Math.floor(player.y))){notify('That spot is flooded or under your feet.');return}
+ if((isWater(x,y)&&type!=='water')||(x===Math.floor(player.x)&&y===Math.floor(player.y))){notify('That spot is flooded or under your feet.');return}
+ if(type==='water'&&isWater(x,y)){notify('That tile is already water.');return}
  if((inventory[type]||0)<1){notify('No '+type+' blocks left in your hotbar.');return}
  if(stack.length>=9){notify('Build limit reached for this tile.');return}
  stack.push({type});inventory[type]--;placed++;spawnParticles(tile.p.x,tile.p.y,type);notify('PLACED '+type.toUpperCase());updateUi();saveWorld(false);
@@ -169,7 +179,7 @@ canvas.addEventListener('contextmenu',interact);
 canvas.addEventListener('pointerdown',e=>{if(e.button===0)interact(e)});
 document.addEventListener('keydown',e=>{
  const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();
- if(k>='1'&&k<='8'){selected=Number(k)-1;updateUi()}
+ if(k>='1'&&k<='9'){selected=Number(k)-1;updateUi()}
  if(k==='m'){mode=mode==='mine'?'build':'mine';updateUi()}
  if(k==='shift')keys.shift=true;
  if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k))keys[k]=true;
@@ -179,6 +189,6 @@ document.querySelectorAll('.slot').forEach((el,i)=>el.addEventListener('click',(
 $('buildMode').addEventListener('click',()=>{mode=mode==='mine'?'build':'mine';updateUi();notify(mode==='build'?'BUILD MODE — TAP A TILE TO PLACE':'MINE MODE — TAP A BLOCK TO COLLECT')});
 $('craftPlanks').addEventListener('click',()=>{if((inventory.wood||0)<3){notify('You need 3 wood blocks to craft planks.');return}inventory.wood-=3;inventory.planks=(inventory.planks||0)+6;notify('CRAFTED 6 PLANK BLOCKS');updateUi();saveWorld(false)});
 $('saveWorld').addEventListener('click',()=>saveWorld(true));
-$('newWorld').addEventListener('click',()=>{if(confirm('Start a new Blocklands world? Your saved world will be replaced.'))newWorld()});
-generateWorld();if(!loadWorld())saveWorld(false);updateUi();render();requestAnimationFrame(loop);
+$('newWorld').addEventListener('click',()=>{if(confirm('Start a new Smokeblocks world? Your saved world will be replaced.'))newWorld()});
+generateWorld();loadWorld();saveWorld(false);updateUi();render();requestAnimationFrame(loop);
 })();
