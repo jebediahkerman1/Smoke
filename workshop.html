@@ -57,7 +57,6 @@ main{max-width:1180px;margin:30px auto;padding:0 20px}.eyebrow{color:var(--blue)
 
 const languageSelect=document.getElementById('languageSelect');
 const translations={
-{
     en: {
       languageLabel:'Language', store:'STORE', community:'COMMUNITY', about:'ABOUT', support:'SUPPORT',
       freeGames:'＋ Free Games', signIn:'Sign in', yourStore:'Your Store', newNoteworthy:'New & Noteworthy', categories:'Categories', pointsShop:'Points Shop', news:'News', labs:'Labs',
@@ -148,8 +147,7 @@ const translations={
       searchAll:'Alle Spiele suchen…', emptySearch:'Keine Spiele passen zu dieser Suche.', createGame:'SPIEL ERSTELLEN', online:'SMOKE ONLINE',
       gamesFound:n=>n+' Spiele', gameFound:n=>n+' Spiel'
     }
-  }
-};
+  };
 function applyLanguage(code){
  const lang=translations[code]?code:'en',t=translations[lang];
  document.documentElement.lang=lang;
@@ -164,7 +162,6 @@ function applyLanguage(code){
 let saved='en';try{saved=localStorage.getItem('smoke-language')||'en'}catch(e){}
 languageSelect.addEventListener('change',()=>applyLanguage(languageSelect.value));
 applyLanguage(saved);
-
 const search=document.getElementById('search'),cards=[...document.querySelectorAll('.card')],count=document.getElementById('count'),empty=document.getElementById('empty');
 function filter(){const q=search.value.trim().toLowerCase();let shown=0;cards.forEach(card=>{const match=(card.dataset.name+' '+card.innerText).toLowerCase().includes(q);card.style.display=match?'flex':'none';if(match)shown++});count.textContent=shown+' game'+(shown===1?'':'s');empty.style.display=shown?'none':'block'}
 search.addEventListener('input',filter);filter();
