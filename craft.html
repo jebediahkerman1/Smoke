@@ -1,51 +1,40 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#15241e">
-<meta name="description" content="SMOKEBLOCKS is a free block sandbox. Explore grasslands, plant trees, mine stone, place water, build and save your world in the browser.">
-<title>SMOKEBLOCKS — Free Block Sandbox</title>
-<link rel="stylesheet" href="craft.css"><script src="craft.js" defer></script>
-</head>
-<body>
-<header class="craft-header">
-<a class="craft-brand" href="index.html"><img src="logo.webp" alt="SMOKE" class="craft-logo" width="94" height="70"></a>
-<nav><a href="index.html">GAME HUB</a><a href="portal.html">SMOKE PORTAL</a><a href="arcade.html">ARCADE</a></nav>
-<span class="free-pill">100% FREE · PLAY IN BROWSER</span>
-</header>
-<main class="craft-shell">
-<section class="craft-hero">
-<div class="hero-copy"><div class="eyebrow"><span class="eyebrow-dot"></span> SMOKE ORIGINAL SANDBOX</div>
-<h1>SMOKEBLOCKS <span>YOUR BLOCK SANDBOX</span></h1>
-<p>Explore a blocky world of green grass, tall trees, stone hills and sparkling water. Mine resources, place blocks wherever you like, and build your own little world. Your creations save right in your browser.</p>
-<div class="hero-tags"><span>GRASS · WOOD · STONE · WATER</span><span>FORESTS & LAKES</span><span>LOCAL WORLD SAVE</span></div></div>
-<div class="hero-art" aria-hidden="true"><div class="pixel-sun"></div><div class="floating-cube cube-grass"></div><div class="floating-cube cube-stone"></div><div class="floating-cube cube-wood"></div><div class="floating-cube cube-leaf"></div><div class="hero-hill hill-back"></div><div class="hero-hill hill-front"></div></div>
-</section>
-<section class="game-shell">
-<div class="game-topline"><div><span class="label">YOUR WORLD</span><h2>YOUR SMOKEBLOCKS WORLD</h2></div>
-<div class="world-stats"><span><small>BLOCKS MINED</small><b id="minedCount">0</b></span><span><small>BLOCKS PLACED</small><b id="placedCount">0</b></span><span><small>WORLD CLOCK</small><b id="worldClock">DAY 1 · 08:00</b></span></div></div>
-<div class="game-stage"><canvas id="world" width="1100" height="680" aria-label="Interactive isometric voxel sandbox game"></canvas>
-<div class="stage-vignette" aria-hidden="true"></div><div class="stage-top-left"><span class="live-dot"></span><span id="worldStatus">WORLD LOADED</span></div><div class="stage-coords" id="coords">X 12 · Y 12</div><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
-<div class="tool-panel">
-<div class="tool-heading"><div><span class="label">HOTBAR</span><h3>Choose a block type</h3></div><span class="tool-help">1–9 SELECT · LEFT CLICK MINE · RIGHT CLICK PLACE</span></div>
-<div class="hotbar" id="hotbar" role="group" aria-label="Block inventory">
-<button class="slot active" data-slot="0" type="button"><span class="slot-number">1</span><span class="block-icon grass-icon"></span><span class="slot-name">Grass</span><b>12</b></button>
-<button class="slot" data-slot="1" type="button"><span class="slot-number">2</span><span class="block-icon dirt-icon"></span><span class="slot-name">Dirt</span><b>18</b></button>
-<button class="slot" data-slot="2" type="button"><span class="slot-number">3</span><span class="block-icon stone-icon"></span><span class="slot-name">Stone</span><b>16</b></button>
-<button class="slot" data-slot="3" type="button"><span class="slot-number">4</span><span class="block-icon wood-icon"></span><span class="slot-name">Wood</span><b>8</b></button>
-<button class="slot" data-slot="4" type="button"><span class="slot-number">5</span><span class="block-icon leaves-icon"></span><span class="slot-name">Leaves</span><b>8</b></button>
-<button class="slot" data-slot="5" type="button"><span class="slot-number">6</span><span class="block-icon water-icon"></span><span class="slot-name">Water</span><b>8</b></button><button class="slot" data-slot="6" type="button"><span class="slot-number">7</span><span class="block-icon sand-icon"></span><span class="slot-name">Sand</span><b>8</b></button>
-<button class="slot" data-slot="7" type="button"><span class="slot-number">8</span><span class="block-icon glass-icon"></span><span class="slot-name">Glass</span><b>4</b></button>
-<button class="slot" data-slot="8" type="button"><span class="slot-number">9</span><span class="block-icon plank-icon"></span><span class="slot-name">Planks</span><b>4</b></button>
-</div>
-<div class="tool-actions"><span id="selectedLabel">Selected: Grass · MINE MODE</span>
-<div class="action-buttons"><button id="craftPlanks" type="button">✦ CRAFT PLANKS <small>3 wood → 6 planks</small></button><button id="saveWorld" type="button">▣ SAVE WORLD</button><button id="newWorld" type="button" class="danger-button">↻ NEW WORLD</button></div></div>
-</div></section>
-<section class="learn-grid">
-<article class="learn-card"><span class="learn-icon">⛏</span><h3>Mine the land</h3><p>Click a block to collect it. Dig into the hills, chop down block-built trees, and gather resources for your next idea.</p></article>
-<article class="learn-card"><span class="learn-icon">▦</span><h3>Build your way</h3><p>Select a block, then right-click to place it. On touch screens, switch to Build Mode and tap a tile.</p><button id="buildMode" type="button" class="small-toggle">MODE: MINE · TAP TO SWITCH</button></article>
-<article class="learn-card"><span class="learn-icon">💾</span><h3>Your world, saved</h3><p>Your blocks, inventory and position are stored in this browser on this device. Use Save World before leaving.</p></article>
-</section>
-<section class="controls-strip"><div><b>MOVE</b><span>W A S D / arrow keys</span></div><div><b>SPRINT</b><span>Shift</span></div><div><b>MINE</b><span>Left click / tap in Mine mode</span></div><div><b>BUILD</b><span>Right click / tap in Build mode</span></div><div><b>CRAFT</b><span>3 wood makes 6 planks</span></div></section>
-<footer class="craft-footer"><span>SMOKEBLOCKS</span><span>Original block sandbox parody · Free to play · Not affiliated with Mojang or Microsoft</span><a href="index.html">← BACK TO SMOKE GAMES</a></footer>
-</main></body></html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101820"><meta name="description" content="SMOKEBLOCKS 1.0: a classic-inspired first-person creative block sandbox in a superflat world."><title>SMOKEBLOCKS 1.0 — Classic Creative</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#7bb6e7;color:white;font-family:Arial,Helvetica,sans-serif}#game{position:fixed;inset:0}canvas{display:block}#top{position:fixed;left:14px;top:12px;z-index:2;text-shadow:2px 2px #222;pointer-events:none}#top strong{font-size:20px;letter-spacing:2px}#top small{display:block;color:#f1f5f8;margin-top:4px}#crosshair{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);font-size:26px;font-weight:bold;text-shadow:1px 1px #000;pointer-events:none}#hotbar{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:4px;padding:5px;background:#151515b8;border:2px solid #ddd;z-index:3;max-width:96vw}.slot{width:64px;height:64px;border:2px solid #777;background:#222d;color:white;position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;cursor:pointer;font-size:10px}.slot.active{border:3px solid white;background:#52604d}.swatch{width:25px;height:25px;border:2px solid #0005;box-shadow:inset -5px -5px #0002}.num{position:absolute;top:2px;left:4px;color:#ddd;font-size:10px}.count{position:absolute;right:4px;bottom:2px;font-size:11px;text-shadow:1px 1px #000}#help{position:fixed;left:14px;bottom:15px;background:#0008;padding:10px 12px;line-height:1.6;font-size:12px;z-index:2;max-width:330px}#status{position:fixed;right:14px;top:14px;z-index:2;background:#0008;padding:8px 10px;font-size:12px}#start{position:fixed;inset:0;z-index:5;background:#7bb6e7;display:grid;place-items:center;text-align:center}.card{background:#171717ed;border:3px solid #fff;padding:28px;max-width:540px;width:calc(100% - 28px);box-shadow:8px 8px #0005}.card h1{font-size:clamp(28px,6vw,54px);margin:0 0 8px;text-shadow:3px 3px #555}.card p{line-height:1.6;color:#ddd}.card button{border:2px solid white;background:#659d42;color:white;font-weight:bold;font-size:18px;padding:13px 26px;cursor:pointer;box-shadow:inset -4px -4px #0003}.card button:hover{background:#79b54d}#toast{position:fixed;top:65px;left:50%;transform:translateX(-50%);background:#111c;padding:8px 12px;z-index:4;display:none}@media(max-width:720px){.slot{width:clamp(29px,8vw,48px);height:48px}.swatch{width:19px;height:19px}.slot .label{display:none}#help{font-size:10px;max-width:235px}#status{display:none}}
+</style></head><body>
+<div id="game"></div><div id="top"><strong>SMOKEBLOCKS</strong><small>CLASSIC 1.0 · CREATIVE MODE</small></div><div id="status">SUPERFLAT WORLD · UNLIMITED BLOCKS</div><div id="crosshair">+</div><div id="hotbar" aria-label="Block hotbar"></div><div id="help">WASD: move · Mouse: look · Space: jump<br>Left click: break · Right click: place<br>1–9 or scroll: select block · Esc: unlock mouse</div><div id="toast"></div>
+<div id="start"><div class="card"><h1>SMOKEBLOCKS 1.0</h1><p>A classic-inspired creative sandbox. Explore a superflat grass world in first person, and build with every block you want.</p><p><b>Click Play, then click the world to capture your mouse.</b></p><button id="play">▶ PLAY</button></div></div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const $=id=>document.getElementById(id),root=$('game');
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x7bb6e7);scene.fog=new THREE.Fog(0x7bb6e7,45,115);
+const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,140);camera.rotation.order='YXZ';
+const renderer=new THREE.WebGLRenderer({antialias:false});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;root.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xd9efff,0x68754a,2));const sun=new THREE.DirectionalLight(0xfff1d1,2.2);sun.position.set(-25,40,15);scene.add(sun);
+const defs=[['Grass',0x62ad3e],['Dirt',0x8a5a36],['Stone',0x888888],['Cobblestone',0x777777],['Oak Planks',0xb98a50],['Oak Log',0x80552d],['Leaves',0x3e8836],['Sand',0xd9c17b],['Bricks',0x9c5142]];
+const materials={};defs.forEach(([n,c])=>materials[n]=new THREE.MeshLambertMaterial({color:c}));
+const geo=new THREE.BoxGeometry(1,1,1),blocks=new Map(),blockKey=(x,y,z)=>x+','+y+','+z;
+function addBlock(x,y,z,type){const k=blockKey(x,y,z);if(blocks.has(k))return;const m=new THREE.Mesh(geo,materials[type]||materials.Grass);m.position.set(x+.5,y+.5,z+.5);m.userData={x,y,z,type};scene.add(m);blocks.set(k,m);return m}
+function removeBlock(m){const d=m.userData;scene.remove(m);blocks.delete(blockKey(d.x,d.y,d.z))}
+for(let x=-28;x<28;x++)for(let z=-28;z<28;z++){addBlock(x,-2,z,'Stone');addBlock(x,-1,z,'Dirt');addBlock(x,0,z,'Grass')}
+const inventory=defs.map(d=>({name:d[0],count:Infinity}));let selected=0;const bar=$('hotbar');
+defs.forEach(([name,color],i)=>{const b=document.createElement('button');b.className='slot'+(i===0?' active':'');b.innerHTML='<span class="num">'+(i+1)+'</span><span class="swatch" style="background:#'+color.toString(16).padStart(6,'0')+'"></span><span class="label">'+name+'</span><b class="count">∞</b>';b.title=name;b.onclick=()=>choose(i);bar.appendChild(b)});
+function choose(i){selected=(i+defs.length)%defs.length;[...bar.children].forEach((b,j)=>b.classList.toggle('active',j===selected));toast(defs[selected][0]+' selected')}
+function toast(s){const t=$('toast');t.textContent=s;t.style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.style.display='none',1100)}
+let yaw=0,pitch=0,locked=false,keys={},velocityY=0,onGround=true,last=0;
+const player={x:0,y:1.01,z:5},ray=new THREE.Raycaster();camera.position.set(player.x,player.y+0.62,player.z);
+function lock(){renderer.domElement.requestPointerLock?.()}
+$('play').onclick=()=>{ $('start').style.display='none';lock() };
+document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===renderer.domElement;$('help').style.opacity=locked?'.72':'1'});
+document.addEventListener('mousemove',e=>{if(!locked)return;yaw-=e.movementX*.0022;pitch-=e.movementY*.0022;pitch=Math.max(-1.48,Math.min(1.48,pitch));camera.rotation.set(pitch,yaw,0)});
+document.addEventListener('keydown',e=>{keys[e.code]=true;if(/^Digit[1-9]$/.test(e.code))choose(Number(e.code.slice(5))-1);if(e.code==='Space'&&onGround){velocityY=8;onGround=false}if(e.code==='Escape')locked=false});
+document.addEventListener('keyup',e=>keys[e.code]=false);
+renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
+function targetBlock(){ray.setFromCamera(new THREE.Vector2(0,0),camera);return ray.intersectObjects([...blocks.values()],false).find(h=>h.distance<7)}
+renderer.domElement.addEventListener('mousedown',e=>{if(!locked){lock();return}if(e.button!==0&&e.button!==2)return;const hit=targetBlock();if(!hit)return;const m=hit.object;if(e.button===0){if(m.userData.y===0){toast('The world floor stays in place');return}removeBlock(m);return}const n=hit.face.normal,px=Math.round(m.userData.x+n.x),py=Math.round(m.userData.y+n.y),pz=Math.round(m.userData.z+n.z);if(py<0||py>30)return;const dx=px+.5-player.x,dy=py+.5-(player.y+.8),dz=pz+.5-player.z;if(Math.hypot(dx,dy,dz)<1.2){toast('Too close to place');return}addBlock(px,py,pz,defs[selected][0])});
+document.addEventListener('wheel',e=>{if(locked)choose(selected+(e.deltaY>0?1:-1))},{passive:true});
+function update(dt){const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));let move=new THREE.Vector3();if(keys.KeyW||keys.ArrowUp)move.add(forward);if(keys.KeyS||keys.ArrowDown)move.sub(forward);if(keys.KeyD||keys.ArrowRight)move.add(right);if(keys.KeyA||keys.ArrowLeft)move.sub(right);if(move.lengthSq())move.normalize().multiplyScalar((keys.ShiftLeft?10:5.3)*dt);player.x+=move.x;player.z+=move.z;player.x=Math.max(-27,Math.min(27,player.x));player.z=Math.max(-27,Math.min(27,player.z));velocityY-=22*dt;player.y+=velocityY*dt;if(player.y<=1.01){player.y=1.01;velocityY=0;onGround=true}camera.position.set(player.x,player.y+.62,player.z);camera.rotation.set(pitch,yaw,0)}
+function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;if(locked)update(dt);renderer.render(scene,camera)}requestAnimationFrame(loop);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script></body></html>
