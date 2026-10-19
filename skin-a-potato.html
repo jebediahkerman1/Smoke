@@ -15,8 +15,23 @@ const camera=new T.PerspectiveCamera(48,1,.1,180);const renderer=new T.WebGLRend
 scene.add(new T.HemisphereLight(0xffe8c6,0x604226,2));const sun=new T.DirectionalLight(0xfff0d5,2.6);sun.position.set(-15,24,15);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
 const mat=(c)=>new T.MeshStandardMaterial({color:c,roughness:.95,flatShading:true});const groundMat=mat(0x80603b),brown=mat(0x98602e),gold=mat(0xf1d08a),peelMat=mat(0x71451f),metal=mat(0x77838a),steel=mat(0xcbd4d9),wood=mat(0x80512d);
 const ground=new T.Mesh(new T.CylinderGeometry(40,40,.8,32),groundMat);ground.position.y=-.55;ground.receiveShadow=true;scene.add(ground);
-const pile=new T.Group();scene.add(pile);const POTATO_COUNT=1000;const geo=new T.IcosahedronGeometry(.38,1),potatoes=[];let done=0,started=false,drag=false,lastX=0,lastY=0,downX=0,downY=0,held=null,stationPotato=null,peeling=false,peelCamera=false,peelProgress=0,peelTime=0,lastStrokeAt=0;const keys={};
+const pile=new T.Group();scene.add(pile);const POTATO_COUNT=1000;const geo=new T.IcosahedronGeometry(.38,1),potatoes=[];let done=0,delivered=0,started=false,drag=false,lastX=0,lastY=0,downX=0,downY=0,held=null,stationPotato=null,peeling=false,peelCamera=false,peelProgress=0,peelTime=0,lastStrokeAt=0;const keys={};
 const heldGroup=new T.Group();scene.add(heldGroup);
+const tower=new T.Group();scene.add(tower);tower.position.set(31,0,-14);
+const towerMetal=mat(0x7c8588),towerDark=mat(0x424c50),towerCream=mat(0xe8d7b0);
+function towerBox(w,h,d,material,x,y,z,parent=tower){const m=new T.Mesh(new T.BoxGeometry(w,h,d),material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
+for(const x of [-2.1,2.1])for(const z of [-1.8,1.8])towerBox(.28,7,.28,towerDark,x,3.5,z);
+for(const y of [1.1,3.2,5.4]){towerBox(4.6,.16,.16,towerMetal,0,y,-1.8);towerBox(4.6,.16,.16,towerMetal,0,y,1.8);towerBox(.16,.16,3.8,towerMetal,-2.1,y,0);towerBox(.16,.16,3.8,towerMetal,2.1,y,0);}
+const tank=new T.Group();tower.add(tank);tank.position.y=7.1;
+const tankBody=new T.Mesh(new T.CylinderGeometry(2.5,2.25,3.2,16),towerCream);tankBody.castShadow=true;tank.add(tankBody);
+const tankTop=new T.Mesh(new T.ConeGeometry(2.5,.8,16),towerDark);tankTop.position.y=2;tank.add(tankTop);
+const tankBand=new T.Mesh(new T.TorusGeometry(2.45,.12,6,24),towerMetal);tankBand.rotation.x=Math.PI/2;tankBand.position.y=-.2;tank.add(tankBand);
+const signCanvas=document.createElement('canvas');signCanvas.width=512;signCanvas.height=128;const signCtx=signCanvas.getContext('2d');signCtx.fillStyle='#263238';signCtx.fillRect(0,0,512,128);signCtx.fillStyle='#ffe19a';signCtx.font='bold 54px sans-serif';signCtx.textAlign='center';signCtx.textBaseline='middle';signCtx.fillText('POTATO TOWER™',256,64);const signTex=new T.CanvasTexture(signCanvas);signTex.colorSpace=T.SRGBColorSpace;const towerSign=new T.Mesh(new T.PlaneGeometry(5.8,1.25),new T.MeshBasicMaterial({map:signTex}));towerSign.position.set(0,7.1,2.52);tower.add(towerSign);
+const tub=new T.Group();scene.add(tub);tub.position.set(28.8,0,-4.3);
+const tubWood=mat(0x8d572b),tubRim=mat(0xc18a4a);const tubBase=new T.Mesh(new T.BoxGeometry(2.4,.25,2),tubWood);tubBase.position.y=.45;tub.add(tubBase);
+for(const x of [-1.08,1.08]){const w=new T.Mesh(new T.BoxGeometry(.22,1.1,2),tubWood);w.position.set(x,.95,0);tub.add(w);}for(const z of [-.9,.9]){const w=new T.Mesh(new T.BoxGeometry(2.2,1.1,.2),tubWood);w.position.set(0,.95,z);tub.add(w);}
+for(const x of [-1.12,1.12]){const m=new T.Mesh(new T.BoxGeometry(.28,.13,2.1),tubRim);m.position.set(x,1.53,0);tub.add(m);}for(const z of [-.98,.98]){const m=new T.Mesh(new T.BoxGeometry(2.35,.13,.22),tubRim);m.position.set(0,1.53,z);tub.add(m);}
+const tubSignCanvas=document.createElement('canvas');tubSignCanvas.width=256;tubSignCanvas.height=96;const tubCtx=tubSignCanvas.getContext('2d');tubCtx.fillStyle='#4a3020';tubCtx.fillRect(0,0,256,96);tubCtx.fillStyle='#ffe0a0';tubCtx.font='bold 30px sans-serif';tubCtx.textAlign='center';tubCtx.textBaseline='middle';tubCtx.fillText('PEELED',128,48);const tubTex=new T.CanvasTexture(tubSignCanvas);tubTex.colorSpace=T.SRGBColorSpace;const tubSign=new T.Mesh(new T.PlaneGeometry(1.45,.55),new T.MeshBasicMaterial({map:tubTex}));tubSign.position.set(0,1.02,1.02);tub.add(tubSign);let tubPotatoes=[];
 const buildings=new T.Group();scene.add(buildings);
 const wallMat=mat(0xc8b18a),insideMat=mat(0x6d5237),roofMat=new T.MeshStandardMaterial({color:0x6d4030,roughness:1,transparent:true,opacity:.2,depthWrite:false}),trimMat=mat(0x4a3020),glassMat=new T.MeshStandardMaterial({color:0x9bd8e8,roughness:.2,metalness:.1});
 function makeBuilding(cx,cz,w,d,label){const g=new T.Group();g.position.set(cx,0,cz);buildings.add(g);
