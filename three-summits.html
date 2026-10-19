@@ -23,6 +23,7 @@ function box(w,h,d,color,x,y,z,group=scene){const m=new THREE.Mesh(new THREE.Box
 function sphere(r,color,x,y,z,group=scene){const m=new THREE.Mesh(new THREE.SphereGeometry(r,12,10),mat(color));m.position.set(x,y,z);group.add(m);return m}
 function init3D(){scene=new THREE.Scene();scene.background=new THREE.Color('#a8d8ec');scene.fog=new THREE.Fog('#a8d8ec',100,370);camera=new THREE.PerspectiveCamera(74,1,.1,900);renderer=new THREE.WebGLRenderer({canvas,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.8));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;scene.add(new THREE.HemisphereLight(0xe3f5ff,0x5a6044,2));const sun=new THREE.DirectionalLight(0xfff0d3,2.3);sun.position.set(-90,150,70);sun.castShadow=true;scene.add(sun);
 const ocean= new THREE.Mesh(new THREE.PlaneGeometry(1000,1000),mat('#2f9cbb',.25));ocean.rotation.x=-Math.PI/2;ocean.position.set(0,-.7,0);scene.add(ocean);
+const mainland=new THREE.Mesh(new THREE.PlaneGeometry(330,128),mat('#62845a'));mainland.rotation.x=-Math.PI/2;mainland.position.set(150,-.12,0);scene.add(mainland);
 const sand= new THREE.Mesh(new THREE.PlaneGeometry(100,100),mat('#ddc58a'));sand.rotation.x=-Math.PI/2;sand.position.set(0,.02,0);scene.add(sand);
 // Beach island and forest fringe
 const island=new THREE.Mesh(new THREE.CylinderGeometry(67,74,5,48),mat('#cdb77f'));island.position.set(0,-2,0);scene.add(island);
