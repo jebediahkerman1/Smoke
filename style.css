@@ -43,3 +43,9 @@
 /* Live store-search result count */
 .search-count{margin:0 0 9px;padding:7px 10px;background:#16202d;border-left:2px solid #66c0f4;color:#acdbf5;font-size:11px}.search-count[hidden]{display:none!important}
 .game-card[hidden]{display:none!important}
+
+/* Working language picker */
+.language-picker{display:flex;align-items:center;gap:5px;font-size:10px;color:#b8c7d4;white-space:nowrap}
+.language-picker select{max-width:112px;background:#162b3b;color:#e7f3fc;border:1px solid #38617b;border-radius:2px;padding:5px 4px;font-size:11px;cursor:pointer}
+.language-picker select:focus{outline:1px solid #66c0f4}
+@media(max-width:760px){.language-picker{font-size:9px}.language-picker select{max-width:94px}}
