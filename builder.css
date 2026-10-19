@@ -2,3 +2,12 @@
 .publish-lock,.publish-note{font-size:12px;color:#91a2b4;line-height:1.6}.publish-input{width:100%;box-sizing:border-box;margin:0 0 10px;padding:10px;background:#0b1119;color:#fff;border:1px solid #40556a;border-radius:4px;font:inherit}.toolbox button:disabled{opacity:.45;cursor:not-allowed}.published-section{margin-top:18px;background:#121d29;border:1px solid #2a3c4d;border-radius:9px;padding:16px}.published-games{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.published-card{background:#0b1119;border:1px solid #2a3c4d;border-radius:7px;padding:13px}.published-card h3{margin:0 0 8px;color:#ff8a3d}.published-card p{font-size:12px;color:#b8c5d1;line-height:1.6}.published-card small{font-size:10px;color:#8194a7}
 
 .builder-touch{display:none;align-items:center;justify-content:space-between;gap:14px;margin-top:16px;touch-action:none}.touch-pad{display:flex;gap:10px}.builder-touch button{min-width:64px;min-height:58px;border:1px solid #536d81;border-radius:12px;background:#203749;color:#fff;font-size:22px;font-weight:900;box-shadow:0 4px 0 #0a1118;touch-action:none;user-select:none;-webkit-user-select:none}.builder-touch button:active{transform:translateY(3px);box-shadow:0 1px 0 #0a1118;background:#34556b}.builder-touch .touch-jump{min-width:105px;background:#ff8a3d;color:#151515;font-size:13px;letter-spacing:.5px;border-color:#ffb17e}@media(max-width:760px){.builder-touch{display:flex}.builder-main{padding-left:12px;padding-right:12px}.tile{touch-action:manipulation;min-height:0}.level-grid{user-select:none;-webkit-user-select:none}}
+
+/* 3D creator mode */
+.world3d{width:100%;height:min(62vw,620px);min-height:360px;position:relative;overflow:hidden;border-radius:5px;background:#8bc9ed;touch-action:none}
+.world3d canvas{display:block;width:100%;height:100%;outline:none}
+.world3d[hidden],[hidden]{display:none!important}
+#cameraOptions{padding:10px;margin:8px 0;background:#0b1119;border:1px solid #2a3c4d;border-radius:6px}
+#cameraOptions label{margin-top:7px}
+#cameraOptions p{margin-bottom:0}
+@media(max-width:760px){.world3d{height:56vh;min-height:320px}}
