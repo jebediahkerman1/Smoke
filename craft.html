@@ -35,13 +35,13 @@ function terrainHeight(x,z){const broad=smoothNoise(x,z,17),mid=smoothNoise(x+73
 function generateWorld(){worldSeed=Math.floor(Math.random()*2147483646)+1;blocks.clear();for(const [name,m] of []){}for(let x=-48;x<48;x++)for(let z=-48;z<48;z++){const h=terrainHeight(x,z);for(let y=-3;y<=h;y++){let type=y===h?'Grass':y>=h-2?'Dirt':'Stone';if(y===h&&h<=-1)type='Sand';addBlock(x,y,z,type)}
 const treeRoll=seededNoise(x+worldSeed%71,z-worldSeed%97);if(treeRoll>.985&&h>=0&&Math.abs(x)>3&&Math.abs(z)>3){const trunk=3+Math.floor(seededNoise(x+8,z+4)*2);for(let y=1;y<=trunk;y++)addBlock(x,y+h,z,'Oak Log');for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=trunk-1;dy<=trunk+1;dy++){if(Math.abs(dx)+Math.abs(dz)+Math.abs(dy-trunk)>4)continue;addBlock(x+dx,h+dy,z+dz,'Leaves')}}}
 player.x=0;player.z=5;player.y=terrainHeight(0,5)+1.01;velocityY=0;onGround=true;camera.position.set(player.x,player.y+.62,player.z);toast('NEW WORLD GENERATED · SEED '+worldSeed)}
-generateWorld();
 const inventory=defs.map(d=>({name:d[0],count:Infinity}));let selected=0;const bar=$('hotbar');
 defs.forEach(([name,color],i)=>{const b=document.createElement('button');b.className='slot'+(i===0?' active':'');b.innerHTML='<span class="num">'+(i+1)+'</span><span class="swatch" style="background:#'+color.toString(16).padStart(6,'0')+'"></span><span class="label">'+name+'</span><b class="count">∞</b>';b.title=name;b.onclick=()=>choose(i);bar.appendChild(b)});
 function choose(i){selected=(i+defs.length)%defs.length;[...bar.children].forEach((b,j)=>b.classList.toggle('active',j===selected));toast(defs[selected][0]+' selected')}
 function toast(s){const t=$('toast');t.textContent=s;t.style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.style.display='none',1100)}
 let yaw=0,pitch=0,locked=false,keys={},velocityY=0,onGround=true,last=0;
 const player={x:0,y:1.01,z:5},ray=new THREE.Raycaster();camera.position.set(player.x,player.y+0.62,player.z);
+generateWorld();
 function lock(){renderer.domElement.requestPointerLock?.()}
 $('play').onclick=()=>{ $('start').style.display='none';lock() };
 document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===renderer.domElement;$('help').style.opacity=locked?'.72':'1'});
