@@ -45,6 +45,7 @@
     'Last Braincell': 'A chaotic multiplayer party game about teamwork, bad plans, and the last thought in your head.'
   };
   document.querySelectorAll('.details-btn').forEach(button => button.addEventListener('click', event => {
+    if (button.dataset.game === 'cross the hill') return;
     event.preventDefault();
     const name = button.dataset.game;
     $('dialogTitle').textContent = name;
