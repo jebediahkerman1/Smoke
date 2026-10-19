@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SMOKE Workshop — All Games</title>
+<style>
+:root{color-scheme:dark;--bg:#101820;--panel:#1b2838;--line:#34465a;--blue:#66c0f4;--muted:#b4c2d1}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#20364a,#101820 58%);color:#e8f0f8;font:16px/1.5 Arial,Helvetica,sans-serif}
+header{background:#171f2b;border-bottom:1px solid #34465a;padding:15px max(20px,calc((100% - 1180px)/2));display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{font-size:27px;font-weight:900;letter-spacing:2px;color:#fff;text-decoration:none}.brand span{color:var(--blue)}nav{display:flex;gap:20px;flex-wrap:wrap}nav a{color:#dbe7f3;text-decoration:none;font-weight:bold;font-size:13px}nav a:hover,.card:hover strong{color:var(--blue)}
+main{max-width:1180px;margin:30px auto;padding:0 20px}.eyebrow{color:var(--blue);font-size:12px;font-weight:bold;letter-spacing:2px}h1{font-size:clamp(32px,5vw,52px);line-height:1.05;margin:8px 0 12px}p{color:var(--muted)}.intro{max-width:720px;margin-bottom:24px}
+.tools{display:flex;gap:12px;align-items:center;margin:24px 0}.tools input{width:min(100%,460px);padding:13px 15px;background:#0b1118;border:1px solid var(--line);border-radius:4px;color:white;font-size:15px}.count{color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:14px}.card{display:flex;flex-direction:column;min-height:180px;padding:18px;background:linear-gradient(145deg,#24384c,#192533);border:1px solid var(--line);border-radius:5px;text-decoration:none;color:inherit;transition:transform .15s,border-color .15s}.card:hover{transform:translateY(-3px);border-color:var(--blue)}.icon{font-size:30px;margin-bottom:9px}.card strong{font-size:18px;color:#fff}.card small{color:var(--muted);font-size:13px;margin-top:5px}.tag{margin-top:auto;padding-top:16px;color:var(--blue);font-size:11px;font-weight:bold;letter-spacing:1px}.empty{display:none;color:var(--muted);padding:24px 0}.footer{margin:36px 0 20px;border-top:1px solid var(--line);padding-top:18px;font-size:12px;color:#899baa}
+</style>
+</head>
+<body>
+<header><a class="brand" href="index.html">SM<span>O</span>KE</a><nav aria-label="Main navigation"><a href="index.html">STORE</a><a href="multiplayer.html">SMOKE ONLINE</a><a href="workshop.html">WORKSHOP</a><a href="builder.html">CREATE A GAME</a></nav></header>
+<main>
+<div class="eyebrow">SMOKE COMMUNITY</div><h1>Workshop <span style="color:var(--blue)">Games</span></h1>
+<p class="intro">Every game currently featured on SMOKE, collected in one place. Pick a game to launch it in your browser — no downloads or purchases.</p>
+<div class="tools"><input id="search" type="search" placeholder="Search all games…" aria-label="Search all games"><span class="count" id="count">24 games</span></div>
+<section class="grid" id="games" aria-label="All SMOKE games">
+<a class="card" href="play.html?game=flappy" data-name="flappy smoke"><span class="icon">🐤</span><strong>Flappy Smoke</strong><small>Tap to fly and dodge the pipes.</small><span class="tag">ARCADE</span></a>
+<a class="card" href="play.html?game=racer" data-name="smoke racer"><span class="icon">🏎️</span><strong>Smoke Racer</strong><small>Dodge traffic and chase a high score.</small><span class="tag">RACING</span></a>
+<a class="card" href="play.html?game=pong" data-name="pong panic"><span class="icon">🏓</span><strong>Pong Panic</strong><small>Classic paddle showdown.</small><span class="tag">ARCADE</span></a>
+<a class="card" href="play.html?game=breakout" data-name="brick buster"><span class="icon">🧱</span><strong>Brick Buster</strong><small>Break bricks and keep the ball alive.</small><span class="tag">ARCADE</span></a>
+<a class="card" href="play.html?game=memory" data-name="memory match"><span class="icon">🧠</span><strong>Memory Match</strong><small>Flip cards and find matching pairs.</small><span class="tag">PUZZLE</span></a>
+<a class="card" href="game.html?game=neon-drift" data-name="neon drift"><span class="icon">🌃</span><strong>Neon Drift</strong><small>A featured SMOKE Store game.</small><span class="tag">FEATURED</span></a>
+<a class="card" href="game.html?game=mossbound" data-name="mossbound"><span class="icon">🌿</span><strong>Mossbound</strong><small>Explore a mysterious green world.</small><span class="tag">ADVENTURE</span></a>
+<a class="card" href="game.html?game=desk-goblin" data-name="desk goblin"><span class="icon">🖥️</span><strong>Desk Goblin</strong><small>A tiny chaos-filled desktop adventure.</small><span class="tag">CASUAL</span></a>
+<a class="card" href="game.html?game=last-braincell" data-name="last braincell"><span class="icon">🧠</span><strong>Last Braincell</strong><small>Try to keep your final braincell alive.</small><span class="tag">CASUAL</span></a>
+<a class="card" href="arcade.html" data-name="smoke arcade browser arcade"><span class="icon">🎮</span><strong>SMOKE Arcade</strong><small>Snake, Minesweeper, Tic-Tac-Toe and more.</small><span class="tag">ARCADE COLLECTION</span></a>
+<a class="card" href="doom.html" data-name="doomed sector 13"><span class="icon">🔫</span><strong>DOOMED: Sector 13</strong><small>Retro first-person shooter. Clear the facility.</small><span class="tag">FPS</span></a>
+<a class="card" href="mta1.html" data-name="mta 1 procedural map"><span class="icon">🚗</span><strong>MTA 1: Procedural Map</strong><small>Explore a generated city and find a car.</small><span class="tag">DRIVING</span></a>
+<a class="card" href="spaceflight.html" data-name="smoke space flight"><span class="icon">🚀</span><strong>SMOKE Space Flight</strong><small>Build rockets and explore the Ember System.</small><span class="tag">SIMULATION</span></a>
+<a class="card" href="portal.html" data-name="smoke portal"><span class="icon">🌀</span><strong>SMOKE Portal</strong><small>Explore the SMOKE Portal experience.</small><span class="tag">EXPERIMENTAL</span></a>
+<a class="card" href="craft.html" data-name="smokeblocks"><span class="icon">🌲</span><strong>SMOKEBLOCKS</strong><small>Explore a block sandbox with trees, water and stone.</small><span class="tag">SANDBOX</span></a>
+<a class="card" href="strike.html" data-name="counter smoke 3d arena"><span class="icon">🎯</span><strong>Counter Smoke</strong><small>Round-based tactical 3D shooter vs bots.</small><span class="tag">3D SHOOTER</span></a>
+<a class="card" href="payload.html" data-name="payload panic"><span class="icon">🚚</span><strong>Payload Panic</strong><small>Pick a class and escort the cart in a 3D arena.</small><span class="tag">3D ACTION</span></a>
+<a class="card" href="zombie.html" data-name="zombie shift"><span class="icon">🧟</span><strong>Zombie Shift</strong><small>Survive five waves of infected.</small><span class="tag">SURVIVAL</span></a>
+<a class="card" href="blacksite-incident.html" data-name="blacksite incident"><span class="icon">🧪</span><strong>Blacksite Incident</strong><small>A sci-fi lab disaster first-person shooter.</small><span class="tag">FPS</span></a>
+<a class="card" href="dude-sandbox.html" data-name="dude sandbox"><span class="icon">🧍</span><strong>Dude Sandbox</strong><small>Spawn ragdolls, grab limbs and experiment with physics.</small><span class="tag">PHYSICS SANDBOX</span></a>
+<a class="card" href="three-summits.html" data-name="three summits"><span class="icon">🏔️</span><strong>Three Summits</strong><small>Survive, climb three mountains and signal a helicopter.</small><span class="tag">SURVIVAL ADVENTURE</span></a>
+<a class="card" href="outbreak.html" data-name="outbreak"><span class="icon">🦠</span><strong>Outbreak</strong><small>Watch an infection spread across the map.</small><span class="tag">SIMULATION</span></a>
+<a class="card" href="camo-chaos.html" data-name="camo chaos"><span class="icon">🫥</span><strong>Camo Chaos</strong><small>Hide in plain sight and try not to get spotted.</small><span class="tag">PARTY GAME</span></a>
+<a class="card" href="multiplayer.html" data-name="smoke online multiplayer"><span class="icon">🌐</span><strong>SMOKE Online</strong><small>Explore the online multiplayer hub.</small><span class="tag">MULTIPLAYER HUB</span></a>
+</section>
+<p class="empty" id="empty">No games match that search.</p>
+<div class="footer">SMOKE is a parody browser-game project. Games launch directly in your browser; there are no downloads or purchases.</div>
+</main>
+<script>
+const search=document.getElementById('search'),cards=[...document.querySelectorAll('.card')],count=document.getElementById('count'),empty=document.getElementById('empty');
+function filter(){const q=search.value.trim().toLowerCase();let shown=0;cards.forEach(card=>{const match=(card.dataset.name+' '+card.innerText).toLowerCase().includes(q);card.style.display=match?'flex':'none';if(match)shown++});count.textContent=shown+' game'+(shown===1?'':'s');empty.style.display=shown?'none':'block'}
+search.addEventListener('input',filter);filter();
+</script>
+</body></html>
