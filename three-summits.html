@@ -15,7 +15,7 @@
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id), canvas=$('view');
-let scene,camera,renderer,clock,player,started=false,keys={},yaw=0,pitch=-.12,mouseDown=false,orbiting=false,lastMouse={x:0,y:0},roomCode='summit-squad',channel=null,remotePlayers=new Map(),playerId=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)),lastBroadcast=0,inventory={food:2,water:2,wood:0},food=100,water=100,health=100,done=[false,false,false],fireLit=false,elapsed=0,worldItems=[],mountains=[],desertPlatforms=[],swampPlatforms=[],sharedState=null,remoteObjects=new Map(),statusMsg='Find supplies near the wreck.',moveSpeed=8,velocityY=0,onGround=false;
+let scene,camera,renderer,clock,player,started=false,keys={},yaw=0,pitch=-.12,mouseDown=false,orbiting=false,lastMouse={x:0,y:0},roomCode='summit-squad',channel=null,remotePlayers=new Map(),playerId=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)),lastBroadcast=0,inventory={food:2,water:2,wood:0},food=100,water=100,health=100,done=[false,false,false],fireLit=false,elapsed=0,worldItems=[],mountains=[],desertPlatforms=[],swampPlatforms=[],sandPlatforms=[],sharedState=null,remoteObjects=new Map(),statusMsg='Find supplies near the wreck.',moveSpeed=8,velocityY=0,onGround=false;
 const rnd=(a,b)=>a+Math.random()*(b-a);
 function say(t){statusMsg=t;$('status').textContent=t;$('hint').textContent=t}
 function mat(color,roughness=1){return new THREE.MeshStandardMaterial({color,roughness})}
@@ -39,14 +39,14 @@ const swamp=new THREE.Mesh(new THREE.PlaneGeometry(48,32),mat('#425b3b'));swamp.
 const bogMat=mat('#314b38',.2);
 for(let i=0;i<16;i++){const pool=new THREE.Mesh(new THREE.CircleGeometry(rnd(1.5,3.5),12),bogMat);pool.rotation.x=-Math.PI/2;pool.position.set(rnd(111,158),.06,rnd(-18,14));scene.add(pool)}
 for(let i=0;i<10;i++){const x=rnd(111,158),z=rnd(-18,14);const stem=new THREE.Mesh(new THREE.CylinderGeometry(.18,.3,rnd(2,4),6),mat('#456044'));stem.position.set(x,1.2,z);scene.add(stem);const crown=new THREE.Mesh(new THREE.SphereGeometry(rnd(.6,1.2),8,6),mat('#3c7042'));crown.position.set(x,2.8,z);scene.add(crown)}
-const swampPlatforms=[];
+swampPlatforms.length=0;
 for(let i=0;i<7;i++){const x=113+i*6.1,z=-2+(i%2?4:-4),y=1.05+i*.22;const p=new THREE.Mesh(new THREE.BoxGeometry(3.8,.6,3.8),mat(i%2?'#8a6748':'#a38a5c'));p.position.set(x,y,z);p.castShadow=true;p.receiveShadow=true;scene.add(p);swampPlatforms.push({x,y:y+.3,z,halfX:2.15,halfZ:2.15});if(i%2===0){const reeds=new THREE.Mesh(new THREE.ConeGeometry(.25,1.5,5),mat('#6c8b48'));reeds.position.set(x+1,y+1,z+1);scene.add(reeds)}}
 const swampFinishX=113+6*6.1,swampFinishZ=-2+(6%2?4:-4),swampFinishY=1.05+6*.22;
 const swampSign=box(4,1.8,.25,'#4b392b',swampFinishX,3,swampFinishZ);box(2.8,.45,.3,'#8fd07b',swampFinishX,3,swampFinishZ+.2);
 // Sand hazard course placed in the central valley between summit two and summit three
 const desert=new THREE.Mesh(new THREE.PlaneGeometry(48,34),mat('#d9b36b'));desert.rotation.x=-Math.PI/2;desert.position.set(210,.025,-5);scene.add(desert);
 for(let i=0;i<14;i++){const dune=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),mat('#e8c783'));dune.scale.set(rnd(3,7),rnd(.8,2),rnd(3,6));dune.position.set(rnd(181,239),.15,rnd(-22,12));scene.add(dune)}
-const sandPlatforms=[];
+sandPlatforms.length=0;
 for(let i=0;i<7;i++){const x=184+i*6.2,z=-5+(i%2?5:-5),y=1.1+i*.3;const p=new THREE.Mesh(new THREE.BoxGeometry(3.8,.65,3.8),mat(i%2?'#b96f3e':'#e5c16e'));p.position.set(x,y,z);p.castShadow=true;p.receiveShadow=true;scene.add(p);sandPlatforms.push({x,y:y+.325,z,halfX:2.2,halfZ:2.2});const post=box(.18,1.1,.18,'#78502e',x,y+.8,z);if(i%3===0)box(.9,.16,.9,'#ef754b',x,y+.55,z)}
 const finishX=184+6*6.2,finishZ=-5+(6%2?5:-5),finishY=1.1+6*.3;
 const sandFlagPole=new THREE.Mesh(new THREE.CylinderGeometry(.12,.17,3.6,8),mat('#f7e6b0'));sandFlagPole.position.set(finishX,finishY+2,finishZ);scene.add(sandFlagPole);const sandFlag=new THREE.Mesh(new THREE.BoxGeometry(1.6,.7,.12),mat('#e65336'));sandFlag.position.set(finishX+.8,finishY+3,finishZ);scene.add(sandFlag);
