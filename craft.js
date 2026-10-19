@@ -16,7 +16,8 @@ function generateWorld(){
   const pondOne=((x-6.1)/3.6)**2+((y-8.3)/2.5)**2<1;
   const pondTwo=((x-17.2)/2.5)**2+((y-16.5)/2.1)**2<1;
   if(h<=2&&(pondOne||pondTwo||hash(x+7,y+19)>.91)){
-   stack[stack.length-1].type='sand';stack.push({type:'water'});
+   if(stack.length>1)stack[stack.length-2].type='sand';
+   stack[stack.length-1].type='water';
   }
   blocks[x][y]=stack;
  }
