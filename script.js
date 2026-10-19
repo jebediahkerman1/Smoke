@@ -96,8 +96,10 @@
       gamesFound:n=>n+' Spiele', gameFound:n=>n+' Spiel'
     }
   };
+  let currentLanguage = 'en';
   function applyLanguage(code) {
     const lang = translations[code] ? code : 'en';
+    currentLanguage = lang;
     const t = translations[lang];
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -162,7 +164,8 @@
     const count = $('searchCount');
     if (count) {
       count.hidden = query === '';
-      count.textContent = query === '' ? '' : visible + ' game' + (visible === 1 ? '' : 's') + ' found';
+      const t = translations[currentLanguage];
+      count.textContent = query === '' ? '' : (visible === 1 ? t.gameFound(visible) : t.gamesFound(visible)) + (currentLanguage === 'en' ? ' found' : '');
     }
   }
   search.addEventListener('input', filterGames);
