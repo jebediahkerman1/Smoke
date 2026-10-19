@@ -17,25 +17,25 @@
       <a class="brand" href="#home" aria-label="SMOKE home"><img class="brand-logo" src="logo.webp" alt="SMOKE logo" width="130" height="97"></a>
       <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
       <nav class="main-nav" id="mainNav" aria-label="Main navigation">
-        <a class="active" href="#store">STORE</a><a href="#community">COMMUNITY</a><a href="#about">ABOUT</a><a href="#about">SUPPORT</a>
+        <a class="active" href="#store" data-i18n="store">STORE</a><a href="#community" data-i18n="community">COMMUNITY</a><a href="#about" data-i18n="about">ABOUT</a><a href="#about" data-i18n="support">SUPPORT</a>
         <a class="extra-nav" href="multiplayer.html">SMOKE ONLINE</a><a class="extra-nav" href="workshop.html">WORKSHOP</a>
       </nav>
-      <div class="header-actions"><button class="install-btn" id="libraryBtn">＋ Free Games</button><button class="login-btn" id="loginBtn">Sign in</button><span class="language">language ▾</span></div>
+      <div class="header-actions"><button class="install-btn" id="libraryBtn" data-i18n="freeGames">＋ Free Games</button><button class="login-btn" id="loginBtn" data-i18n="signIn">Sign in</button><label class="language-picker"><span class="language-label" id="languageLabel">Language</span><select id="languageSelect" aria-label="Choose language"><option value="en">English</option><option value="sq">Shqip</option><option value="mk">Македонски</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select></label></div>
     </div>
   </header>
   <div class="store-nav-wrap">
     <div class="store-nav">
-      <nav class="store-links"><a class="selected" href="#store">Your Store</a><a href="#store">New &amp; Noteworthy</a><a href="#store">Categories</a><a href="#play-now">Points Shop</a><a href="#community">News</a><a href="#community">Labs</a></nav>
-      <label class="store-search"><input id="gameSearch" type="search" placeholder="search the store" aria-label="Search games"><span>⌕</span></label>
+      <nav class="store-links"><a class="selected" href="#store" data-i18n="yourStore">Your Store</a><a href="#store" data-i18n="newNoteworthy">New &amp; Noteworthy</a><a href="#store" data-i18n="categories">Categories</a><a href="#play-now" data-i18n="pointsShop">Points Shop</a><a href="#community" data-i18n="news">News</a><a href="#community" data-i18n="labs">Labs</a></nav>
+      <label class="store-search"><input id="gameSearch" data-i18n-placeholder="search" type="search" placeholder="search the store" aria-label="Search games"><span>⌕</span></label>
     </div>
   </div>
   <main id="home" class="page-shell">
     <aside class="left-sidebar">
-      <p class="sidebar-title">YOUR STORE</p>
+      <p class="sidebar-title" data-i18n="yourStoreSide">YOUR STORE</p>
       <a href="#store">Home</a><a href="#store">Discovery Queue</a><a href="#store">Wishlist</a><a href="#store">Points Shop</a><a href="#store">News</a><a href="#store">Stats</a>
-      <p class="sidebar-title">BROWSE CATEGORIES</p>
+      <p class="sidebar-title" data-i18n="browse">BROWSE CATEGORIES</p>
       <a href="#store">Top Sellers</a><a href="#store">New Releases</a><a href="#store">Upcoming</a><a href="#store">Specials</a><a href="#store">Virtual Reality</a><a href="#store">Controller Friendly</a>
-      <p class="sidebar-title">SMOKE FEATURES</p>
+      <p class="sidebar-title" data-i18n="features">SMOKE FEATURES</p>
       <a href="arcade.html">Browser Arcade</a><a href="multiplayer.html">Online Multiplayer</a><a href="workshop.html">Workshop — All Games</a><a href="doom.html">DOOMED: Sector 13</a><a href="mta1.html">MTA 1: Procedural Map</a><a href="spaceflight.html">SMOKE Space Flight</a><a href="portal.html">SMOKE Portal</a><a href="craft.html">SMOKEBLOCKS</a>
       <div class="sidebar-note">SMOKE is a parody storefront. Games here are demos and fictional listings — no downloads or purchases.</div>
     </aside>
@@ -54,8 +54,8 @@
         </div>
       </section>
       <section class="store-section" id="store">
-        <div class="section-bar"><h2>DISCOVER YOUR NEXT GAME</h2><a href="#store">See more　›</a></div>
-        <div class="filters" role="group" aria-label="Filter games"><button class="filter active" data-filter="all">Top Sellers</button><button class="filter" data-filter="action">Action</button><button class="filter" data-filter="adventure">Adventure</button><button class="filter" data-filter="chill">Casual</button></div>
+        <div class="section-bar"><h2 data-i18n="discover">DISCOVER YOUR NEXT GAME</h2><a href="#store" data-i18n="seeMore">See more　›</a></div>
+        <div class="filters" role="group" aria-label="Filter games"><button class="filter active" data-filter="all" data-i18n="topSellers">Top Sellers</button><button class="filter" data-filter="action" data-i18n="action">Action</button><button class="filter" data-filter="adventure" data-i18n="adventure">Adventure</button><button class="filter" data-filter="chill" data-i18n="casual">Casual</button></div>
         <p class="search-count" id="searchCount" aria-live="polite" hidden></p>
         <div class="game-grid" id="gameGrid">
           <article class="game-card" data-name="cross the hill" data-category="adventure"><a class="game-art" href="cross-the-hill.html" style="position:relative;overflow:hidden;background:linear-gradient(#70bde9 0%,#d3edee 55%,#82b56e 56%,#3e7650 100%);"><span class="art-label">LONG-HAUL ADVENTURE</span><div style="position:absolute;left:-8%;bottom:18%;width:120%;height:48%;background:#528b57;clip-path:polygon(0 78%,12% 43%,25% 66%,39% 8%,52% 55%,68% 22%,82% 63%,100% 14%,100% 100%,0 100%);"></div><div style="position:absolute;left:34%;bottom:27%;width:36%;height:16%;background:#dc5945;border-radius:12px 17px 4px 4px;transform:rotate(-5deg);box-shadow:inset 0 -7px #a9362c;"><span style="position:absolute;left:22%;top:-55%;width:56%;height:60%;background:#b8e4f2;border:4px solid #e8ece8;border-radius:8px 10px 0 0;"></span><i style="position:absolute;left:12%;bottom:-25%;width:22%;aspect-ratio:1;border-radius:50%;background:#1a242c;border:4px solid #d4d8d4;"></i><i style="position:absolute;right:12%;bottom:-25%;width:22%;aspect-ratio:1;border-radius:50%;background:#1a242c;border:4px solid #d4d8d4;"></i></div><strong style="position:absolute;left:8%;top:35%;font-size:clamp(22px,3vw,34px);text-shadow:2px 3px #263d37;color:white;">cross<br>the hill</strong><span class="art-bottom">1,000 KM WITH THE CREW</span></a><div class="game-info"><div><h3>cross the hill</h3><p>3D Driving · Friends · Very long trip</p></div><span class="price">FREE</span></div><div class="card-footer"><span class="tag">DRIVING</span><a class="details-btn" data-game="cross the hill" href="cross-the-hill.html">Play now ↗</a></div></article>
@@ -83,13 +83,13 @@
           <article class="game-card" data-name="Desk Goblin" data-category="chill"><a class="game-art art-goblin" href="game.html?game=desk-goblin"><span class="art-label">CASUAL</span><div class="goblin-face">◕‿◕</div><strong>DESK<br>GOBLIN</strong><span class="art-bottom">YOU WERE MEANT TO BE WORKING</span></a><div class="game-info"><div><h3>Desk Goblin</h3><p>Cozy · Weird · Casual</p></div><span class="price">€4.99</span></div><div class="card-footer"><span class="tag">CASUAL</span><a class="details-btn" data-game="Desk Goblin" href="game.html?game=desk-goblin">View details</a></div></article>
           <article class="game-card" data-name="Last Braincell" data-category="action"><a class="game-art art-brain" href="game.html?game=last-braincell"><span class="art-label">MULTIPLAYER MAYHEM</span><div class="brain-orb">?</div><strong>LAST<br>BRAINCELL</strong><span class="art-bottom">TEAMWORK NOT INCLUDED</span></a><div class="game-info"><div><h3>Last Braincell</h3><p>Chaos · Friends · Party</p></div><span class="price">€9.99</span></div><div class="card-footer"><span class="tag">ACTION</span><a class="details-btn" data-game="Last Braincell" href="game.html?game=last-braincell">View details</a></div></article>
         </div>
-        <p class="no-results" id="noResults" hidden>No games found. Try another search.</p>
-        <p class="disclaimer">The euro prices are fictional parody jokes. Games still launch directly in your browser; no checkout, purchases, or downloads are enabled.</p>
+        <p class="no-results" id="noResults" data-i18n="noGames" hidden>No games found. Try another search.</p>
+        <p class="disclaimer" data-i18n="disclaimer">The euro prices are fictional parody jokes. Games still launch directly in your browser; no checkout, purchases, or downloads are enabled.</p>
       </section>
       <section class="workshop-banner" id="library"><div class="workshop-symbol">▤</div><div><h2>SMOKE Workshop</h2><p>Create and share your own games with the community.</p></div><a href="builder.html">Explore Workshop　›</a></section>
       <section class="store-section community-section" id="community">
-        <div class="section-bar"><h2>SMOKE COMMUNITY</h2><a href="multiplayer.html">Play together ↗</a></div>
-        <p class="community-intro">Talk games, share opinions, and post your latest gaming chaos. Posts are shared with everyone visiting SMOKE.</p>
+        <div class="section-bar"><h2 data-i18n="communityTitle">SMOKE COMMUNITY</h2><a href="multiplayer.html" data-i18n="playTogether">Play together ↗</a></div>
+        <p class="community-intro" data-i18n="communityIntro">Talk games, share opinions, and post your latest gaming chaos. Posts are shared with everyone visiting SMOKE.</p>
         <form class="community-composer" id="communityForm">
           <h3>Start a discussion</h3>
           <div class="community-form-row">
@@ -100,11 +100,11 @@
           <label>Message<textarea id="communityBody" maxlength="1200" required rows="4" placeholder="Write your post here…"></textarea></label>
           <div class="community-submit-row"><span id="communityStatus" role="status">Loading community…</span><button class="outline-btn" id="communitySubmit" type="submit">Post discussion</button></div>
         </form>
-        <div class="community-feed-heading"><h3>Recent discussions</h3><button class="outline-btn" id="communityRefresh" type="button">↻ Refresh</button></div>
+        <div class="community-feed-heading"><h3 data-i18n="recent">Recent discussions</h3><button class="outline-btn" id="communityRefresh" data-i18n="refresh" type="button">↻ Refresh</button></div>
         <div class="community-feed" id="communityFeed" aria-live="polite"><p class="community-loading">Connecting to the SMOKE community…</p></div>
-        <p class="community-footnote">SMOKE is a parody project. Do not post passwords, private information, or harmful content. Public posts are visible to all visitors.</p>
+        <p class="community-footnote" data-i18n="communityFootnote">SMOKE is a parody project. Do not post passwords, private information, or harmful content. Public posts are visible to all visitors.</p>
       </section>
-      <footer class="site-footer" id="about"><div class="footer-brand">SMOKE</div><p>A free browser gaming hub. Play original games instantly — no purchases, subscriptions, or downloads required.</p><span>© 2026 SMOKE — PARODY PROJECT</span></footer>
+      <footer class="site-footer" id="about"><div class="footer-brand">SMOKE</div><p data-i18n="footerDesc">A free browser gaming hub. Play original games instantly — no purchases, subscriptions, or downloads required.</p><span>© 2026 SMOKE — PARODY PROJECT</span></footer>
     </div>
   </main>
   <dialog id="gameDialog" class="game-dialog"><h2 id="dialogTitle">Game details</h2><p id="dialogText"></p><div class="dialog-actions"><button id="dialogClose">Close</button><button id="dialogOk">Got it</button></div></dialog>
