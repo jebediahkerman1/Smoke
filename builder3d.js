@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const mode=$('builderMode'), cameraMode=$('cameraMode'), objectTool=$('objectTool'), world=$('world3d'), grid=$('levelGrid');
 if(!mode||!world||!window.THREE)return;
 const THREE=window.THREE;
-let renderer,scene,camera,ground,gridHelper,objects=[],player,playerMesh,goalMarker,playing=false,won3d=false;
+let renderer,scene,camera,ground,gridHelper,objects=[],player,playerMesh,goalMarker,playing=false,won3d=false,worldOverlay,worldOverlayTitle,worldOverlayText,worldOverlayButton;
 let px=0,pz=0,vy=0,yaw=0,pitch=-0.18,last=0,keys={},dragging=false,lastX=0,lastY=0,moveSpeed=6;
 const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
 const savedKey='smoke-custom-world3d-v1';
@@ -12,7 +12,7 @@ function material(color,roughness=.8){return new THREE.MeshStandardMaterial({col
 function init3d(){
  scene=new THREE.Scene();scene.background=new THREE.Color(0x8bc9ed);scene.fog=new THREE.Fog(0x8bc9ed,28,75);
  camera=new THREE.PerspectiveCamera(70,1,.1,180);
- renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));renderer.outputColorSpace=THREE.SRGBColorSpace;world.appendChild(renderer.domElement);
+ renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));renderer.outputColorSpace=THREE.SRGBColorSpace;world.appendChild(renderer.domElement);world.insertAdjacentHTML('beforeend','<div id="world3dOverlay" class="world3d-overlay"><div class="world3d-panel"><h2 id="world3dOverlayTitle">3D playtest</h2><p id="world3dOverlayText">Build a world, then start your test.</p><button type="button" id="world3dStart">START 3D PLAYTEST</button></div></div>');worldOverlay=$('world3dOverlay');worldOverlayTitle=$('world3dOverlayTitle');worldOverlayText=$('world3dOverlayText');worldOverlayButton=$('world3dStart');worldOverlayButton.addEventListener('click',()=>{if(won3d){const s=objects.find(o=>o.userData.kind==='start');px=s?s.position.x:0;pz=s?s.position.z:5;player.position.set(px,0,pz);won3d=false}begin3d()});
  scene.add(new THREE.HemisphereLight(0xeaf7ff,0x58734a,2));
  const sun=new THREE.DirectionalLight(0xffffff,2.1);sun.position.set(-12,22,10);sun.castShadow=true;scene.add(sun);
  ground=new THREE.Mesh(new THREE.PlaneGeometry(34,34),material(0x7caa5d));ground.rotation.x=-Math.PI/2;ground.position.y=-.06;ground.receiveShadow=true;scene.add(ground);
@@ -78,12 +78,12 @@ function pointerDown(e){
 function pointerMove(e){if(!dragging||!playing||cameraMode.value!=='third')return;const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;yaw-=dx*.006;pitch=THREE.MathUtils.clamp(pitch-dy*.004,-.75,.25)}
 function start3d(){
  if(mode.value!=='3d')return;
- playing=true;won3d=false;const spawn=objects.find(o=>o.userData.kind==='start');px=spawn?spawn.position.x:0;pz=spawn?spawn.position.z:5;vy=0;yaw=0;pitch=-.18;player.position.set(px,0,pz);player.visible=cameraMode.value!=='first';$('overlay').hidden=false;$('overlay').style.display='grid';$('overlayTitle').textContent='3D playtest ready';$('overlayText').textContent='WASD moves. Space jumps. Reach the purple goal, avoid red hazards, and collect gold coins. Drag the mouse to look around in third person.';$('start').textContent='START 3D PLAYTEST';$('builderStatus').textContent='3D playtest ready. Press START 3D PLAYTEST.';last=performance.now();
+ playing=false;won3d=false;const spawn=objects.find(o=>o.userData.kind==='start');px=spawn?spawn.position.x:0;pz=spawn?spawn.position.z:5;vy=0;yaw=0;pitch=-.18;player.position.set(px,0,pz);player.visible=cameraMode.value!=='first';worldOverlay.hidden=false;worldOverlay.style.display='grid';worldOverlayTitle.textContent='3D playtest ready';worldOverlayText.textContent='WASD moves. Space jumps. Reach the purple goal, avoid red hazards, and collect gold coins. Drag the mouse to look around in third person.';worldOverlayButton.textContent='START 3D PLAYTEST';$('builderStatus').textContent='3D playtest ready. Press START 3D PLAYTEST.';last=performance.now();
 }
-function begin3d(){playing=true;won3d=false;$('overlay').style.display='none';last=performance.now();player.visible=cameraMode.value!=='first';}
-function stop3d(){playing=false;dragging=false;keys={};if(player)player.visible=true;if($('overlay'))$('overlay').style.display='none';$('builderStatus').textContent=mode.value==='3d'?'3D editor ready. Click to place objects.':'Editor ready.'}
+function begin3d(){playing=true;won3d=false;worldOverlay.style.display='none';last=performance.now();player.visible=cameraMode.value!=='first';}
+function stop3d(){playing=false;dragging=false;keys={};if(player)player.visible=true;if(worldOverlay)worldOverlay.style.display='none';$('builderStatus').textContent=mode.value==='3d'?'3D editor ready. Click to place objects.':'Editor ready.'}
 function collisionAt(x,z,kind){return objects.find(o=>o.userData.kind===kind&&Math.abs(o.position.x-x)<.72&&Math.abs(o.position.z-z)<.72)}
-function win3d(){playing=false;won3d=true;$('overlayTitle').textContent='3D WORLD COMPLETE!';$('overlayText').textContent='You reached the goal! Your 3D world works. Save it or keep building.';$('start').textContent='PLAY AGAIN';$('overlay').style.display='grid';$('builderStatus').textContent='3D world completed!'}
+function win3d(){playing=false;won3d=true;worldOverlayTitle.textContent='3D WORLD COMPLETE!';worldOverlayText.textContent='You reached the goal! Your 3D world works. Save it or keep building.';worldOverlayButton.textContent='PLAY AGAIN';worldOverlay.style.display='grid';$('builderStatus').textContent='3D world completed!'}
 function update3d(dt){
  if(!playing)return;
  let f=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0),side=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);
@@ -110,10 +110,10 @@ mode.addEventListener('change',setMode);
 cameraMode.addEventListener('change',()=>{if(player)player.visible=cameraMode.value!=='first';if(playing&&cameraMode.value==='first')dragging=false});
 $('playtest').addEventListener('click',e=>{if(mode.value==='3d'){e.stopImmediatePropagation();start3d()}},true);
 $('stoptest').addEventListener('click',e=>{if(mode.value==='3d'){e.stopImmediatePropagation();stop3d()}},true);
-$('start').addEventListener('click',e=>{if(mode.value==='3d'){e.stopImmediatePropagation();if(won3d||!playing)begin3d();else begin3d()}},true);
+
 $('saveLevel').addEventListener('click',e=>{if(mode.value!=='3d')return;e.stopImmediatePropagation();try{const data=objects.map(o=>({type:o.userData.kind,x:o.userData.gx,z:o.userData.gz}));localStorage.setItem(savedKey,JSON.stringify(data));$('builderStatus').textContent='3D world saved in this browser!'}catch(err){$('builderStatus').textContent='Could not save this 3D world.'}},true);
 $('loadLevel').addEventListener('click',e=>{if(mode.value!=='3d')return;e.stopImmediatePropagation();try{const data=JSON.parse(localStorage.getItem(savedKey)||'null');if(!Array.isArray(data)){ $('builderStatus').textContent='No saved 3D world found yet.';return}objects.forEach(o=>scene.remove(o));objects=[];data.forEach(o=>makeObject(o.type,o.x,o.z));stop3d();$('builderStatus').textContent='Saved 3D world loaded!'}catch(err){$('builderStatus').textContent='Could not load saved 3D world.'}},true);
 $('clearLevel').addEventListener('click',e=>{if(mode.value!=='3d')return;e.stopImmediatePropagation();objects.forEach(o=>scene.remove(o));objects=[];makeObject('start',0,5);makeObject('goal',0,-5);stop3d();$('builderStatus').textContent='3D world cleared. Start and goal markers restored.'},true);
-const originalStart=$('start');originalStart.addEventListener('click',()=>{if(mode.value==='3d'&&playing&&!won3d)begin3d()},false);
+
 setMode();
 })();
