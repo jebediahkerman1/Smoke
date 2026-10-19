@@ -3,40 +3,40 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#15241e">
-<meta name="description" content="SMOKECRAFT: Blocklands is a free voxel sandbox. Explore, mine blocks, build and save your own world in the browser.">
-<title>SMOKECRAFT: Blocklands — Free Browser Game</title>
+<meta name="description" content="SMOKEBLOCKS is a free block sandbox. Explore grasslands, plant trees, mine stone, place water, build and save your world in the browser.">
+<title>SMOKEBLOCKS — Free Block Sandbox</title>
 <link rel="stylesheet" href="craft.css"><script src="craft.js" defer></script>
 </head>
 <body>
 <header class="craft-header">
-<a class="craft-brand" href="index.html"><span class="brand-cube">S</span><span>SMOKE<span class="brand-muted">GAMES</span></span></a>
+<a class="craft-brand" href="index.html"><img src="logo.webp" alt="SMOKE" class="craft-logo" width="94" height="70"></a>
 <nav><a href="index.html">GAME HUB</a><a href="portal.html">SMOKE PORTAL</a><a href="arcade.html">ARCADE</a></nav>
 <span class="free-pill">100% FREE · PLAY IN BROWSER</span>
 </header>
 <main class="craft-shell">
 <section class="craft-hero">
 <div class="hero-copy"><div class="eyebrow"><span class="eyebrow-dot"></span> SMOKE ORIGINAL SANDBOX</div>
-<h1>SMOKECRAFT <span>BLOCKLANDS</span></h1>
-<p>Break the ordinary. Build a little world. Explore the hills, collect resources, and turn an empty patch of land into something ridiculous. A block-built sandbox made for SMOKE.</p>
-<div class="hero-tags"><span>VOXEL-INSPIRED</span><span>BUILD ANYTHING</span><span>LOCAL WORLD SAVE</span></div></div>
+<h1>SMOKEBLOCKS <span>YOUR BLOCK SANDBOX</span></h1>
+<p>Explore a blocky world of green grass, tall trees, stone hills and sparkling water. Mine resources, place blocks wherever you like, and build your own little world. Your creations save right in your browser.</p>
+<div class="hero-tags"><span>GRASS · WOOD · STONE · WATER</span><span>FORESTS & LAKES</span><span>LOCAL WORLD SAVE</span></div></div>
 <div class="hero-art" aria-hidden="true"><div class="pixel-sun"></div><div class="floating-cube cube-grass"></div><div class="floating-cube cube-stone"></div><div class="floating-cube cube-wood"></div><div class="floating-cube cube-leaf"></div><div class="hero-hill hill-back"></div><div class="hero-hill hill-front"></div></div>
 </section>
 <section class="game-shell">
-<div class="game-topline"><div><span class="label">YOUR WORLD</span><h2>THE GREENWILD FRONTIER</h2></div>
+<div class="game-topline"><div><span class="label">YOUR WORLD</span><h2>YOUR SMOKEBLOCKS WORLD</h2></div>
 <div class="world-stats"><span><small>BLOCKS MINED</small><b id="minedCount">0</b></span><span><small>BLOCKS PLACED</small><b id="placedCount">0</b></span><span><small>WORLD CLOCK</small><b id="worldClock">DAY 1 · 08:00</b></span></div></div>
 <div class="game-stage"><canvas id="world" width="1100" height="680" aria-label="Interactive isometric voxel sandbox game"></canvas>
 <div class="stage-vignette" aria-hidden="true"></div><div class="stage-top-left"><span class="live-dot"></span><span id="worldStatus">WORLD LOADED</span></div><div class="stage-coords" id="coords">X 12 · Y 12</div><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
 <div class="tool-panel">
-<div class="tool-heading"><div><span class="label">HOTBAR</span><h3>Choose a block</h3></div><span class="tool-help">1–8 SELECT · LEFT CLICK MINE · RIGHT CLICK PLACE</span></div>
+<div class="tool-heading"><div><span class="label">HOTBAR</span><h3>Choose a block type</h3></div><span class="tool-help">1–9 SELECT · LEFT CLICK MINE · RIGHT CLICK PLACE</span></div>
 <div class="hotbar" id="hotbar" role="group" aria-label="Block inventory">
 <button class="slot active" data-slot="0" type="button"><span class="slot-number">1</span><span class="block-icon grass-icon"></span><span class="slot-name">Grass</span><b>12</b></button>
 <button class="slot" data-slot="1" type="button"><span class="slot-number">2</span><span class="block-icon dirt-icon"></span><span class="slot-name">Dirt</span><b>18</b></button>
 <button class="slot" data-slot="2" type="button"><span class="slot-number">3</span><span class="block-icon stone-icon"></span><span class="slot-name">Stone</span><b>16</b></button>
 <button class="slot" data-slot="3" type="button"><span class="slot-number">4</span><span class="block-icon wood-icon"></span><span class="slot-name">Wood</span><b>8</b></button>
 <button class="slot" data-slot="4" type="button"><span class="slot-number">5</span><span class="block-icon leaves-icon"></span><span class="slot-name">Leaves</span><b>8</b></button>
-<button class="slot" data-slot="5" type="button"><span class="slot-number">6</span><span class="block-icon sand-icon"></span><span class="slot-name">Sand</span><b>8</b></button>
-<button class="slot" data-slot="6" type="button"><span class="slot-number">7</span><span class="block-icon glass-icon"></span><span class="slot-name">Glass</span><b>4</b></button>
-<button class="slot" data-slot="7" type="button"><span class="slot-number">8</span><span class="block-icon plank-icon"></span><span class="slot-name">Planks</span><b>4</b></button>
+<button class="slot" data-slot="5" type="button"><span class="slot-number">6</span><span class="block-icon water-icon"></span><span class="slot-name">Water</span><b>8</b></button><button class="slot" data-slot="6" type="button"><span class="slot-number">7</span><span class="block-icon sand-icon"></span><span class="slot-name">Sand</span><b>8</b></button>
+<button class="slot" data-slot="7" type="button"><span class="slot-number">8</span><span class="block-icon glass-icon"></span><span class="slot-name">Glass</span><b>4</b></button>
+<button class="slot" data-slot="8" type="button"><span class="slot-number">9</span><span class="block-icon plank-icon"></span><span class="slot-name">Planks</span><b>4</b></button>
 </div>
 <div class="tool-actions"><span id="selectedLabel">Selected: Grass · MINE MODE</span>
 <div class="action-buttons"><button id="craftPlanks" type="button">✦ CRAFT PLANKS <small>3 wood → 6 planks</small></button><button id="saveWorld" type="button">▣ SAVE WORLD</button><button id="newWorld" type="button" class="danger-button">↻ NEW WORLD</button></div></div>
@@ -47,5 +47,5 @@
 <article class="learn-card"><span class="learn-icon">💾</span><h3>Your world, saved</h3><p>Your blocks, inventory and position are stored in this browser on this device. Use Save World before leaving.</p></article>
 </section>
 <section class="controls-strip"><div><b>MOVE</b><span>W A S D / arrow keys</span></div><div><b>SPRINT</b><span>Shift</span></div><div><b>MINE</b><span>Left click / tap in Mine mode</span></div><div><b>BUILD</b><span>Right click / tap in Build mode</span></div><div><b>CRAFT</b><span>3 wood makes 6 planks</span></div></section>
-<footer class="craft-footer"><span>SMOKECRAFT: BLOCKLANDS</span><span>Fan-made voxel sandbox parody · Free to play · Not affiliated with Mojang or Microsoft</span><a href="index.html">← BACK TO SMOKE GAMES</a></footer>
+<footer class="craft-footer"><span>SMOKEBLOCKS</span><span>Original block sandbox parody · Free to play · Not affiliated with Mojang or Microsoft</span><a href="index.html">← BACK TO SMOKE GAMES</a></footer>
 </main></body></html>
