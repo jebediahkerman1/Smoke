@@ -40,9 +40,9 @@ button,select{background:#29445a;color:#eef8ff;border:1px solid #4d718d;border-r
 (()=>{
 const canvas=document.querySelector('#game'),ctx=canvas.getContext('2d'),W=900,H=570,cell=30;
 const maps={
- meadow:[[0,8],[5,8],[5,3],[12,3],[12,14],[20,14],[20,7],[30,7]],
- desert:[[0,3],[8,3],[8,15],[15,15],[15,6],[24,6],[24,12],[30,12]],
- snow:[[0,15],[7,15],[7,5],[17,5],[17,12],[25,12],[25,3],[30,3]]
+ meadow:[[0,8],[5,8],[5,3],[12,3],[12,14],[20,14],[20,7],[29,7]],
+ desert:[[0,3],[8,3],[8,15],[15,15],[15,6],[24,6],[24,12],[29,12]],
+ snow:[[0,15],[7,15],[7,5],[17,5],[17,12],[25,12],[25,3],[29,3]]
 };
 const defs={
  Scout:{cost:80,range:115,damage:13,rate:0.55,color:'#75d7ff',desc:'Cheap, balanced rapid-fire tower.'},
