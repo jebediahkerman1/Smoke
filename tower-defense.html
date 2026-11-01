@@ -87,9 +87,29 @@ for(let y=0;y<H;y+=cell)for(let x=0;x<W;x+=cell){ctx.fillStyle=((x/cell+y/cell)%
 ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#27343a';ctx.lineWidth=60;ctx.beginPath();path.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();ctx.strokeStyle=$('map').value==='snow'?'#e5e9e5':$('map').value==='desert'?'#dfc38c':'#b6a783';ctx.lineWidth=49;ctx.stroke();
 ctx.setLineDash([8,13]);ctx.strokeStyle='#ffffff55';ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);
 for(let t of towers){ctx.beginPath();ctx.fillStyle=t.color+'22';ctx.arc(t.x,t.y,t.range,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.fillStyle=t.color;ctx.arc(t.x,t.y,14,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#14212a';ctx.lineWidth=4;ctx.stroke();ctx.fillStyle='#10202b';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.fillText(t.type==='Support'?'✚':t.type==='Sniper'?'⌖':t.type==='Splash'?'✹':t.type==='Gunner'?'▤':'•',t.x,t.y+4);ctx.fillStyle='#fff';ctx.font='10px system-ui';ctx.fillText('L'+t.level,t.x,t.y+25);if(t===selected){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(t.x,t.y,19,0,Math.PI*2);ctx.stroke();}}
-for(let e of enemies){ctx.beginPath();ctx.fillStyle=e.color;ctx.arc(e.x,e.y,e.kind==='Boss'?16:10,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#18232b';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#17202a';ctx.fillRect(e.x-15,e.y-20,30,4);ctx.fillStyle='#7cf18b';ctx.fillRect(e.x-15,e.y-20,30*Math.max(0,e.hp/e.max),4);}
+// Highly visible entrance and base markers
+const entry=path[0],base=path[path.length-1];
+function marker(p,label,color,icon){ctx.save();ctx.fillStyle='#07111c';ctx.strokeStyle=color;ctx.lineWidth=4;ctx.beginPath();ctx.arc(p.x,p.y,24,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=color;ctx.font='bold 23px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(icon,p.x,p.y);ctx.fillStyle='#07111c';ctx.fillRect(p.x-36,p.y-43,72,18);ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.strokeRect(p.x-36,p.y-43,72,18);ctx.fillStyle='#fff';ctx.font='bold 11px system-ui';ctx.fillText(label,p.x,p.y-34);ctx.restore();}
+marker(entry,'ENTRY','#69e6a1','▶');marker(base,'YOUR BASE','#ff6565','⌂');
+for(let e of enemies){
+ const boss=e.kind==='Boss',runner=e.kind==='Runner',brute=e.kind==='Brute',shield=e.kind==='Shield';
+ const radius=boss?21:brute?17:shield?15:runner?13:14;
+ ctx.save();ctx.translate(e.x,e.y);
+ ctx.shadowColor=e.color;ctx.shadowBlur= boss?18:10;
+ ctx.fillStyle=e.color;ctx.strokeStyle='#101923';ctx.lineWidth=3;
+ ctx.beginPath();
+ if(runner){ctx.moveTo(0,-radius-3);ctx.lineTo(radius+3,0);ctx.lineTo(0,radius+3);ctx.lineTo(-radius-3,0);ctx.closePath();}
+ else if(brute){ctx.rect(-radius,-radius,radius*2,radius*2);}
+ else if(shield){for(let i=0;i<6;i++){let a=Math.PI/3*i-Math.PI/2;let x=Math.cos(a)*radius,y=Math.sin(a)*radius;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();}
+ else{ctx.arc(0,0,radius,0,Math.PI*2);}
+ ctx.fill();ctx.stroke();ctx.shadowBlur=0;
+ ctx.fillStyle='#101923';ctx.font='bold '+(boss?13:11)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+ ctx.fillText(boss?'👑':runner?'⚡':brute?'B':shield?'S':'G',0,1);
+ ctx.fillStyle='#08121b';ctx.fillRect(-18,-radius-12,36,5);ctx.fillStyle='#65f18b';ctx.fillRect(-18,-radius-12,36*Math.max(0,e.hp/e.max),5);
+ ctx.restore();
+}
 for(let s of shots){ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(s.x,s.y,4,0,Math.PI*2);ctx.fill();}
-ctx.fillStyle='#fff';ctx.font='bold 13px system-ui';ctx.textAlign='left';ctx.fillText('ENTRY',12,18);ctx.textAlign='right';ctx.fillText('BASE',W-12,H-12);
+
 requestAnimationFrame(draw);}
 canvas.addEventListener('click',ev=>{let r=canvas.getBoundingClientRect(),x=(ev.clientX-r.left)*W/r.width,y=(ev.clientY-r.top)*H/r.height;if(pathMode){changePathBlock(Math.floor(x/cell),Math.floor(y/cell),pathMode==='remove');return;}let hit=[...towers].reverse().find(t=>dist(t,{x,y})<19);if(hit){selected=hit;details();say(hit.type+' selected. Upgrade or sell it.');}else if(placing)place(x,y);});
 $('buyPath').onclick=()=>{if(cash<25){say('You need $25 to buy a road block.');return;}cash-=25;pathBlocks++;$('pathCount').textContent='Blocks: '+pathBlocks;renderStats();say('Bought a road block. Select Build path, then click beside the road.');};
