@@ -56,7 +56,34 @@ roomChannel.subscribe(async status=>{if(status==='SUBSCRIBED'&&!launched){launch
 function addGuest(d){if(players[d.id])return;const occupied=Object.values(players).length;const starts=[[3,3],[map.w-4,3],[3,map.h-4],[map.w-4,map.h-4],[Math.floor(map.w/2),3],[Math.floor(map.w/2),map.h-4]];const s=starts[(occupied-1)%starts.length];const p=createPlayer(d.id,d.name,colors[occupied%colors.length],{x:s[0],z:s[1]});seedBase(p);players[d.id]=p;broadcastState()}
 function hostAction(d){const p=players[d.id];if(!p||!p.alive)return;if(d.type==='move'){const x=d.x,z=d.z;if(!inside(x,z))return;p.pos={x,z};if(!p.territory.includes(idx(x,z))){if(!p.trail.length||p.trail[p.trail.length-1]!==idx(x,z))p.trail.push(idx(x,z));for(const rival of Object.values(players)){if(rival.id!==p.id&&rival.trail.length&&rival.trail.includes(idx(x,z))){rival.trail=[];notifyPlayer(rival.id,'Your trail was cut!')}}for(const rival of Object.values(players)){if(rival.id!==p.id&&p.trail.includes(idx(rival.pos.x,rival.pos.z))){rival.trail=[];notifyPlayer(rival.id,'Your trail was cut!')}}if(p.trail.length>map.w*map.h*.4){p.trail=[];notifyPlayer(d.id,'Trail too long!');}}else if(p.trail.length){capture(p);cutTrails(p);}}
 if(d.type==='claim'){p.territory=d.territory;p.trail=d.trail}broadcastState()}
-function capture(p){const blocked=new Set(p.trail);const seen=new Set(),q=[];for(let z=0;z<map.h;z++)for(let x=0;x<map.w;x++){if(!inside(x,z))continue;const edge=[[x+1,z],[x-1,z],[x,z+1],[x,z-1]].some(([nx,nz])=>!inside(nx,nz));const k=idx(x,z);if(edge&&!blocked.has(k)&&!seen.has(k)){seen.add(k);q.push([x,z])}}for(let i=0;i<q.length;i++){const [x,z]=q[i];for(const [nx,nz] of [[x+1,z],[x-1,z],[x,z+1],[x,z-1]]){const k=idx(nx,nz);if(inside(nx,nz)&&!blocked.has(k)&&!seen.has(k)){seen.add(k);q.push([nx,nz])}}}const own=new Set(p.territory);for(let z=0;z<map.h;z++)for(let x=0;x<map.w;x++){const k=idx(x,z);if(inside(x,z)&&!seen.has(k))own.add(k)}p.territory=[...own];p.trail=[]}
+function capture(p){
+ const blocked=new Set([...(p.territory||[]),...(p.trail||[])]);
+ const outside=new Set(),queue=[];
+ // Flood-fill from the edge of the dish. Existing territory and the
+ // freshly drawn trail form solid walls, so the enclosed pocket is sealed.
+ for(let z=0;z<map.h;z++)for(let x=0;x<map.w;x++){
+  if(!inside(x,z))continue;
+  const k=idx(x,z);
+  const edge=[[x+1,z],[x-1,z],[x,z+1],[x,z-1]].some(([nx,nz])=>!inside(nx,nz));
+  if(edge&&!blocked.has(k)&&!outside.has(k)){outside.add(k);queue.push([x,z])}
+ }
+ for(let i=0;i<queue.length;i++){
+  const [x,z]=queue[i];
+  for(const [nx,nz] of [[x+1,z],[x-1,z],[x,z+1],[x,z-1]]){
+   const k=idx(nx,nz);
+   if(inside(nx,nz)&&!blocked.has(k)&&!outside.has(k)){outside.add(k);queue.push([nx,nz])}
+  }
+ }
+ const claimed=new Set(p.territory||[]);
+ for(let z=0;z<map.h;z++)for(let x=0;x<map.w;x++){
+  const k=idx(x,z);
+  if(inside(x,z)&&!outside.has(k))claimed.add(k);
+ }
+ // Keep the drawn line itself in the newly colored territory.
+ for(const k of p.trail||[])if(map.mask[k])claimed.add(k);
+ p.territory=[...claimed];
+ p.trail=[];
+}
 function cutTrails(p){for(const other of Object.values(players)){if(other.id===p.id||!other.trail.length)continue;if(other.trail.includes(idx(p.pos.x,p.pos.z))){other.trail=[];other.pos={...other.pos};notifyPlayer(other.id,'Your trail was cut!')}}}
 function notifyPlayer(id,msg){if(id===localId)notify(msg);else roomChannel.send({type:'broadcast',event:'player-notice',payload:{id,msg}})}
 async function broadcastState(){if(!roomChannel)return;await roomChannel.send({type:'broadcast',event:'state',payload:serialize()});renderHud();draw();if(lobbyChannel&&isHost)await lobbyChannel.track({room:roomCode,host:$('playerName').value||'Host',shape:map.shape,size:map.w,players:Object.keys(players).length,visibility:'public',created:Date.now()})}
