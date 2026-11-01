@@ -84,7 +84,7 @@ enemies=enemies.filter(e=>!e.dead);
 for(let t of towers){if(!t.rate)continue;t.last+=dt;let boost=towers.some(s=>s!==t&&s.type==='Support'&&dist(s,t)<=s.range)?1.22:1;if(t.last>=t.rate/boost){let target=enemies.filter(e=>!e.dead&&dist(e,t)<=t.range).sort((a,b)=>b.segment-a.segment||b.x-a.x)[0];if(target)shoot(t,target);}}
 for(let s of shots){if(!s.target||s.target.dead){s.dead=true;continue;}let dx=s.target.x-s.x,dy=s.target.y-s.y,len=Math.hypot(dx,dy),step=s.speed*dt;if(len<step+5){if(s.splash){for(let e of enemies)if(!e.dead&&dist(e,s.target)<s.splash)damage(e,s.damage);}else damage(s.target,s.damage);s.dead=true;}else{s.x+=dx/len*step;s.y+=dy/len*step;}}
 shots=shots.filter(s=>!s.dead);enemies=enemies.filter(e=>!e.dead);
-if(active&&spawnLeft===0&&enemies.length===0){active=false;let bonus=35+wave*7;cash+=bonus;say('Wave '+wave+' cleared! Bonus: 
+if(active&&spawnLeft===0&&enemies.length===0){active=false;let bonus=35+wave*7;cash+=bonus;say('Wave '+wave+' cleared! Bonus cash awarded. Prepare your defenses.');if(wave%3===0){chestTokens++;$('rewardMessage').textContent='A reward chest was earned!';}if(wave%5===0){wheelTokens++;$('rewardMessage').textContent='A reward wheel spin was earned!';}updateRewardUI();try{localStorage.setItem('smokeTDChestTokens',String(chestTokens));localStorage.setItem('smokeTDWheelTokens',String(wheelTokens));}catch(e){}}
 renderStats();}
 function draw(){ctx.clearRect(0,0,W,H);ctx.fillStyle=$('map').value==='desert'?'#b99a60':$('map').value==='snow'?'#b8d0d5':'#527d52';ctx.fillRect(0,0,W,H);
 for(let y=0;y<H;y+=cell)for(let x=0;x<W;x+=cell){ctx.fillStyle=((x/cell+y/cell)%2)?'#ffffff08':'#00000008';ctx.fillRect(x,y,cell,cell);}
@@ -129,45 +129,5 @@ function openRewardChest(){if(!chestTokens){$('rewardMessage').textContent='No c
 function spinRewardWheel(){if(!wheelTokens){$('rewardMessage').textContent='No spins yet. Earn one every 5 waves.';return;}wheelTokens--;updateRewardUI();const b=$('spinWheel');b.disabled=true;b.textContent='🎡 Spinning…';const r=[['Jackpot','+$250',()=>cash+=250],['Extra lives','+5 lives',()=>lives+=5],['Rapid fire','18% faster towers',()=>buffs.rate*=.82],['Power surge','+20% tower damage',()=>buffs.damage*=1.2],['Range boost','+20% tower range',()=>buffs.range*=1.2],['Bonus bounty','+30% enemy rewards',()=>buffs.reward*=1.3]][Math.floor(Math.random()*6)];setTimeout(()=>{r[2]();$('rewardMessage').textContent='🎡 '+r[0]+': '+r[1]+'!';b.disabled=false;b.innerHTML='🎡 Spin wheel <span class="reward-count" id="wheelCount">'+wheelTokens+'</span>';updateRewardUI();renderStats();},1000);}
 $('openChest').addEventListener('click',openRewardChest);$('spinWheel').addEventListener('click',spinRewardWheel);
 let prev=0;function loop(ts){let dt=Math.min(.04,(ts-prev)/1000||0)*speed;prev=ts;update(dt);requestAnimationFrame(loop);}try{gameNumber=Number(localStorage.getItem('smokeTDGameNumber')||0);chestTokens=Number(localStorage.getItem('smokeTDChestTokens')||0);wheelTokens=Number(localStorage.getItem('smokeTDWheelTokens')||0);}catch(e){}makePath();reset();renderStats();requestAnimationFrame(draw);requestAnimationFrame(loop);
-})();
-</script></body></html>+bonus+'. Prepare your defenses.');if(wave%3===0)chestTokens++;if(wave%5===0)wheelTokens++;updateRewardUI();}
-renderStats();}
-function draw(){ctx.clearRect(0,0,W,H);ctx.fillStyle=$('map').value==='desert'?'#b99a60':$('map').value==='snow'?'#b8d0d5':'#527d52';ctx.fillRect(0,0,W,H);
-for(let y=0;y<H;y+=cell)for(let x=0;x<W;x+=cell){ctx.fillStyle=((x/cell+y/cell)%2)?'#ffffff08':'#00000008';ctx.fillRect(x,y,cell,cell);}
-ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#27343a';ctx.lineWidth=60;ctx.beginPath();path.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();ctx.strokeStyle=$('map').value==='snow'?'#e5e9e5':$('map').value==='desert'?'#dfc38c':'#b6a783';ctx.lineWidth=49;ctx.stroke();
-ctx.setLineDash([8,13]);ctx.strokeStyle='#ffffff55';ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);
-for(let t of towers){ctx.beginPath();ctx.fillStyle=t.color+'22';ctx.arc(t.x,t.y,t.range,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.fillStyle=t.color;ctx.arc(t.x,t.y,14,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#14212a';ctx.lineWidth=4;ctx.stroke();ctx.fillStyle='#10202b';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.fillText(t.type==='Support'?'✚':t.type==='Sniper'?'⌖':t.type==='Splash'?'✹':t.type==='Gunner'?'▤':'•',t.x,t.y+4);ctx.fillStyle='#fff';ctx.font='10px system-ui';ctx.fillText('L'+t.level,t.x,t.y+25);if(t===selected){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(t.x,t.y,19,0,Math.PI*2);ctx.stroke();}}
-// Highly visible entrance and base markers
-const entry=path[0],base=path[path.length-1];
-function marker(p,color){ctx.save();ctx.translate(p.x,p.y);ctx.shadowColor=color;ctx.shadowBlur=14;ctx.fillStyle='#07111c';ctx.strokeStyle=color;ctx.lineWidth=3;ctx.fillRect(-31,-25,62,50);ctx.strokeRect(-31,-25,62,50);ctx.fillStyle=color;ctx.fillRect(-35,-32,14,10);ctx.fillRect(-7,-32,14,10);ctx.fillRect(21,-32,14,10);ctx.fillRect(-22,-14,12,12);ctx.fillRect(10,-14,12,12);ctx.fillStyle='#07111c';ctx.fillRect(-7,8,14,17);ctx.strokeStyle=color;ctx.lineWidth=2;ctx.strokeRect(-7,8,14,17);ctx.restore();}
-marker(entry,'#ff5353');marker(base,'#4ca8ff');
-for(let e of enemies){
- const boss=e.kind==='Boss',runner=e.kind==='Runner',brute=e.kind==='Brute',shield=e.kind==='Shield';
- const radius=boss?21:brute?17:shield?15:runner?13:14;
- ctx.save();ctx.translate(e.x,e.y);
- ctx.shadowColor=e.color;ctx.shadowBlur= boss?18:10;
- ctx.fillStyle=e.color;ctx.strokeStyle='#101923';ctx.lineWidth=3;
- ctx.beginPath();
- if(runner){ctx.moveTo(0,-radius-3);ctx.lineTo(radius+3,0);ctx.lineTo(0,radius+3);ctx.lineTo(-radius-3,0);ctx.closePath();}
- else if(brute){ctx.rect(-radius,-radius,radius*2,radius*2);}
- else if(shield){for(let i=0;i<6;i++){let a=Math.PI/3*i-Math.PI/2;let x=Math.cos(a)*radius,y=Math.sin(a)*radius;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();}
- else{ctx.arc(0,0,radius,0,Math.PI*2);}
- ctx.fill();ctx.stroke();ctx.shadowBlur=0;
- ctx.fillStyle='#101923';ctx.font='bold '+(boss?13:11)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
- ctx.fillText(boss?'👑':runner?'⚡':brute?'B':shield?'S':'G',0,1);
- ctx.fillStyle='#08121b';ctx.fillRect(-18,-radius-12,36,5);ctx.fillStyle='#65f18b';ctx.fillRect(-18,-radius-12,36*Math.max(0,e.hp/e.max),5);
- ctx.restore();
-}
-for(let s of shots){ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(s.x,s.y,4,0,Math.PI*2);ctx.fill();}
-
-requestAnimationFrame(draw);}
-canvas.addEventListener('click',ev=>{let r=canvas.getBoundingClientRect(),x=(ev.clientX-r.left)*W/r.width,y=(ev.clientY-r.top)*H/r.height;if(pathMode){changePathBlock(Math.floor(x/cell),Math.floor(y/cell),pathMode==='remove');return;}let hit=[...towers].reverse().find(t=>dist(t,{x,y})<19);if(hit){selected=hit;details();say(hit.type+' selected. Upgrade or sell it.');}else if(placing)place(x,y);});
-$('buyPath').onclick=()=>{if(cash<25){say('You need $25 to buy a road block.');return;}cash-=25;pathBlocks++;$('pathCount').textContent='Blocks: '+pathBlocks;renderStats();say('Bought a road block. Select Build path, then click beside the road.');};
-$('buildPath').onclick=()=>{pathMode=pathMode==='build'?'':'build';$('buildPath').classList.toggle('primary',pathMode==='build');$('removePath').classList.remove('primary');if(pathMode==='build')say('Build mode: click a tile beside the existing road.');};
-$('removePath').onclick=()=>{pathMode=pathMode==='remove'?'':'remove';$('removePath').classList.toggle('primary',pathMode==='remove');$('buildPath').classList.remove('primary');if(pathMode==='remove')say('Remove mode: click any road tile, including the original path. The entrance-to-base route must stay connected.');};
-$('start').onclick=startWave;$('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'Resume':'Pause';};$('speed').onclick=()=>{speed=speed===1?2:speed===2?3:1;$('speed').textContent='Speed: '+speed+'×';};$('restart').onclick=reset;$('map').onchange=reset;$('difficulty').onchange=reset;
-$('upgrade').onclick=()=>{if(!selected||selected.level>=4)return;let cost=upgradeCost(selected);if(cash<cost)return;cash-=cost;selected.level++;selected.invested+=cost;selected.damage=Math.round(selected.damage*1.55);selected.range*=1.12;if(selected.rate)selected.rate*=.86;details();renderStats();say(selected.type+' upgraded to level '+selected.level+'!');};
-$('sell').onclick=()=>{if(!selected)return;cash+=Math.round(selected.invested*.7);towers=towers.filter(t=>t!==selected);selected=null;details();renderStats();say('Tower sold for 70% of its invested cost.');};
-let prev=0;function loop(ts){let dt=Math.min(.04,(ts-prev)/1000||0)*speed;prev=ts;update(dt);requestAnimationFrame(loop);}makePath();reset();renderStats();requestAnimationFrame(draw);requestAnimationFrame(loop);
 })();
 </script></body></html>
