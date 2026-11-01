@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SMOKE Tower Defense</title>
+<style>
+:root{color-scheme:dark;--bg:#101923;--panel:#192a3a;--line:#34516a;--blue:#65b9ed;--gold:#f5c45d;--muted:#9eb2c3}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#203b50,#0d151e 70%);font:15px system-ui;color:#eaf4fc;min-height:100vh}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;background:#111b27;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap}header a{color:#9dd8ff;text-decoration:none}header strong{letter-spacing:2px}
+main{max-width:1400px;margin:auto;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:16px}
+.panel{background:#172737ed;border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 12px 30px #0003}
+h1{font-size:clamp(24px,4vw,38px);margin:0 0 4px}h2{font-size:17px;margin:0 0 10px;color:#cfeaff}.sub{color:var(--muted);margin:0 0 14px}
+#game{width:100%;display:block;background:#263d38;border-radius:9px;cursor:crosshair;touch-action:manipulation}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}.stat{background:#0e1a25;padding:10px;border-radius:8px}.stat small{display:block;color:var(--muted)}.stat b{font-size:20px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+button,select{background:#29445a;color:#eef8ff;border:1px solid #4d718d;border-radius:7px;padding:9px 11px;font:inherit;cursor:pointer}button:hover{filter:brightness(1.2)}button:disabled{opacity:.4;cursor:not-allowed}.primary{background:#2678ad;border-color:#5bb5ed}.danger{background:#703b43}.tower-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tower{padding:10px;text-align:left;min-height:74px}.tower.active{outline:2px solid var(--gold);background:#3b4b4a}.tower b{display:block}.tower small{color:#bfd0dc}
+.side{display:flex;flex-direction:column;gap:14px}.upgrade-line{display:flex;justify-content:space-between;gap:8px;margin:8px 0;color:#c6d8e6}.upgrade-line span:last-child{color:var(--gold)}
+#message{min-height:38px;color:#f4d78d;font-size:13px;margin-top:8px}.legend{color:var(--muted);font-size:12px;line-height:1.5}
+@media(max-width:900px){main{grid-template-columns:1fr}.side{display:grid;grid-template-columns:1fr 1fr}.side .panel:first-child{grid-column:1/-1}}
+@media(max-width:560px){main{padding:9px}.side{display:flex}.stats{grid-template-columns:repeat(2,1fr)}header{padding:12px}}
+</style></head>
+<body>
+<header><a href="index.html">← Back to SMOKE</a><strong>SMOKE <span style="color:#65b9ed">TOWER DEFENSE</span></strong><span>Browser strategy · Free to play</span></header>
+<main>
+<section>
+<h1>Defend the Route</h1><p class="sub">Build a defense, stop the waves, and don't let anything reach the exit.</p>
+<div class="panel">
+<canvas id="game" width="900" height="570" aria-label="Tower defense map"></canvas>
+<div class="stats"><div class="stat"><small>Cash</small><b id="cash">$300</b></div><div class="stat"><small>Lives</small><b id="lives">20</b></div><div class="stat"><small>Wave</small><b id="wave">0</b></div><div class="stat"><small>Enemies</small><b id="enemies">0</b></div></div>
+<div class="controls"><button class="primary" id="start">Start wave 1</button><button id="speed">Speed: 1×</button><button id="pause">Pause</button><button class="danger" id="restart">Restart run</button></div>
+<div id="message">Choose a tower, then click a clear patch of grass to place it. Towers cannot block the road.</div>
+</div></section>
+<aside class="side">
+<div class="panel"><h2>Battle setup</h2><label>Map<br><select id="map" style="width:100%;margin:5px 0 10px"><option value="meadow">Meadow Crossing</option><option value="desert">Dustbowl Pass</option><option value="snow">Frostline</option></select></label><label>Difficulty<br><select id="difficulty" style="width:100%;margin:5px 0 10px"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option><option value="nightmare">Nightmare</option></select></label><p class="legend">Changing the map or difficulty starts a fresh run. Each map has a different enemy route.</p></div>
+<div class="panel"><h2>Build towers</h2><div class="tower-list" id="towerList"></div><p class="legend">Select a tower class, then place it on the map. Select a placed tower to upgrade or sell it.</p></div>
+<div class="panel"><h2 id="selectedTitle">Tower details</h2><div id="towerDetails" class="legend">No tower selected. Click a tower to inspect it.</div><div class="controls"><button class="primary" id="upgrade" disabled>Upgrade</button><button id="sell" disabled>Sell</button></div><div id="message2" class="legend"></div></div>
+<div class="panel"><h2>Enemy guide</h2><p class="legend">🟢 Grunt — standard enemy<br>🟡 Runner — fast, fragile<br>🔴 Brute — slow and tough<br>🟣 Shield — armored<br>👑 Boss — huge health pool</p></div>
+</aside></main>
+<script>
+(()=>{
+const canvas=document.querySelector('#game'),ctx=canvas.getContext('2d'),W=900,H=570,cell=30;
+const maps={
+ meadow:[[0,8],[5,8],[5,3],[12,3],[12,14],[20,14],[20,7],[30,7]],
+ desert:[[0,3],[8,3],[8,15],[15,15],[15,6],[24,6],[24,12],[30,12]],
+ snow:[[0,15],[7,15],[7,5],[17,5],[17,12],[25,12],[25,3],[30,3]]
+};
+const defs={
+ Scout:{cost:80,range:115,damage:13,rate:0.55,color:'#75d7ff',desc:'Cheap, balanced rapid-fire tower.'},
+ Sniper:{cost:145,range:245,damage:68,rate:1.65,color:'#f5d16b',desc:'Long range, heavy single shots.'},
+ Gunner:{cost:190,range:135,damage:8,rate:0.13,color:'#f28c68',desc:'Extremely fast fire rate.'},
+ Splash:{cost:220,range:125,damage:28,rate:1.2,color:'#d99aff',splash:55,desc:'Explodes and damages nearby enemies.'},
+ Support:{cost:160,range:145,damage:0,rate:0,color:'#8be0a5',desc:'Boosts nearby towers by 22% fire rate.'}
+};
+const diff={easy:{hp:.72,speed:.88,reward:1.25,lives:28},normal:{hp:1,speed:1,reward:1,lives:20},hard:{hp:1.55,speed:1.13,reward:.9,lives:15},nightmare:{hp:2.35,speed:1.28,reward:.8,lives:10}};
+let path=[],towers=[],enemies=[],shots=[],cash=300,lives=20,wave=0,spawnLeft=0,spawnTimer=0,active=false,paused=false,gameOver=false,selected=null,placing='Scout',speed=1,last=0,frame=0;
+const $=id=>document.getElementById(id),d=()=>diff[$('difficulty').value];
+function makePath(){path=maps[$('map').value].map(p=>({x:p[0]*cell+cell/2,y:p[1]*cell+cell/2}));}
+function reset(){makePath();towers=[];enemies=[];shots=[];cash=300;lives=d().lives;wave=0;spawnLeft=0;active=false;paused=false;gameOver=false;selected=null;placing='Scout';speed=1;$('pause').textContent='Pause';$('speed').textContent='Speed: 1×';renderStats();renderTowers();details();say('Choose a tower, then click a clear patch of grass to place it.');}
+function say(s){$('message').textContent=s;}
+function renderStats(){$('cash').textContent='$'+Math.floor(cash);$('lives').textContent=lives;$('wave').textContent=wave;$('enemies').textContent=enemies.length;$('start').textContent=active?'Wave '+wave+' in progress':(wave?'Start wave '+(wave+1):'Start wave 1');$('start').disabled=active||gameOver;}
+function renderTowers(){$('towerList').innerHTML='';Object.entries(defs).forEach(([name,v])=>{let b=document.createElement('button');b.className='tower'+(placing===name?' active':'');b.innerHTML='<b>'+name+' · $'+v.cost+'</b><small>'+v.desc+'</small>';b.onclick=()=>{placing=name;selected=null;renderTowers();details();say(name+' selected. Click grass to place.');};$('towerList').append(b);});}
+function details(){let t=selected;$('selectedTitle').textContent=t?t.type+' · Level '+t.level:'Tower details';$('towerDetails').innerHTML=t?'<div>Damage: '+(t.damage||'Support')+'</div><div>Range: '+Math.round(t.range)+'</div><div>Fire interval: '+(t.rate?t.rate.toFixed(2)+'s':'Aura')+'</div><div>Upgrade cost: $'+upgradeCost(t)+'</div><div>Invested: $'+t.invested+'</div>':'No tower selected. Click a tower to inspect it.';$('upgrade').disabled=!t||t.level>=4||cash<upgradeCost(t);$('sell').disabled=!t;}
+function upgradeCost(t){return Math.round(defs[t.type].cost*(.72+t.level*.62));}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+function onRoad(x,y){for(let i=0;i<path.length-1;i++){let a=path[i],b=path[i+1],dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,u=Math.max(0,Math.min(1,((x-a.x)*dx+(y-a.y)*dy)/l));if(Math.hypot(x-(a.x+u*dx),y-(a.y+u*dy))<27)return true;}return false;}
+function place(x,y){let type=placing,v=defs[type];if(cash<v.cost){say('Not enough cash for '+type+'.');return;}if(onRoad(x,y)||x<18||x>W-18||y<18||y>H-18||towers.some(t=>dist(t,{x,y})<30)){say('That spot is blocked. Choose open grass.');return;}cash-=v.cost;let t={type,x,y,level:1,range:v.range,damage:v.damage,rate:v.rate,color:v.color,invested:v.cost,last:0};towers.push(t);selected=t;renderStats();details();say(type+' deployed.');}
+function enemyStats(kind){let scale=1+wave*.115;let base={Grunt:[55,48,12,'#74d66f'],Runner:[31,82,14,'#f2d15b'],Brute:[250,25,28,'#e97867'],Shield:[145,42,22,'#b18ae8'],Boss:[1250,19,120,'#f1a5cf']}[kind];return {hp:base[0]*scale*d().hp,max:base[0]*scale*d().hp,speed:base[1]*d().speed*(1+wave*.012),reward:Math.round(base[2]*d().reward),color:base[3],kind};}
+function startWave(){if(active||gameOver)return;wave++;active=true;spawnLeft=7+wave*3+(wave%5===0?1:0);spawnTimer=.2;renderStats();say('Wave '+wave+' incoming!');}
+function spawn(){let kinds=['Grunt','Grunt','Grunt','Runner'];if(wave>=3)kinds.push('Brute');if(wave>=5)kinds.push('Shield');if(wave%5===0&&spawnLeft===1)kinds=['Boss'];let k=kinds[Math.floor(Math.random()*kinds.length)],s=enemyStats(k);enemies.push({...s,x:path[0].x,y:path[0].y,segment:0,progress:0});spawnLeft--;}
+function damage(e,n){e.hp-=n;if(e.hp<=0){cash+=e.reward;e.dead=true;}}
+function shoot(t,target){let boost=towers.some(s=>s!==t&&s.type==='Support'&&dist(s,t)<=s.range)?1.22:1;let rate=t.rate/boost;t.last=0;shots.push({x:t.x,y:t.y,target,damage:t.damage,color:t.color,splash:t.type==='Splash'?55+ t.level*9:0,speed:520});}
+function update(dt){if(paused||gameOver)return;frame+=dt;if(active&&spawnLeft>0){spawnTimer-=dt;if(spawnTimer<=0){spawn();spawnTimer=Math.max(.24,.85-wave*.018);}}
+for(let e of enemies){if(e.dead)continue;let a=path[e.segment],b=path[e.segment+1];if(!b){e.dead=true;lives--;if(lives<=0){lives=0;gameOver=true;active=false;say('Base overrun! Restart to try again.');}continue;}let dx=b.x-e.x,dy=b.y-e.y,len=Math.hypot(dx,dy),step=e.speed*dt*60;e.x+=dx/len*step;e.y+=dy/len*step;if(Math.hypot(b.x-e.x,b.y-e.y)<step+1)e.segment++;}
+enemies=enemies.filter(e=>!e.dead);
+for(let t of towers){if(!t.rate)continue;t.last+=dt;let boost=towers.some(s=>s!==t&&s.type==='Support'&&dist(s,t)<=s.range)?1.22:1;if(t.last>=t.rate/boost){let target=enemies.filter(e=>!e.dead&&dist(e,t)<=t.range).sort((a,b)=>b.segment-a.segment||b.x-a.x)[0];if(target)shoot(t,target);}}
+for(let s of shots){if(!s.target||s.target.dead){s.dead=true;continue;}let dx=s.target.x-s.x,dy=s.target.y-s.y,len=Math.hypot(dx,dy),step=s.speed*dt;if(len<step+5){if(s.splash){for(let e of enemies)if(!e.dead&&dist(e,s.target)<s.splash)damage(e,s.damage);}else damage(s.target,s.damage);s.dead=true;}else{s.x+=dx/len*step;s.y+=dy/len*step;}}
+shots=shots.filter(s=>!s.dead);enemies=enemies.filter(e=>!e.dead);
+if(active&&spawnLeft===0&&enemies.length===0){active=false;let bonus=35+wave*7;cash+=bonus;say('Wave '+wave+' cleared! Bonus: $'+bonus+'. Prepare your defenses.');}
+renderStats();}
+function draw(){ctx.clearRect(0,0,W,H);ctx.fillStyle=$('map').value==='desert'?'#b99a60':$('map').value==='snow'?'#b8d0d5':'#527d52';ctx.fillRect(0,0,W,H);
+for(let y=0;y<H;y+=cell)for(let x=0;x<W;x+=cell){ctx.fillStyle=((x/cell+y/cell)%2)?'#ffffff08':'#00000008';ctx.fillRect(x,y,cell,cell);}
+ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#27343a';ctx.lineWidth=60;ctx.beginPath();path.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();ctx.strokeStyle=$('map').value==='snow'?'#e5e9e5':$('map').value==='desert'?'#dfc38c':'#b6a783';ctx.lineWidth=49;ctx.stroke();
+ctx.setLineDash([8,13]);ctx.strokeStyle='#ffffff55';ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);
+for(let t of towers){ctx.beginPath();ctx.fillStyle=t.color+'22';ctx.arc(t.x,t.y,t.range,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.fillStyle=t.color;ctx.arc(t.x,t.y,14,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#14212a';ctx.lineWidth=4;ctx.stroke();ctx.fillStyle='#10202b';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.fillText(t.type==='Support'?'✚':t.type==='Sniper'?'⌖':t.type==='Splash'?'✹':t.type==='Gunner'?'▤':'•',t.x,t.y+4);ctx.fillStyle='#fff';ctx.font='10px system-ui';ctx.fillText('L'+t.level,t.x,t.y+25);if(t===selected){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(t.x,t.y,19,0,Math.PI*2);ctx.stroke();}}
+for(let e of enemies){ctx.beginPath();ctx.fillStyle=e.color;ctx.arc(e.x,e.y,e.kind==='Boss'?16:10,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#18232b';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#17202a';ctx.fillRect(e.x-15,e.y-20,30,4);ctx.fillStyle='#7cf18b';ctx.fillRect(e.x-15,e.y-20,30*Math.max(0,e.hp/e.max),4);}
+for(let s of shots){ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(s.x,s.y,4,0,Math.PI*2);ctx.fill();}
+ctx.fillStyle='#fff';ctx.font='bold 13px system-ui';ctx.textAlign='left';ctx.fillText('ENTRY',12,18);ctx.textAlign='right';ctx.fillText('BASE',W-12,H-12);
+requestAnimationFrame(draw);}
+canvas.addEventListener('click',ev=>{let r=canvas.getBoundingClientRect(),x=(ev.clientX-r.left)*W/r.width,y=(ev.clientY-r.top)*H/r.height;let hit=[...towers].reverse().find(t=>dist(t,{x,y})<19);if(hit){selected=hit;details();say(hit.type+' selected. Upgrade or sell it.');}else if(placing)place(x,y);});
+$('start').onclick=startWave;$('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'Resume':'Pause';};$('speed').onclick=()=>{speed=speed===1?2:speed===2?3:1;$('speed').textContent='Speed: '+speed+'×';};$('restart').onclick=reset;$('map').onchange=reset;$('difficulty').onchange=reset;
+$('upgrade').onclick=()=>{if(!selected||selected.level>=4)return;let cost=upgradeCost(selected);if(cash<cost)return;cash-=cost;selected.level++;selected.invested+=cost;selected.damage=Math.round(selected.damage*1.55);selected.range*=1.12;if(selected.rate)selected.rate*=.86;details();renderStats();say(selected.type+' upgraded to level '+selected.level+'!');};
+$('sell').onclick=()=>{if(!selected)return;cash+=Math.round(selected.invested*.7);towers=towers.filter(t=>t!==selected);selected=null;details();renderStats();say('Tower sold for 70% of its invested cost.');};
+let prev=0;function loop(ts){let dt=Math.min(.04,(ts-prev)/1000||0)*speed;prev=ts;update(dt);requestAnimationFrame(loop);}makePath();reset();renderStats();requestAnimationFrame(draw);requestAnimationFrame(loop);
+})();
+</script></body></html>
