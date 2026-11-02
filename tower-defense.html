@@ -131,4 +131,5 @@ function spinRewardWheel(){if(!wheelTokens){$('rewardMessage').textContent='No s
 $('throwBarrel').addEventListener('click',throwBarrel);$('openChest').addEventListener('click',openRewardChest);$('spinWheel').addEventListener('click',spinRewardWheel);
 let prev=0;function loop(ts){let dt=Math.min(.04,(ts-prev)/1000||0)*speed;prev=ts;update(dt);requestAnimationFrame(loop);}try{gameNumber=Number(localStorage.getItem('smokeTDGameNumber')||0);chestTokens=Number(localStorage.getItem('smokeTDChestTokens')||0);wheelTokens=Number(localStorage.getItem('smokeTDWheelTokens')||0);}catch(e){}makePath();reset();renderStats();requestAnimationFrame(draw);requestAnimationFrame(loop);
 })();
-</script></body></html>
+</script><script src="game-nav.js"></script>
+</body></html>
