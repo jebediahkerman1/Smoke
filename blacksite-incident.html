@@ -82,4 +82,5 @@ document.getElementById('mobileUse').addEventListener('click',interact);document
 document.querySelectorAll('[data-key]').forEach(b=>{const k=b.dataset.key;b.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=false))});
 buildChapter(0);animate(0);
 })();
-</script></body></html>
+</script><script src="game-nav.js"></script>
+</body></html>
