@@ -33,7 +33,7 @@ button,select{background:#29445a;color:#eef8ff;border:1px solid #4d718d;border-r
 <div id="message">Choose a tower, then click a clear patch of grass to place it. Towers cannot block the road.</div>
 </div></section>
 <aside class="side">
-<div class="panel"><h2>Battle setup</h2><label>Map<br><select id="map" style="width:100%;margin:5px 0 10px"><option value="meadow">Meadow Crossing</option><option value="desert">Dustbowl Pass</option><option value="snow">Frostline</option></select></label><label>Difficulty<br><select id="difficulty" style="width:100%;margin:5px 0 10px"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option><option value="nightmare">Nightmare</option></select></label><p class="legend">Changing the map or difficulty starts a fresh run. Each map has a different enemy route.</p></div>
+<div class="panel"><h2>Battle setup</h2><label>Map<br><select id="map" style="width:100%;margin:5px 0 10px"><option value="meadow">Meadow Crossing</option><option value="desert">Dustbowl Pass</option><option value="snow">Frostline</option><option value="vertical-meadow">Vertical Meadow</option><option value="vertical-desert">Vertical Dustbowl</option><option value="vertical-snow">Vertical Frostline</option></select></label><label>Difficulty<br><select id="difficulty" style="width:100%;margin:5px 0 10px"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option><option value="nightmare">Nightmare</option></select></label><p class="legend">Changing the map or difficulty starts a fresh run. Each map has a different enemy route.</p></div>
 <div class="panel"><h2>Build towers</h2><div class="tower-list" id="towerList"></div><p class="legend">Select a tower class, then place it on the map. Select a placed tower to upgrade or sell it.</p></div>
 <div class="panel"><h2 id="selectedTitle">Tower details</h2><div id="towerDetails" class="legend">No tower selected. Click a tower to inspect it.</div><div class="controls"><button class="primary" id="upgrade" disabled>Upgrade</button><button id="sell" disabled>Sell</button></div><div id="message2" class="legend"></div></div>
 <div class="panel"><h2>Enemy guide</h2><p class="legend">🟢 Grunt — standard enemy<br>🟡 Runner — fast, fragile<br>🔴 Brute — slow and tough<br>🟣 Shield — armored<br>👑 Boss — huge health pool</p></div>
@@ -44,9 +44,12 @@ button,select{background:#29445a;color:#eef8ff;border:1px solid #4d718d;border-r
 (()=>{
 const canvas=document.querySelector('#game'),ctx=canvas.getContext('2d'),W=900,H=570,cell=30;
 const maps={
- meadow:[[4,0],[4,4],[24,4],[24,9],[5,9],[5,14],[25,14],[25,18]],
- desert:[[25,0],[25,3],[6,3],[6,8],[23,8],[23,13],[4,13],[4,18]],
- snow:[[14,0],[14,4],[3,4],[3,9],[26,9],[26,14],[14,14],[14,18]]
+ meadow:[[0,8],[5,8],[5,3],[12,3],[12,14],[20,14],[20,7],[29,7]],
+ desert:[[0,3],[8,3],[8,15],[15,15],[15,6],[24,6],[24,12],[29,12]],
+ snow:[[0,15],[7,15],[7,5],[17,5],[17,12],[25,12],[25,3],[29,3]],
+ 'vertical-meadow':[[4,0],[4,4],[24,4],[24,9],[5,9],[5,14],[25,14],[25,18]],
+ 'vertical-desert':[[25,0],[25,3],[6,3],[6,8],[23,8],[23,13],[4,13],[4,18]],
+ 'vertical-snow':[[14,0],[14,4],[3,4],[3,9],[26,9],[26,14],[14,14],[14,18]]
 };
 const barricades=new Set(['9,1','16,1','21,2','2,6','11,6','18,6','27,6','10,11','16,11','21,11','1,16','9,16','18,16','28,16']);
 const isBarricade=(x,y)=>barricades.has(key(x,y));
