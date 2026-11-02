@@ -1,0 +1,86 @@
+/* Floating on-screen joystick (created by joystick.js; active while the player
+   has it shown, by default on touch/mobile-sized sessions). Position is set by JS on each touch; it is centered on the touch
+   point via the transform below, and hidden (display:none) when idle. */
+
+#joystick {
+    position: fixed;
+    /* left/top are set by JS to the touch point; translate re-centers the base
+       on that point so the finger starts at the middle of the stick. */
+    transform: translate(-50%, -50%);
+    width: 150px;
+    height: 150px;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    /* Dark fill so it reads over the light "paper", bright ring + shadow so it
+       reads over the colorful trails. */
+    background: rgba(30, 34, 40, 0.35);
+    border: 3px solid rgba(255, 255, 255, 0.9);
+    box-shadow:
+        0 0 0 2px rgba(0, 0, 0, 0.25),
+        0 4px 14px rgba(0, 0, 0, 0.45);
+    /* Stop the browser treating drags as scroll/zoom gestures. */
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#joystick-knob {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(0, 0, 0, 0.4);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    /* Smoothly re-center when the finger is lifted; while dragging, pointermove
+       overwrites the transform every frame so easing is imperceptible. */
+    transition: transform 0.08s ease-out;
+    pointer-events: none;
+}
+
+/* Show/hide toggle (created by joystick.js on every session). Bottom-left,
+   clear of the game's bottom-right minimap and raised above the menu's
+   bottom-left language bar. Dim when the joystick is hidden, bright when it
+   is shown. */
+
+#joystick-toggle {
+    position: fixed;
+    left: 12px;
+    bottom: 44px;
+    width: 40px;
+    height: 40px;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    background: rgba(30, 34, 40, 0.35);
+    color: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    opacity: 0.6;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#joystick-toggle[aria-pressed='true'] {
+    color: rgba(255, 255, 255, 0.95);
+    background: rgba(30, 34, 40, 0.6);
+    opacity: 0.9;
+}
+
+#joystick-toggle:hover {
+    opacity: 1;
+}
+
+#joystick-toggle svg {
+    width: 24px;
+    height: 24px;
+}
