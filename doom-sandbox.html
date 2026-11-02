@@ -38,4 +38,5 @@ document.getElementById('importMap').addEventListener('click',()=>{try{applyMap(
 document.getElementById('downloadMap').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(mapData(),null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(nameInput.value.trim()||'sector13-map').replace(/[^a-z0-9-_]+/gi,'-').toLowerCase()+'.json';a.click();URL.revokeObjectURL(url);setStatus('Map JSON download started.')});
 fresh('floor');
 })();
-</script></body></html>
+</script><script src="game-nav.js"></script>
+</body></html>
