@@ -84,4 +84,5 @@ $('roomInput').addEventListener('input',()=>{$('roomInput').value=$('roomInput')
 $('copyRoom').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(mpRoom);mpStatus('Room code copied! Send it to your friend.')}catch(e){$('roomInput').value=mpRoom;mpStatus('Select the room code and copy it manually.')}});
 try{init();mpButtons();requestAnimationFrame(frame)}catch(e){console.error(e);$('overlayTitle').textContent='Could not start 3D mode';$('overlayText').textContent='Try refreshing the page in a modern browser with hardware acceleration enabled.'}
 })();
-</script></body></html>
+</script><script src="game-nav.js"></script>
+</body></html>
