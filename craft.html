@@ -93,4 +93,5 @@ function update(dt){
 }
 function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;if(locked)update(dt);updateChunkVisibility();renderer.render(scene,camera)}requestAnimationFrame(loop);applyLanguage('en');
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-</script></body></html>
+</script><script src="game-nav.js"></script>
+</body></html>
