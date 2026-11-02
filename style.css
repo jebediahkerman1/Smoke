@@ -49,3 +49,66 @@
 .language-picker select{max-width:112px;background:#162b3b;color:#e7f3fc;border:1px solid #38617b;border-radius:2px;padding:5px 4px;font-size:11px;cursor:pointer}
 .language-picker select:focus{outline:1px solid #66c0f4}
 @media(max-width:760px){.language-picker{font-size:9px}.language-picker select{max-width:94px}}
+
+
+/* SMOKE storefront: Steam-inspired upper layout, without copying its branding. */
+.global-header{height:112px;background:#171a21;color:#d6d7d8}
+.global-inner{max-width:1240px;padding:0 18px;gap:34px}
+.brand-logo{width:142px;height:76px}
+.main-nav{gap:20px;align-self:center}
+.main-nav a{font-size:15px}
+.header-actions{align-self:center;padding:0}
+.install-btn{background:#263746;color:#d9e8f4;padding:8px 12px}
+.login-btn{font-size:12px}
+.store-nav-wrap{background:#202b39;padding:0;margin:0 0 22px;border:0}
+.store-nav{max-width:1240px;min-height:48px;padding:0 18px;background:transparent;box-shadow:none}
+.store-links{gap:2px}
+.store-links a{padding:16px 13px;color:#e1e5e9;font-size:13px;text-shadow:none}
+.store-links a:hover,.store-links a.selected{background:#34495d;color:#fff}
+.store-search{height:34px;width:min(340px,30vw);background:#26384a;border:1px solid #40576d}
+.store-search input{font-size:13px}
+.store-search span{font-size:24px}
+.page-shell{display:block;max-width:1240px;margin:0 auto;padding:0 18px}
+.left-sidebar{display:none}
+.store-main{width:100%;min-width:0}
+.page-topline{font-size:17px;font-weight:700;margin-bottom:12px}
+.topline-right{font-size:11px}
+.hero-feature{grid-template-columns:minmax(0,2fr) minmax(300px,.85fr);min-height:360px;margin-bottom:25px}
+.feature-cover{min-height:360px}
+.feature-details{padding:20px}
+.feature-details h1{font-size:27px}
+.feature-description{font-size:13px;line-height:1.65}
+.feature-screens .screen-shot{height:82px}
+.store-section{margin-bottom:30px}
+.recommended-section{padding:15px;background:#152231;border:1px solid #263e52;margin-bottom:26px}
+.recommendation-note{font-size:10px;color:#91a9bc}
+.recommended-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.recommended-grid .game-card{min-width:0}
+.recommended-grid .game-art{height:125px}
+.recommendation-empty{grid-column:1/-1;margin:0;padding:18px 12px;color:#a9bac8;background:#1b2c3b;font-size:12px}
+@media(max-width:760px){
+ .global-header{height:auto;min-height:90px}
+ .global-inner{max-width:none;padding:12px 14px;gap:12px}
+ .brand-logo{width:105px;height:55px}
+ .main-nav{gap:7px}
+ .main-nav a{font-size:11px}
+ .store-nav{padding:4px 10px;gap:5px}
+ .store-links a{font-size:10px;padding:11px 7px}
+ .store-search{width:100%;margin:4px 0}
+ .page-shell{padding:0 12px}
+ .hero-feature{grid-template-columns:1fr;min-height:unset}
+ .feature-cover{min-height:270px}
+ .feature-details{min-height:250px}
+ .recommended-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:520px){
+ .global-inner{gap:8px}
+ .brand-logo{width:80px;height:46px}
+ .main-nav a{font-size:10px;padding:6px 4px}
+ .store-links{flex-wrap:wrap}
+ .store-links a{font-size:9px;padding:8px 5px}
+ .page-topline{font-size:14px}
+ .feature-cover{min-height:220px}
+ .recommended-section{padding:10px}
+ .recommended-grid .game-art{height:105px}
+}
