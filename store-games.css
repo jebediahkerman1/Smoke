@@ -3,3 +3,71 @@
 /* Give the store-game navigation links a little more breathing room. */
 .store-game-nav{gap:22px!important}
 @media(max-width:760px){.store-game-nav{gap:13px!important}.store-game-nav a{font-size:10px!important}}
+
+
+/* Store game page: centered, evenly spaced top navigation. */
+.site-header{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:72px;
+  padding:12px 20px;
+  background:#0c141f;
+}
+.site-header .brand{
+  position:absolute;
+  left:20px;
+  top:50%;
+  transform:translateY(-50%);
+}
+.site-header .store-game-nav{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 1 auto;
+  flex-wrap:wrap;
+  gap:clamp(18px,2.5vw,34px);
+  margin:0 auto;
+  padding:0 145px;
+}
+.site-header .store-game-nav a{
+  display:inline-block;
+  padding:9px 0;
+  white-space:nowrap;
+  font-size:13px;
+}
+.site-header .header-actions{
+  position:absolute;
+  right:20px;
+  top:50%;
+  transform:translateY(-50%);
+  margin:0;
+  padding:0;
+}
+@media(max-width:760px){
+  .site-header{
+    min-height:unset;
+    padding:14px 12px 10px;
+    flex-wrap:wrap;
+  }
+  .site-header .brand{
+    position:static;
+    transform:none;
+    margin:0 auto;
+  }
+  .site-header .store-game-nav{
+    order:2;
+    flex:0 0 100%;
+    width:100%;
+    max-width:100%;
+    padding:8px 0 0;
+    gap:8px 18px;
+    justify-content:center;
+  }
+  .site-header .store-game-nav a{
+    font-size:11px!important;
+    padding:5px 0;
+  }
+  .site-header .header-actions{display:none}
+}
