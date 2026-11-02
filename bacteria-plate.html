@@ -106,4 +106,5 @@ const mc=$('mapCanvas'),mctx=mc.getContext('2d');function drawEditor(){const w=m
 mc.onpointerdown=e=>{editorDown=true;const r=mc.getBoundingClientRect();drawn=[{x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height}];drawEditor()};mc.onpointermove=e=>{if(!editorDown)return;const r=mc.getBoundingClientRect();const next={x:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))};const last=drawn[drawn.length-1];if(!last||Math.hypot(next.x-last.x,next.y-last.y)>.001)drawn.push(next);drawEditor()};addEventListener('pointerup',()=>editorDown=false);$('clearMap').onclick=()=>{drawn=[];drawEditor()};$('saveMap').onclick=()=>{if(drawn.length<3){notify('Draw a boundary with at least 3 points.');return}$('mapEditor').style.display='none';$('home').style.display='block';notify('Custom map ready. Press Create Game.')};
 addEventListener('resize',resize);requestAnimationFrame(tick);drawEditor();
 })();
-</script></body></html>
+</script><script src="game-nav.js"></script>
+</body></html>
