@@ -24,8 +24,7 @@ const colors=['#52e0b0','#ff6b78','#6daaff','#ffd166','#c28bff','#ff9f5a','#65d8
 let supa=null,lobbyChannel=null,roomChannel=null,roomCode='',isHost=false,visibility='public',gameStarted=false,botIds=[],lastBotThink=0,localId=Math.random().toString(36).slice(2,10),players={},map={w:33,h:33,shape:'square',mask:[],custom:null},cell=.9,keys={},lastStep=0,stepMs=125,trail=[],territory=new Set(),myColor=colors[0],myPos={x:0,z:0,dir:0},publicRooms={},mapPoints=[],drawn=[],editorDown=false;
 const board=$('view');let pointerSteer={x:0,y:0,active:false},lastHeading={x:0,z:-1},headingAngle=0;
 let canvas2d=null,ctx2d=null;
-const tileGeo=new THREE.BoxGeometry(.94,.22,.94),tileMats={};let plateCanvas=null,plateCtx=null,plateTexture=null;
-let canvas2d=null,ctx2d=null,viewScale=1;
+let viewScale=1;
 function init2D(){
  if(canvas2d)return;
  board.innerHTML='<canvas id="plate2d" aria-label="Bacteria Plate game board"></canvas>';
