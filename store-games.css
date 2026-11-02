@@ -71,3 +71,9 @@
   }
   .site-header .header-actions{display:none}
 }
+
+
+/* Keep the network label and store-games label visually separate. */
+.topline{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.topline span{white-space:nowrap}
+@media(max-width:520px){.topline{gap:12px}.topline span{font-size:9px}}
