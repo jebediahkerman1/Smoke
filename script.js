@@ -194,6 +194,54 @@
   dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
   $('loginBtn').addEventListener('click', () => notify('Sign-in is disabled in this parody demo. No accounts or passwords are collected.'));
   $('libraryBtn').addEventListener('click', () => notify('Your demo library is currently empty. No sign-in required — or available!'));
+  // Local play history powers the personalized recommendation row.
+  const HISTORY_KEY = 'smoke-play-history-v1';
+  const recommendationGrid = $('recommendedGrid');
+  function readPlayHistory() {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+    catch (_) { return []; }
+  }
+  function recordPlayedGame(card) {
+    if (!card) return;
+    const title = card.querySelector('.game-info h3')?.textContent.trim();
+    if (!title) return;
+    const history = readPlayHistory().filter(item => item.title !== title);
+    history.unshift({ title, category: card.dataset.category || 'action', playedAt: Date.now() });
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 30)));
+    renderPersonalRecommendations();
+  }
+  function renderPersonalRecommendations() {
+    if (!recommendationGrid) return;
+    const history = readPlayHistory();
+    const note = $('recommendationNote');
+    if (!history.length) {
+      recommendationGrid.replaceChildren(safeText('p', 'recommendation-empty', 'Play a few games and SMOKE will recommend similar ones here.'));
+      if (note) note.textContent = 'Learns from games you open on this browser';
+      return;
+    }
+    const counts = {};
+    history.forEach(item => { counts[item.category] = (counts[item.category] || 0) + 1; });
+    const preferred = Object.keys(counts).sort((a,b) => counts[b] - counts[a])[0];
+    const played = new Set(history.map(item => item.title));
+    const candidates = [...document.querySelectorAll('#gameGrid .game-card')]
+      .filter(card => !played.has(card.querySelector('.game-info h3')?.textContent.trim()));
+    candidates.sort((a,b) => {
+      const aMatch = a.dataset.category === preferred ? 1 : 0;
+      const bMatch = b.dataset.category === preferred ? 1 : 0;
+      return bMatch - aMatch;
+    });
+    const picks = candidates.slice(0, 4);
+    recommendationGrid.replaceChildren();
+    picks.forEach(card => recommendationGrid.append(card.cloneNode(true)));
+    if (note) note.textContent = 'Because you played ' + history[0].title;
+    if (!picks.length) recommendationGrid.append(safeText('p','recommendation-empty','You have played everything in this category. Explore the full store for more.'));
+  }
+  document.addEventListener('click', event => {
+    const link = event.target.closest('#gameGrid .game-card a');
+    if (link) recordPlayedGame(link.closest('.game-card'));
+  }, true);
+  renderPersonalRecommendations();
+
   // Public community discussion feed backed by the configured Supabase project.
   const communityForm = $('communityForm');
   const communityFeed = $('communityFeed');
