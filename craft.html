@@ -576,7 +576,7 @@ function update(dt){
  else if(ny<player.y&&collidesAt(player.x,ny,player.z)){ny=Math.floor(ny)+1.001;velocityY=0;onGround=true}
  player.y=ny;camera.position.set(player.x,player.y+1.5,player.z);camera.rotation.set(pitch,yaw,0)
 }
-let runtimeErrorShown=false;function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;try{processChunkQueue(dt);if((locked||mobileActive)&&!initialLoading)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);updateChunkVisibility();renderer.render(scene,camera)}catch(error){console.error('SMOKEBLOCKS frame failed:',error);if(!runtimeErrorShown){runtimeErrorShown=true;window.smokeReportError?.('GAME FRAME FAILED',error?.stack||error?.message||error);toast('Game error — see diagnostic box')}}}requestAnimationFrame(loop);applyLanguage('en');
+let runtimeErrorShown=false;function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;try{processChunkQueue(dt);if($('start').style.display==='none'&&!settingsOpen&&!inventoryOpen&&!craftingTableOpen&&!initialLoading)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);updateChunkVisibility();renderer.render(scene,camera)}catch(error){console.error('SMOKEBLOCKS frame failed:',error);if(!runtimeErrorShown){runtimeErrorShown=true;window.smokeReportError?.('GAME FRAME FAILED',error?.stack||error?.message||error);toast('Game error — see diagnostic box')}}}requestAnimationFrame(loop);applyLanguage('en');
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 </script><script src="game-nav.js"></script>
 </body></html>
