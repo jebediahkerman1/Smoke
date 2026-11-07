@@ -127,7 +127,7 @@ function pixelTexture(name,base){
  const tex=new THREE.CanvasTexture(cv);tex.magFilter=THREE.NearestFilter;tex.minFilter=THREE.NearestFilter;tex.colorSpace=THREE.SRGBColorSpace;return tex;
 }
 const materials={};defs.forEach(([n,color])=>{const map=pixelTexture(n,color);materials[n]=new THREE.MeshLambertMaterial({map})});
-const geo=new THREE.BoxGeometry(1,1,1),blocks=new Map(),waterTiles=[],waterColumns=new Map(),droppedItems=[],breakParticles=[],chunkGroups=new Map(),CHUNK_SIZE=16;const MAX_INVENTORY_SLOTS=36;let renderDistance=3,worldSeed=0,lastChunkX=Infinity,lastChunkZ=Infinity;const generatedChunks=new Set(),chunkQueue=[],queuedChunks=new Set(),initialChunkPending=new Set();let initialChunkTotal=0,initialChunkDone=0,initialLoading=false,chunkLoadClock=0;function updateFog(){const edge=renderDistance*CHUNK_SIZE;scene.fog.near=Math.max(8,edge*.66);scene.fog.far=Math.max(scene.fog.near+8,edge*.99);camera.far=Math.max(220,edge*2.2);camera.updateProjectionMatrix()}updateFog();const blockKey=(x,y,z)=>x+','+y+','+z;const waterFlowCanvas=document.createElement('canvas');waterFlowCanvas.width=waterFlowCanvas.height=64;const waterFlowCtx=waterFlowCanvas.getContext('2d');waterFlowCtx.fillStyle='#329ce0';waterFlowCtx.fillRect(0,0,64,64);waterFlowCtx.strokeStyle='rgba(210,245,255,.42)';waterFlowCtx.lineWidth=3;for(let row=0;row<4;row++){waterFlowCtx.beginPath();for(let x=-8;x<=72;x+=4){const y=row*18+Math.sin((x+row*11)*.16)*3;if(x===-8)waterFlowCtx.moveTo(x,y);else waterFlowCtx.lineTo(x,y)}waterFlowCtx.stroke()}const waterFlowTexture=new THREE.CanvasTexture(waterFlowCanvas);waterFlowTexture.wrapS=waterFlowTexture.wrapT=THREE.RepeatWrapping;waterFlowTexture.repeat.set(1,1);waterFlowTexture.magFilter=THREE.NearestFilter;waterFlowTexture.minFilter=THREE.LinearFilter;const waterMaterial=new THREE.MeshLambertMaterial({map:waterFlowTexture,color:0xffffff,transparent:true,opacity:.62,depthWrite:false,side:THREE.DoubleSide});const waterGeo=new THREE.BoxGeometry(1,1,1);const WATER_SURFACE=.48;
+const geo=new THREE.BoxGeometry(1,1,1),blocks=new Map(),leafParticles=[],waterTiles=[],waterColumns=new Map(),droppedItems=[],breakParticles=[],chunkGroups=new Map(),CHUNK_SIZE=16;const MAX_INVENTORY_SLOTS=36;let renderDistance=3,worldSeed=0,lastChunkX=Infinity,lastChunkZ=Infinity;const generatedChunks=new Set(),chunkQueue=[],queuedChunks=new Set(),initialChunkPending=new Set();let initialChunkTotal=0,initialChunkDone=0,initialLoading=false,chunkLoadClock=0;function updateFog(){const edge=renderDistance*CHUNK_SIZE;scene.fog.near=Math.max(8,edge*.66);scene.fog.far=Math.max(scene.fog.near+8,edge*.99);camera.far=Math.max(220,edge*2.2);camera.updateProjectionMatrix()}updateFog();const blockKey=(x,y,z)=>x+','+y+','+z;const waterFlowCanvas=document.createElement('canvas');waterFlowCanvas.width=waterFlowCanvas.height=64;const waterFlowCtx=waterFlowCanvas.getContext('2d');waterFlowCtx.fillStyle='#329ce0';waterFlowCtx.fillRect(0,0,64,64);waterFlowCtx.strokeStyle='rgba(210,245,255,.42)';waterFlowCtx.lineWidth=3;for(let row=0;row<4;row++){waterFlowCtx.beginPath();for(let x=-8;x<=72;x+=4){const y=row*18+Math.sin((x+row*11)*.16)*3;if(x===-8)waterFlowCtx.moveTo(x,y);else waterFlowCtx.lineTo(x,y)}waterFlowCtx.stroke()}const waterFlowTexture=new THREE.CanvasTexture(waterFlowCanvas);waterFlowTexture.wrapS=waterFlowTexture.wrapT=THREE.RepeatWrapping;waterFlowTexture.repeat.set(1,1);waterFlowTexture.magFilter=THREE.NearestFilter;waterFlowTexture.minFilter=THREE.LinearFilter;const waterMaterial=new THREE.MeshLambertMaterial({map:waterFlowTexture,color:0xffffff,transparent:true,opacity:.62,depthWrite:false,side:THREE.DoubleSide});const waterGeo=new THREE.BoxGeometry(1,1,1);const WATER_SURFACE=.48;
 // Deterministic smooth terrain noise and biome selection.
 function seededNoise(x,z){
  const n=Math.sin(x*127.1+z*311.7+worldSeed*.00013)*43758.5453123;
@@ -158,7 +158,7 @@ const dirtyChunks=new Set(),blocksByChunk=new Map();
 function addBlock(x,y,z,type,extra={}){const k=blockKey(x,y,z);if(blocks.has(k))return;const data={x,y,z,type,...extra},ck=chunkKey(x,z);getChunk(x,z);blocks.set(k,data);if(!blocksByChunk.has(ck))blocksByChunk.set(ck,new Set());blocksByChunk.get(ck).add(data);dirtyChunks.add(ck);return data}
 function rebuildChunk(key){const group=chunkGroups.get(key);if(!group)return;group.clear();const byType=new Map();for(const data of (blocksByChunk.get(key)||[])){const exposed=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]].some(([dx,dy,dz])=>!blocks.has(blockKey(data.x+dx,data.y+dy,data.z+dz)));if(!exposed)continue;if(!byType.has(data.type))byType.set(data.type,[]);byType.get(data.type).push(data)}for(const [type,list] of byType){const inst=new THREE.InstancedMesh(geo,materials[type]||materials.Grass,list.length);const matrix=new THREE.Matrix4();list.forEach((d,i)=>{matrix.makeTranslation(d.x+.5,d.y+.5,d.z+.5);inst.setMatrixAt(i,matrix)});inst.instanceMatrix.needsUpdate=true;inst.userData.instanceBlocks=list;inst.computeBoundingSphere();inst.frustumCulled=false;group.add(inst)}}
 function flushDirtyChunks(){for(const key of dirtyChunks)rebuildChunk(key);dirtyChunks.clear()}
-function clearWorld(){for(const mob of [...animals])removeAnimal(mob);chunkQueue.length=0;queuedChunks.clear();initialChunkPending.clear();initialLoading=false;$('loadingScreen').style.display='none';for(const item of droppedItems)scene.remove(item.mesh);droppedItems.length=0;for(const p of breakParticles){scene.remove(p.mesh);p.mesh.material.dispose()}breakParticles.length=0;for(const group of chunkGroups.values())scene.remove(group);chunkGroups.clear();for(const m of waterTiles)scene.remove(m);waterTiles.length=0;waterColumns.clear();blocks.clear();blocksByChunk.clear();dirtyChunks.clear();generatedChunks.clear();lastChunkX=lastChunkZ=Infinity}
+function clearWorld(){for(const mob of [...animals])removeAnimal(mob);chunkQueue.length=0;queuedChunks.clear();initialChunkPending.clear();initialLoading=false;$('loadingScreen').style.display='none';for(const item of droppedItems)scene.remove(item.mesh);droppedItems.length=0;for(const p of breakParticles){scene.remove(p.mesh);p.mesh.material.dispose()}breakParticles.length=0;for(const p of leafParticles){scene.remove(p.mesh);p.mesh.material.dispose()}leafParticles.length=0;for(const group of chunkGroups.values())scene.remove(group);chunkGroups.clear();for(const m of waterTiles)scene.remove(m);waterTiles.length=0;waterColumns.clear();blocks.clear();blocksByChunk.clear();dirtyChunks.clear();generatedChunks.clear();lastChunkX=lastChunkZ=Infinity}
 function unloadChunk(key){const group=chunkGroups.get(key);if(!group)return;for(const mob of [...animals])if(mob.chunk===key)removeAnimal(mob);for(const d of (blocksByChunk.get(key)||[]))blocks.delete(blockKey(d.x,d.y,d.z));blocksByChunk.delete(key);generatedChunks.delete(key);scene.remove(group);chunkGroups.delete(key);dirtyChunks.delete(key);for(let i=waterTiles.length-1;i>=0;i--){const w=waterTiles[i];if(w.userData.chunkKey===key){scene.remove(w);waterTiles.splice(i,1);waterColumns.delete(w.userData.columnKey)}}}
 
 const animals=[],animalMeshes=[];
@@ -331,6 +331,38 @@ function updateChunkVisibility(force=false){
 }
 function spawnBlockParticles(d){const source=materials[d.type]||materials.Grass;for(let i=0;i<9;i++){const mat=source.clone();mat.transparent=true;mat.opacity=1;mat.depthWrite=false;const size=.13+Math.random()*.09;const mesh=new THREE.Mesh(new THREE.BoxGeometry(size,size,size),mat);mesh.position.set(d.x+.5+(Math.random()-.5)*.55,d.y+.5+(Math.random()-.5)*.55,d.z+.5+(Math.random()-.5)*.55);scene.add(mesh);breakParticles.push({mesh,vx:(Math.random()-.5)*4,vy:1.2+Math.random()*3,vz:(Math.random()-.5)*4,age:0,life:.45+Math.random()*.35})}}
 function updateBreakParticles(dt){for(let i=breakParticles.length-1;i>=0;i--){const p=breakParticles[i];p.age+=dt;p.vy-=10*dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.mesh.rotation.x+=dt*7;p.mesh.rotation.y+=dt*9;p.mesh.material.opacity=Math.max(0,1-p.age/p.life);if(p.age>=p.life){scene.remove(p.mesh);p.mesh.material.dispose();breakParticles.splice(i,1)}}}
+let leafParticleClock=0;
+function spawnLeafParticles(dt){
+ leafParticleClock+=dt;if(leafParticleClock<.28)return;leafParticleClock=0;
+ if(leafParticles.length>=36)return;
+ const nearby=[];
+ for(const d of blocks.values()){
+  if(!d.type.endsWith(' Leaves'))continue;
+  const dx=d.x+.5-player.x,dz=d.z+.5-player.z,dy=d.y+.5-(player.y+1.2);
+  if(dx*dx+dz*dz<225&&dy>0&&dy<13)nearby.push(d);
+ }
+ if(!nearby.length)return;
+ const count=Math.min(3,36-leafParticles.length,nearby.length);
+ for(let i=0;i<count;i++){
+  const d=nearby[Math.floor(Math.random()*nearby.length)];
+  const kind=d.type.startsWith('Birch')?'Birch Leaves':d.type.startsWith('Spruce')?'Spruce Leaves':d.type.startsWith('Jungle')?'Jungle Leaves':'Oak Leaves';
+  const source=materials[kind]||materials[d.type]||materials.Grass,mat=source.clone();
+  mat.transparent=true;mat.opacity=.9;mat.depthWrite=false;
+  const mesh=new THREE.Mesh(new THREE.PlaneGeometry(.13+Math.random()*.12,.16+Math.random()*.12),mat);
+  mesh.rotation.x=-.25+Math.random()*.5;mesh.rotation.y=Math.random()*Math.PI;
+  mesh.position.set(d.x+.5+(Math.random()-.5)*.85,d.y+.25+Math.random()*.5,d.z+.5+(Math.random()-.5)*.85);
+  scene.add(mesh);leafParticles.push({mesh,vx:(Math.random()-.5)*.45,vy:-.18-Math.random()*.22,vz:(Math.random()-.5)*.45,spin:(Math.random()-.5)*2,age:0,life:3.5+Math.random()*2});
+ }
+}
+function updateLeafParticles(dt){
+ for(let i=leafParticles.length-1;i>=0;i--){
+  const p=leafParticles[i];p.age+=dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;
+  p.vx+=Math.sin(p.age*2.1+i)*.035*dt;p.vz+=Math.cos(p.age*1.7+i)*.035*dt;
+  p.mesh.rotation.z+=p.spin*dt;p.mesh.rotation.y+=p.spin*.45*dt;
+  p.mesh.material.opacity=Math.max(0,.9*(1-p.age/p.life));
+  if(p.age>=p.life||p.mesh.position.y<player.y-8){scene.remove(p.mesh);p.mesh.material.dispose();leafParticles.splice(i,1)}
+ }
+}
 function dropSelectedBlock(){
  let type;
  if(gameMode==='creative')type=defs[hotbarTypes[selected]]?.[0];
@@ -637,7 +669,7 @@ function update(dt){
  else if(ny<player.y&&collidesAt(player.x,ny,player.z)){ny=Math.floor(ny)+1.001;velocityY=0;onGround=true}
  player.y=ny;camera.position.set(player.x,player.y+1.5,player.z);camera.rotation.set(pitch,yaw,0)
 }
-let runtimeErrorShown=false;function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;waterFlowTexture.offset.y=(waterFlowTexture.offset.y-dt*.12)%1;try{processChunkQueue(dt);if($('start').style.display==='none'&&!settingsOpen&&!inventoryOpen&&!craftingTableOpen&&!initialLoading)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);updateAnimals(dt);updateChunkVisibility();renderer.render(scene,camera)}catch(error){console.error('SMOKEBLOCKS frame failed:',error);if(!runtimeErrorShown){runtimeErrorShown=true;window.smokeReportError?.('GAME FRAME FAILED',error?.stack||error?.message||error);toast('Game error — see diagnostic box')}}}requestAnimationFrame(loop);const initialLanguage=(()=>{try{return localStorage.getItem('smokeblocks-language')||'en'}catch(e){return 'en'}})();applyLanguage(initialLanguage);
+let runtimeErrorShown=false;function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;waterFlowTexture.offset.y=(waterFlowTexture.offset.y-dt*.12)%1;try{processChunkQueue(dt);if($('start').style.display==='none'&&!settingsOpen&&!inventoryOpen&&!craftingTableOpen&&!initialLoading)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);spawnLeafParticles(dt);updateLeafParticles(dt);updateAnimals(dt);updateChunkVisibility();renderer.render(scene,camera)}catch(error){console.error('SMOKEBLOCKS frame failed:',error);if(!runtimeErrorShown){runtimeErrorShown=true;window.smokeReportError?.('GAME FRAME FAILED',error?.stack||error?.message||error);toast('Game error — see diagnostic box')}}}requestAnimationFrame(loop);const initialLanguage=(()=>{try{return localStorage.getItem('smokeblocks-language')||'en'}catch(e){return 'en'}})();applyLanguage(initialLanguage);
 addEventListener('resize',updateMobileOrientation);
 </script><script src="game-nav.js"></script>
 </body></html>
