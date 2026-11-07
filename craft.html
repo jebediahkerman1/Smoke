@@ -63,7 +63,7 @@ function pixelTexture(name,base){
  const tex=new THREE.CanvasTexture(cv);tex.magFilter=THREE.NearestFilter;tex.minFilter=THREE.NearestFilter;tex.colorSpace=THREE.SRGBColorSpace;return tex;
 }
 const materials={};defs.forEach(([n,color])=>{const map=pixelTexture(n,color);materials[n]=new THREE.MeshLambertMaterial({map})});
-const geo=new THREE.BoxGeometry(1,1,1),blocks=new Map(),waterTiles=[],droppedItems=[],breakParticles=[],chunkGroups=new Map(),CHUNK_SIZE=16;const MAX_INVENTORY_SLOTS=36;let renderDistance=3,worldSeed=0,lastChunkX=Infinity,lastChunkZ=Infinity;const generatedChunks=new Set(),chunkQueue=[],queuedChunks=new Set();let initialChunkTotal=0,initialChunkDone=0,initialLoading=false,chunkLoadClock=0;function updateFog(){const edge=renderDistance*CHUNK_SIZE;scene.fog.near=Math.max(8,edge*.66);scene.fog.far=Math.max(scene.fog.near+8,edge*.99);camera.far=Math.max(220,edge*2.2);camera.updateProjectionMatrix()}updateFog();const blockKey=(x,y,z)=>x+','+y+','+z;const waterMaterial=new THREE.MeshLambertMaterial({color:0x329ce0,transparent:true,opacity:.78,depthWrite:false});const waterGeo=new THREE.BoxGeometry(1,.055,1);
+const geo=new THREE.BoxGeometry(1,1,1),blocks=new Map(),waterTiles=[],droppedItems=[],breakParticles=[],chunkGroups=new Map(),CHUNK_SIZE=16;const MAX_INVENTORY_SLOTS=36;let renderDistance=3,worldSeed=0,lastChunkX=Infinity,lastChunkZ=Infinity;const generatedChunks=new Set(),chunkQueue=[],queuedChunks=new Set(),initialChunkPending=new Set();let initialChunkTotal=0,initialChunkDone=0,initialLoading=false,chunkLoadClock=0;function updateFog(){const edge=renderDistance*CHUNK_SIZE;scene.fog.near=Math.max(8,edge*.66);scene.fog.far=Math.max(scene.fog.near+8,edge*.99);camera.far=Math.max(220,edge*2.2);camera.updateProjectionMatrix()}updateFog();const blockKey=(x,y,z)=>x+','+y+','+z;const waterMaterial=new THREE.MeshLambertMaterial({color:0x329ce0,transparent:true,opacity:.78,depthWrite:false});const waterGeo=new THREE.BoxGeometry(1,.055,1);
 // Deterministic smooth terrain noise and biome selection.
 function seededNoise(x,z){
  const n=Math.sin(x*127.1+z*311.7+worldSeed*.00013)*43758.5453123;
@@ -94,7 +94,7 @@ const dirtyChunks=new Set(),blocksByChunk=new Map();
 function addBlock(x,y,z,type,extra={}){const k=blockKey(x,y,z);if(blocks.has(k))return;const data={x,y,z,type,...extra},ck=chunkKey(x,z);getChunk(x,z);blocks.set(k,data);if(!blocksByChunk.has(ck))blocksByChunk.set(ck,new Set());blocksByChunk.get(ck).add(data);dirtyChunks.add(ck);return data}
 function rebuildChunk(key){const group=chunkGroups.get(key);if(!group)return;group.clear();const byType=new Map();for(const data of (blocksByChunk.get(key)||[])){const exposed=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]].some(([dx,dy,dz])=>!blocks.has(blockKey(data.x+dx,data.y+dy,data.z+dz)));if(!exposed)continue;if(!byType.has(data.type))byType.set(data.type,[]);byType.get(data.type).push(data)}for(const [type,list] of byType){const inst=new THREE.InstancedMesh(geo,materials[type]||materials.Grass,list.length);const matrix=new THREE.Matrix4();list.forEach((d,i)=>{matrix.makeTranslation(d.x+.5,d.y+.5,d.z+.5);inst.setMatrixAt(i,matrix)});inst.instanceMatrix.needsUpdate=true;inst.userData.instanceBlocks=list;inst.computeBoundingSphere();group.add(inst)}}
 function flushDirtyChunks(){for(const key of dirtyChunks)rebuildChunk(key);dirtyChunks.clear()}
-function clearWorld(){chunkQueue.length=0;queuedChunks.clear();initialLoading=false;$('loadingScreen').style.display='none';for(const item of droppedItems)scene.remove(item.mesh);droppedItems.length=0;for(const p of breakParticles){scene.remove(p.mesh);p.mesh.material.dispose()}breakParticles.length=0;for(const group of chunkGroups.values())scene.remove(group);chunkGroups.clear();for(const m of waterTiles)scene.remove(m);waterTiles.length=0;blocks.clear();blocksByChunk.clear();dirtyChunks.clear();generatedChunks.clear();lastChunkX=lastChunkZ=Infinity}
+function clearWorld(){chunkQueue.length=0;queuedChunks.clear();initialChunkPending.clear();initialLoading=false;$('loadingScreen').style.display='none';for(const item of droppedItems)scene.remove(item.mesh);droppedItems.length=0;for(const p of breakParticles){scene.remove(p.mesh);p.mesh.material.dispose()}breakParticles.length=0;for(const group of chunkGroups.values())scene.remove(group);chunkGroups.clear();for(const m of waterTiles)scene.remove(m);waterTiles.length=0;blocks.clear();blocksByChunk.clear();dirtyChunks.clear();generatedChunks.clear();lastChunkX=lastChunkZ=Infinity}
 function unloadChunk(key){const group=chunkGroups.get(key);if(!group)return;for(const d of (blocksByChunk.get(key)||[]))blocks.delete(blockKey(d.x,d.y,d.z));blocksByChunk.delete(key);generatedChunks.delete(key);scene.remove(group);chunkGroups.delete(key);dirtyChunks.delete(key);for(let i=waterTiles.length-1;i>=0;i--){const w=waterTiles[i];if(w.userData.chunkKey===key){scene.remove(w);waterTiles.splice(i,1)}}}
 function generateChunk(cx,cz){
  const key=cx+','+cz;if(generatedChunks.has(key))return;generatedChunks.add(key);getChunk(cx*CHUNK_SIZE,cz*CHUNK_SIZE);
@@ -115,8 +115,11 @@ function generateChunk(cx,cz){
 }
 
 function enqueueChunk(cx,cz,initial=false){
- const key=cx+','+cz;if(generatedChunks.has(key)||queuedChunks.has(key))return;
- queuedChunks.add(key);chunkQueue.push({cx,cz,initial,attempts:0});
+ const key=cx+','+cz;
+ if(generatedChunks.has(key)||queuedChunks.has(key))return;
+ queuedChunks.add(key);
+ if(initial)initialChunkPending.add(key);
+ chunkQueue.push({cx,cz,initial,attempts:0});
 }
 function updateLoadingScreen(){
  if(!initialLoading)return;
@@ -125,24 +128,44 @@ function updateLoadingScreen(){
  $('loadingPercent').textContent=percent+'%';
  $('loadingDetail').textContent='Chunks generated: '+initialChunkDone+' / '+initialChunkTotal;
 }
+function finishInitialLoading(){
+ initialLoading=false;
+ $('loadingBar').style.width='100%';
+ $('loadingPercent').textContent='100%';
+ $('loadingDetail').textContent='World ready!';
+ setTimeout(()=>$('loadingScreen').style.display='none',450);
+}
 function processChunkQueue(dt){
+ if(!chunkQueue.length&&initialLoading&&initialChunkPending.size){
+  for(const key of initialChunkPending){const [cx,cz]=key.split(',').map(Number);enqueueChunk(cx,cz,true)}
+ }
  if(!chunkQueue.length)return;
- chunkLoadClock+=dt;if(chunkLoadClock<.075)return;chunkLoadClock=0;
- const item=chunkQueue.shift(),key=item.cx+','+item.cz;queuedChunks.delete(key);
+ chunkLoadClock+=dt;
+ if(chunkLoadClock<.035)return;
+ chunkLoadClock=0;
+ const item=chunkQueue.shift(),key=item.cx+','+item.cz;
+ queuedChunks.delete(key);
+ let success=false;
  try{
   generateChunk(item.cx,item.cz);
-  if(item.initial&&initialLoading)initialChunkDone++;
+  success=generatedChunks.has(key);
  }catch(error){
   console.error('SMOKEBLOCKS chunk generation failed:',key,error);
   unloadChunk(key);
-  if(item.attempts<2){item.attempts++;queuedChunks.add(key);chunkQueue.push(item)}
-  else{if(item.initial&&initialLoading)initialChunkDone++;toast('A chunk failed to generate. Check the browser console.')}
- }
- if(item.initial&&initialLoading){
-  updateLoadingScreen();
-  if(initialChunkDone>=initialChunkTotal){
-   initialLoading=false;$('loadingBar').style.width='100%';$('loadingPercent').textContent='100%';$('loadingDetail').textContent='World ready!';setTimeout(()=>$('loadingScreen').style.display='none',450);
+  if(item.attempts<2){
+   item.attempts++;
+   queuedChunks.add(key);
+   chunkQueue.push(item);
+  }else{
+   initialChunkPending.delete(key);
+   toast('A chunk failed after 3 attempts. Check the browser console.');
   }
+ }
+ if(success&&item.initial)initialChunkPending.delete(key);
+ if(item.initial&&initialLoading){
+  initialChunkDone=initialChunkTotal-initialChunkPending.size;
+  updateLoadingScreen();
+  if(initialChunkPending.size===0)finishInitialLoading();
  }
 }
 function generateWorld(){
@@ -153,7 +176,7 @@ function generateWorld(){
  velocityY=0;onGround=true;fallStartY=null;
  camera.position.set(player.x,player.y+1.5,player.z);
  camera.rotation.set(pitch,yaw,0);
- initialLoading=true;initialChunkDone=0;initialChunkTotal=(renderDistance*2+1)**2;chunkLoadClock=0;
+ initialLoading=true;initialChunkDone=0;initialChunkPending.clear();initialChunkTotal=(renderDistance*2+1)**2;chunkLoadClock=0;
  $('loadingScreen').style.display='grid';updateLoadingScreen();
  updateChunkVisibility(true);
  updateSurvivalHud();
@@ -308,7 +331,7 @@ function update(dt){
  else if(ny<player.y&&collidesAt(player.x,ny,player.z)){ny=Math.floor(ny)+1.001;velocityY=0;onGround=true}
  player.y=ny;camera.position.set(player.x,player.y+1.5,player.z);camera.rotation.set(pitch,yaw,0)
 }
-function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;if(locked&&!initialLoading)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);updateChunkVisibility();processChunkQueue(dt);renderer.render(scene,camera)}requestAnimationFrame(loop);applyLanguage('en');
+function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;processChunkQueue(dt);if(locked&&!initialLoading)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);updateChunkVisibility();renderer.render(scene,camera)}requestAnimationFrame(loop);applyLanguage('en');
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 </script><script src="game-nav.js"></script>
 </body></html>
