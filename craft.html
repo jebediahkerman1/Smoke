@@ -277,7 +277,7 @@ function togglePiston(d){
   if(blocks.has(blockKey(nx,ny,nz))){toast('Piston is blocked');return}
   const oldKey=chunkKey(target.x,target.z);
   blocks.delete(blockKey(target.x,target.y,target.z));blocksByChunk.get(oldKey)?.delete(target);dirtyChunks.add(oldKey);
-  const moved=addBlock(nx,ny,nz,target.type,{...target,x:undefined,y:undefined,z:undefined});
+  const extra=Object.fromEntries(Object.entries(target).filter(([k])=>!['x','y','z','type'].includes(k)));addBlock(nx,ny,nz,target.type,extra);
   d.pushedData={type:target.type,extra:Object.fromEntries(Object.entries(target).filter(([k])=>!['x','y','z','type'].includes(k))),x:nx,y:ny,z:nz,fromX:tx,fromY:ty,fromZ:tz};
  }
  d.extended=true;
@@ -330,7 +330,7 @@ const armorItems={'Stone Helmet':{slot:0,color:0x9b9b9b,points:2},'Stone Chestpl
  b.addEventListener('dragend',()=>b.classList.remove('dragging'));b.addEventListener('dragover',e=>{e.preventDefault();b.classList.add('dropTarget')});b.addEventListener('dragleave',()=>b.classList.remove('dropTarget'));
  b.addEventListener('drop',e=>{e.preventDefault();b.classList.remove('dropTarget');const raw=e.dataTransfer.getData('text/plain').split(':');if(raw.length===2)moveInventoryItem(raw[0],Number(raw[1]),kind,index)});
  if(kind==='inventory')b.addEventListener('click',()=>{if(index>=27)choose(index-27);else if(inventorySlots[index])moveInventoryItem('inventory',index,'inventory',27+selected)});
- container.appendChild(b);
+ container.appendChild(b);return b;
 }
 function moveInventoryItem(fk,from,tk,to){
  if(fk===tk&&from===to)return;
