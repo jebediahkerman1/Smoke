@@ -502,7 +502,7 @@ function refreshTableCrafting(){
  {needs:{Bunny:1,Carrot:1,Potato:1},out:'Rabbit Stew',label:'Bunny + Carrot + Potato → Rabbit Stew'},
  {needs:{Stone:2,'Oak Planks':2},out:'Hoe',label:'2 Stone + 2 Oak Planks → Hoe'},
  {needs:{'Oak Planks':6},out:'Oak Stairs',label:'6 Oak Planks → 4 Oak Stairs',amount:4},
- {needs:{'Oak Planks':6},out:'Oak Fence',label:'6 Oak Planks → 2 Oak Fences',amount:2},
+ {needs:{'Oak Planks':4,Stone:2},out:'Oak Fence',label:'4 Oak Planks + 2 Stone → 2 Oak Fences',amount:2},
  {needs:{Carrot:1},out:'Carrot Seeds',label:'1 Carrot → 2 Carrot Seeds',amount:2},
  {needs:{Potato:1},out:'Potato Seeds',label:'1 Potato → 2 Potato Seeds',amount:2},
  {needs:{Wheat:1},out:'Wheat Seeds',label:'1 Wheat → 2 Wheat Seeds',amount:2}
@@ -523,7 +523,7 @@ $('closeCraftTable').onclick=closeCraftingTable;
 $('clearCraftGrid').onclick=()=>{for(let i=0;i<tableCraftItems.length;i++)if(tableCraftItems[i]){addInventoryItem(tableCraftItems[i],1);tableCraftItems[i]=null}refreshInventory();refreshTableCrafting()};
 $('craftTableButton').onclick=()=>{
  const out=$('craftTableButton').dataset.recipe;if(!out){toast('No matching 3×3 recipe');return}
- const recipes={Bread:{needs:{Wheat:3},amount:1},'Vegetable Stew':{needs:{Carrot:2,Potato:1},amount:1},'Rabbit Stew':{needs:{Bunny:1,Carrot:1,Potato:1},amount:1},Hoe:{needs:{Stone:2,'Oak Planks':2},amount:1},'Oak Stairs':{needs:{'Oak Planks':6},amount:4},'Oak Fence':{needs:{'Oak Planks':6},amount:2},'Carrot Seeds':{needs:{Carrot:1},amount:2},'Potato Seeds':{needs:{Potato:1},amount:2},'Wheat Seeds':{needs:{Wheat:1},amount:2}};
+ const recipes={Bread:{needs:{Wheat:3},amount:1},'Vegetable Stew':{needs:{Carrot:2,Potato:1},amount:1},'Rabbit Stew':{needs:{Bunny:1,Carrot:1,Potato:1},amount:1},Hoe:{needs:{Stone:2,'Oak Planks':2},amount:1},'Oak Stairs':{needs:{'Oak Planks':6},amount:4},'Oak Fence':{needs:{'Oak Planks':4,Stone:2},amount:2},'Carrot Seeds':{needs:{Carrot:1},amount:2},'Potato Seeds':{needs:{Potato:1},amount:2},'Wheat Seeds':{needs:{Wheat:1},amount:2}};
  const recipe=recipes[out];if(!recipe||!addInventoryItem(out,recipe.amount)){toast('Inventory full!');return}
  tableCraftItems.fill(null);refreshInventory();refreshTableCrafting();toast('Crafted '+out);
 };
