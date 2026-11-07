@@ -148,26 +148,33 @@ function processChunkQueue(dt){
  chunkLoadClock+=dt;
  if(chunkLoadClock<.035)return;
  chunkLoadClock=0;
- const item=chunkQueue.shift(),key=item.cx+','+item.cz;
- queuedChunks.delete(key);
- let success=false;
- try{
-  generateChunk(item.cx,item.cz);
-  success=generatedChunks.has(key)&&(blocksByChunk.get(key)?.size||0)>0&&((chunkGroups.get(key)?.children.length)||0)>0;
- }catch(error){
-  console.error('SMOKEBLOCKS chunk generation failed:',key,error);
-  unloadChunk(key);
-  if(item.attempts<2){
-   item.attempts++;
-   queuedChunks.add(key);
-   chunkQueue.push(item);
-  }else{
-   initialChunkPending.delete(key);
-   toast('A chunk failed after 3 attempts. Check the browser console.');
+ // Generate a complete horizontal row per pass instead of revealing chunks one at a time.
+ const rowZ=chunkQueue[0].cz;
+ const row=[];
+ while(chunkQueue.length&&chunkQueue[0].cz===rowZ)row.push(chunkQueue.shift());
+ let completedInitial=false;
+ for(const item of row){
+  const key=item.cx+','+item.cz;
+  queuedChunks.delete(key);
+  let success=false;
+  try{
+   generateChunk(item.cx,item.cz);
+   success=generatedChunks.has(key)&&(blocksByChunk.get(key)?.size||0)>0&&((chunkGroups.get(key)?.children.length)||0)>0;
+  }catch(error){
+   console.error('SMOKEBLOCKS chunk generation failed:',key,error);
+   unloadChunk(key);
+   if(item.attempts<2){
+    item.attempts++;
+    queuedChunks.add(key);
+    chunkQueue.push(item);
+   }else{
+    initialChunkPending.delete(key);
+    toast('A chunk failed after 3 attempts. Check the browser console.');
+   }
   }
+  if(success&&item.initial){initialChunkPending.delete(key);completedInitial=true}
  }
- if(success&&item.initial)initialChunkPending.delete(key);
- if(item.initial&&initialLoading){
+ if(completedInitial&&initialLoading){
   initialChunkDone=initialChunkTotal-initialChunkPending.size;
   updateLoadingScreen();
   if(initialChunkPending.size===0)finishInitialLoading();
@@ -205,8 +212,16 @@ function updateChunkVisibility(force=false){
  lastChunkX=pcx;lastChunkZ=pcz;
  $('status').textContent='BIOME: '+biomeAt(Math.floor(player.x),Math.floor(player.z)).toUpperCase()+' · RENDER: '+renderDistance+' CHUNKS';
  const wanted=[];
- for(let cx=pcx-renderDistance;cx<=pcx+renderDistance;cx++)for(let cz=pcz-renderDistance;cz<=pcz+renderDistance;cz++)wanted.push({cx,cz,d:(cx-pcx)**2+(cz-pcz)**2});
- wanted.sort((a,b)=>a.d-b.d);
+ // Queue complete rows in order from the player's nearest row outward.
+ const rows=[];
+ for(let cz=pcz-renderDistance;cz<=pcz+renderDistance;cz++)rows.push(cz);
+ rows.sort((a,b)=>Math.abs(a-pcz)-Math.abs(b-pcz));
+ for(const cz of rows){
+  const columns=[];
+  for(let cx=pcx-renderDistance;cx<=pcx+renderDistance;cx++)columns.push(cx);
+  columns.sort((a,b)=>Math.abs(a-pcx)-Math.abs(b-pcx));
+  for(const cx of columns)wanted.push({cx,cz});
+ }
  for(const c of wanted)enqueueChunk(c.cx,c.cz,initialLoading&&initialChunkDone<initialChunkTotal);
  for(const key of [...chunkGroups.keys()]){
   const [cx,cz]=key.split(',').map(Number);
