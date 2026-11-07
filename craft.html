@@ -123,7 +123,7 @@ function closeSettings(){settingsOpen=false;settingsPanel.style.display='none';i
 $('resumeButton').onclick=()=>{closeSettings();lock()};$('renderDistance').addEventListener('input',e=>{renderDistance=Number(e.target.value);$('renderDistanceValue').textContent=renderDistance+' chunks';updateFog();lastChunkX=lastChunkZ=Infinity;updateChunkVisibility(true)});$('languageSelect').addEventListener('change',e=>applyLanguage(e.target.value));$('fovSelect').addEventListener('input',e=>{camera.fov=Number(e.target.value);camera.updateProjectionMatrix();$('fovValue').textContent=e.target.value+'°'});$('sensitivity').addEventListener('input',e=>{mouseSensitivity=Number(e.target.value)/10000;$('sensitivityValue').textContent=(Number(e.target.value)/22).toFixed(1)+'x'});$('newWorldButton').onclick=()=>{closeSettings();$('start').style.display='none';lock();generateWorld()};
 function toast(s){const t=$('toast');t.textContent=s;t.style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.style.display='none',1100)}
 let yaw=0,pitch=0,locked=false,keys={},velocityY=0,onGround=true,last=0,settingsOpen=false,mouseSensitivity=.0022;
-let health=20,hunger=20,absorption=0,exhaustion=0,regenTick=0,starveTick=0;
+let health=20,hunger=20,absorption=0,exhaustion=0,regenTick=0,starveTick=0;let fallStartY=null;
 const MAX_HEALTH=20,MAX_HUNGER=20;
 function updateSurvivalHud(){
  const hud=$('survivalHud');hud.style.display=gameMode==='survival'?'block':'none';
@@ -138,7 +138,7 @@ function updateSurvivalHud(){
 }
 function damagePlayer(amount,reason='Damage'){
  if(gameMode!=='survival'||health<=0)return;
- let damage=Math.max(0,amount*(1-Math.min(.8,armorPoints()*.04)));
+ let damage=Math.ceil(Math.max(0,amount*(1-Math.min(.8,armorPoints()*.04)))*2)/2;
  const absorbed=Math.min(absorption,damage);absorption-=absorbed;damage-=absorbed;
  if(damage>0)health=Math.max(0,health-damage);
  exhaustion+=.1;updateSurvivalHud();
@@ -164,7 +164,7 @@ function setMode(mode){gameMode=mode;if(mode==='survival'){health=20;hunger=20;a
 $('creativeMode').onclick=()=>setMode('creative');$('survivalMode').onclick=()=>setMode('survival');$('play').onclick=()=>{ $('start').style.display='none';lock();generateWorld() };setMode('creative');
 document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===renderer.domElement;$('help').style.opacity=locked?'.72':'1'});
 document.addEventListener('mousemove',e=>{if(!locked)return;yaw-=e.movementX*mouseSensitivity;pitch-=e.movementY*mouseSensitivity;pitch=Math.max(-1.48,Math.min(1.48,pitch));camera.rotation.set(pitch,yaw,0)});
-document.addEventListener('keydown',e=>{if(e.code==='Escape'&&!e.repeat){if(settingsOpen)closeSettings();else openSettings();return}if(settingsOpen)return;if(e.code==='KeyE'&&!e.repeat){if(inventoryOpen)closeInventory();else openInventory();return}if(inventoryOpen)return;if(e.code==='KeyQ'&&!e.repeat){dropSelectedBlock();return}keys[e.code]=true;if(/^Digit[1-9]$/.test(e.code))choose(Number(e.code.slice(5))-1);if(e.code==='Space'&&onGround){velocityY=8;onGround=false;addExhaustion(.2)}});
+document.addEventListener('keydown',e=>{if(e.code==='Escape'&&!e.repeat){if(settingsOpen)closeSettings();else openSettings();return}if(settingsOpen)return;if(e.code==='KeyE'&&!e.repeat){if(inventoryOpen)closeInventory();else openInventory();return}if(inventoryOpen)return;if(e.code==='KeyQ'&&!e.repeat){dropSelectedBlock();return}keys[e.code]=true;if(/^Digit[1-9]$/.test(e.code))choose(Number(e.code.slice(5))-1);if(e.code==='Space'&&onGround){velocityY=8;onGround=false;fallStartY=player.y;addExhaustion(.2)}});
 document.addEventListener('keyup',e=>keys[e.code]=false);
 renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
 function targetBlock(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const meshes=[];for(const group of chunkGroups.values())for(const child of group.children)if(child.isInstancedMesh)meshes.push(child);const hit=ray.intersectObjects(meshes,false).find(h=>h.distance<7);if(hit)hit.blockData=hit.object.userData.instanceBlocks[hit.instanceId];return hit}
@@ -180,8 +180,8 @@ function update(dt){
  const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));let move=new THREE.Vector3();
  if(keys.KeyW||keys.ArrowUp)move.add(forward);if(keys.KeyS||keys.ArrowDown)move.sub(forward);if(keys.KeyD||keys.ArrowRight)move.add(right);if(keys.KeyA||keys.ArrowLeft)move.sub(right);
  if(move.lengthSq()){if(gameMode==='survival'&&keys.ShiftLeft)addExhaustion(dt*.12);move.normalize().multiplyScalar((keys.ShiftLeft?10:5.3)*dt);const nx=player.x+move.x,nz=player.z+move.z;if(!collidesAt(nx,player.y,player.z))player.x=nx;if(!collidesAt(player.x,player.y,nz))player.z=nz}
- const oldY=player.y,wasGrounded=onGround;velocityY-=22*dt;let ny=player.y+velocityY*dt;
- const floorY=terrainHeight(Math.round(player.x),Math.round(player.z))+1.01;if(ny<floorY){ny=floorY;velocityY=0;onGround=true;if(!wasGrounded&&oldY-floorY>3){const fall=Math.max(0,Math.floor(oldY-floorY-3));if(fall>0)damagePlayer(fall,'Fall damage')}}
+ const oldY=player.y,wasGrounded=onGround;if(wasGrounded)fallStartY=player.y;velocityY-=22*dt;let ny=player.y+velocityY*dt;
+ const floorY=terrainHeight(Math.round(player.x),Math.round(player.z))+1.01;if(ny<floorY){ny=floorY;velocityY=0;onGround=true;if(!wasGrounded&&fallStartY!==null&&fallStartY-floorY>3){const fall=Math.max(0,Math.floor(fallStartY-floorY-3));if(fall>0)damagePlayer(fall,'Fall damage')}if(!wasGrounded)fallStartY=null}
  if(ny>player.y){if(collidesAt(player.x,ny,player.z)){ny=Math.floor(ny+1.72)-1.72;velocityY=0}}
  else if(ny<player.y&&collidesAt(player.x,ny,player.z)){ny=Math.floor(ny)+1.001;velocityY=0;onGround=true}
  player.y=ny;camera.position.set(player.x,player.y+1.5,player.z);camera.rotation.set(pitch,yaw,0)
