@@ -152,8 +152,9 @@ function processChunkQueue(dt){
  const rowZ=chunkQueue[0].cz;
  const row=[];
  while(chunkQueue.length&&chunkQueue[0].cz===rowZ)row.push(chunkQueue.shift());
- let completedInitial=false;
+ let processedInitial=false;
  for(const item of row){
+  if(item.initial)processedInitial=true;
   const key=item.cx+','+item.cz;
   queuedChunks.delete(key);
   let success=false;
@@ -172,9 +173,9 @@ function processChunkQueue(dt){
     toast('A chunk failed after 3 attempts. Check the browser console.');
    }
   }
-  if(success&&item.initial){initialChunkPending.delete(key);completedInitial=true}
+  if(success&&item.initial)initialChunkPending.delete(key)
  }
- if(completedInitial&&initialLoading){
+ if(processedInitial&&initialLoading){
   initialChunkDone=initialChunkTotal-initialChunkPending.size;
   updateLoadingScreen();
   if(initialChunkPending.size===0)finishInitialLoading();
