@@ -194,11 +194,12 @@ function generateChunk(cx,cz){
  const key=cx+','+cz;if(generatedChunks.has(key))return;generatedChunks.add(key);getChunk(cx*CHUNK_SIZE,cz*CHUNK_SIZE);
  for(let x=cx*CHUNK_SIZE;x<(cx+1)*CHUNK_SIZE;x++)for(let z=cz*CHUNK_SIZE;z<(cz+1)*CHUNK_SIZE;z++){
   const biome=biomeAt(x,z),h=terrainHeight(x,z),top=biome==='desert'?'Sand':biome==='taiga'?'Snow':biome==='jungle'?'Grass':'Grass';
-  // Small, deeper ponds in very flat plains. Remove the top three terrain blocks and fill the hollow.
+  // Small, deeper ponds in very flat plains. Random pond depths range from 2 to 6 blocks.
   const flat=Math.abs(terrainHeight(x+1,z)-h)<=0&&Math.abs(terrainHeight(x-1,z)-h)<=0&&Math.abs(terrainHeight(x,z+1)-h)<=0&&Math.abs(terrainHeight(x,z-1)-h)<=0;
   const lake=biome==='plains'&&flat&&smoothNoise(x+worldSeed*.013,z-worldSeed*.017,16)>.79;
-  for(let y=-8;y<=h;y++){let type=lake&&y===h-3?'Sand':y===h?(lake?'Sand':top):y>=h-3?(biome==='desert'?'Sand':biome==='taiga'?'Dirt':'Dirt'):(biome==='desert'&&y>=h-6?'Sandstone':'Stone');if(!(lake&&y>h-3))addBlock(x,y,z,type)}
-  if(lake){const bottom=h-2.5,surface=h+.5,depth=surface-bottom;const water=new THREE.Mesh(waterGeo,waterMaterial);water.scale.set(1,depth,1);water.position.set(x+.5,bottom+depth/2,z+.5);water.userData.chunkKey=key;water.userData.columnKey=x+','+z;water.userData.bottom=bottom;water.userData.surface=surface;scene.add(water);waterTiles.push(water);waterColumns.set(water.userData.columnKey,water.userData)}
+  const pondDepth=2+Math.floor(seededNoise(x+worldSeed%137,z-worldSeed%251)*5);
+  for(let y=-8;y<=h;y++){let type=lake&&y===h-pondDepth?'Sand':y===h?(lake?'Sand':top):y>=h-3?(biome==='desert'?'Sand':biome==='taiga'?'Dirt':'Dirt'):(biome==='desert'&&y>=h-6?'Sandstone':'Stone');if(!(lake&&y>h-pondDepth))addBlock(x,y,z,type)}
+  if(lake){const bottom=h-pondDepth+.5,surface=h+.5,depth=surface-bottom;const water=new THREE.Mesh(waterGeo,waterMaterial);water.scale.set(1,depth,1);water.position.set(x+.5,bottom+depth/2,z+.5);water.userData.chunkKey=key;water.userData.columnKey=x+','+z;water.userData.bottom=bottom;water.userData.surface=surface;scene.add(water);waterTiles.push(water);waterColumns.set(water.userData.columnKey,water.userData)}
   const roll=seededNoise(x+worldSeed%71,z-worldSeed%97);
   if(biome==='desert'&&roll>.986&&h>=0){const height=2+Math.floor(seededNoise(x+9,z+2)*3);for(let y=1;y<=height;y++)addBlock(x,h+y,z,'Cactus')}
   else if(biome!=='desert'&&roll>(biome==='jungle'?.965:biome==='taiga'?.975:.972)&&h>=0&&x>=cx*CHUNK_SIZE+3&&x<(cx+1)*CHUNK_SIZE-3&&z>=cz*CHUNK_SIZE+3&&z<(cz+1)*CHUNK_SIZE-3){
