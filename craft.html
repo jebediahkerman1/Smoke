@@ -619,7 +619,7 @@ function update(dt){
  if(move.lengthSq()){if(gameMode==='survival'&&keys.ShiftLeft)addExhaustion(dt*.12);move.normalize().multiplyScalar((inWater?2.9:(crouching?2.2:(keys.ShiftLeft?10:5.3)))*dt);const nx=player.x+move.x,nz=player.z+move.z;if(!collidesAt(nx,player.y,player.z))player.x=nx;if(!collidesAt(player.x,player.y,nz))player.z=nz}
  const oldY=player.y,wasGrounded=onGround;if(wasGrounded)fallStartY=player.y;let ny;
  const floorY=terrainHeight(Math.round(player.x),Math.round(player.z))+1.01;
- if(inWater){velocityY+=( -2.2-velocityY)*Math.min(1,dt*2.8);if(keys.Space||touchKeys.Space)velocityY=Math.max(velocityY,4.5);ny=player.y+velocityY*dt;const waterFloor=Math.max(floorY,water.bottom+.02);if(ny<waterFloor){ny=waterFloor;velocityY=0;onGround=true}else onGround=false;fallStartY=null}
+ if(inWater){velocityY+=(1.8-velocityY)*Math.min(1,dt*2.8);if(keys.Space||touchKeys.Space)velocityY=Math.max(velocityY,4.5);ny=player.y+velocityY*dt;const waterFloor=Math.max(floorY,water.bottom+.02),swimTop=Math.max(waterFloor,water.surface-1.05);if(ny<waterFloor){ny=waterFloor;velocityY=0;onGround=true}else if(ny>swimTop){ny=swimTop;velocityY=Math.min(0,velocityY);onGround=false}else onGround=false;fallStartY=null}
  else{velocityY-=22*dt;ny=player.y+velocityY*dt;if(ny<floorY){ny=floorY;velocityY=0;onGround=true;if(!wasGrounded&&fallStartY!==null&&fallStartY-floorY>3){const fall=Math.max(0,Math.floor(fallStartY-floorY-3));if(fall>0)damagePlayer(fall,'Fall damage')}if(!wasGrounded)fallStartY=null}}
  if(ny>player.y){if(collidesAt(player.x,ny,player.z)){ny=Math.floor(ny+1.72)-1.72;velocityY=0}}
  else if(ny<player.y&&collidesAt(player.x,ny,player.z)){ny=Math.floor(ny)+1.001;velocityY=0;onGround=true}
