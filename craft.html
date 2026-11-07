@@ -179,8 +179,10 @@ function generateWorld(){
  worldSeed=Math.floor(Math.random()*1000000000);
  player.x=0;player.z=5;player.y=terrainHeight(0,5)+1.01;
  velocityY=0;onGround=true;fallStartY=null;
+ // Face into the spawn chunk so the first view looks across generated terrain, not out over its edge.
+ yaw=Math.PI;pitch=-0.32;
  camera.position.set(player.x,player.y+1.5,player.z);
- pitch=-0.22;camera.rotation.set(pitch,yaw,0);
+ camera.rotation.order='YXZ';camera.rotation.set(pitch,yaw,0);
  initialLoading=true;initialChunkDone=0;initialChunkPending.clear();initialChunkTotal=(renderDistance*2+1)**2;chunkLoadClock=0;
  $('loadingScreen').style.display='grid';updateLoadingScreen();
  // Build the player's immediate surroundings first so the world is never an empty sky.
