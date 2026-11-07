@@ -95,7 +95,7 @@ function updateDayNight(dt){
  scene.background.copy(skyColor);scene.fog.color.copy(skyColor);
  sunOrb.visible=elevation>-.12;moonOrb.visible=elevation<.12;
 }
-const defs=[['Grass',0x62ad3e],['Dirt',0x8a5a36],['Stone',0x888888],['Cobblestone',0x777777],['Oak Planks',0xb98a50],['Oak Log',0x80552d],['Leaves',0x3e8836],['Sand',0xd9c17b],['Bricks',0x9c5142],['Birch Planks',0xd8c99a],['Birch Log',0xe4dfc8],['Birch Leaves',0x6ca84b],['Spruce Planks',0x79502f],['Spruce Log',0x62452f],['Spruce Leaves',0x285b3c],['Jungle Planks',0xb77b43],['Jungle Log',0x98623b],['Jungle Leaves',0x278044],['Sandstone',0xc9ad73],['Cactus',0x32834a],['Snow',0xeaf5fa],['Ice',0x9bd9ec],['Gravel',0x77736d],['Clay',0x9aa6a8],['Piston',0x9b8b68],['Sticky Piston',0x8cae70],['Piston Head',0xb99a6b],['Redstone Block',0x9f2424],['Crafting Table',0x9a7044],['Farmland',0x76502f],['Wheat Crop',0xd8bd4f],['Carrot Crop',0xe58a32],['Potato Crop',0xb58a55],['Hoe',0x8b6540],['Wheat Seeds',0x9fc45a],['Carrot Seeds',0xe98b35],['Potato Seeds',0xb58c59],['Wheat',0xd9c16b],['Potato',0xb99468],['Carrot',0xf08024],['Steak',0x8d3828],['Chicken',0xe4c5a1],['Rabbit',0xb88c69],['Bunny',0xb88c69],['Vegetable Stew',0xb56c32],['Rabbit Stew',0x9a593b],['Bread',0xc99748]];
+const defs=[['Grass',0x62ad3e],['Dirt',0x8a5a36],['Stone',0x888888],['Cobblestone',0x777777],['Oak Planks',0xb98a50],['Oak Log',0x80552d],['Leaves',0x3e8836],['Sand',0xd9c17b],['Bricks',0x9c5142],['Birch Planks',0xd8c99a],['Birch Log',0xe4dfc8],['Birch Leaves',0x6ca84b],['Spruce Planks',0x79502f],['Spruce Log',0x62452f],['Spruce Leaves',0x285b3c],['Jungle Planks',0xb77b43],['Jungle Log',0x98623b],['Jungle Leaves',0x278044],['Sandstone',0xc9ad73],['Cactus',0x32834a],['Snow',0xeaf5fa],['Ice',0x9bd9ec],['Gravel',0x77736d],['Clay',0x9aa6a8],['Piston',0x9b8b68],['Sticky Piston',0x8cae70],['Piston Head',0xb99a6b],['Redstone Block',0x9f2424],['Crafting Table',0x9a7044],['Farmland',0x76502f],['Wheat Crop',0xd8bd4f],['Carrot Crop',0xe58a32],['Potato Crop',0xb58a55],['Hoe',0x8b6540],['Wheat Seeds',0x9fc45a],['Carrot Seeds',0xe98b35],['Potato Seeds',0xb58c59],['Wheat',0xd9c16b],['Potato',0xb99468],['Carrot',0xf08024],['Steak',0x8d3828],['Chicken',0xe4c5a1],['Rabbit',0xb88c69],['Bunny',0xb88c69],['Vegetable Stew',0xb56c32],['Rabbit Stew',0x9a593b],['Bread',0xc99748],['Porkchop',0xb96b62],['Mutton',0xc17b68],['Wool',0xe8e3d8]];
 function pixelTexture(name,base){
  const cv=document.createElement('canvas');cv.width=cv.height=16;const g=cv.getContext('2d');
  const rgb=[(base>>16)&255,(base>>8)&255,base&255];g.fillStyle='#'+base.toString(16).padStart(6,'0');g.fillRect(0,0,16,16);
@@ -145,8 +145,35 @@ const dirtyChunks=new Set(),blocksByChunk=new Map();
 function addBlock(x,y,z,type,extra={}){const k=blockKey(x,y,z);if(blocks.has(k))return;const data={x,y,z,type,...extra},ck=chunkKey(x,z);getChunk(x,z);blocks.set(k,data);if(!blocksByChunk.has(ck))blocksByChunk.set(ck,new Set());blocksByChunk.get(ck).add(data);dirtyChunks.add(ck);return data}
 function rebuildChunk(key){const group=chunkGroups.get(key);if(!group)return;group.clear();const byType=new Map();for(const data of (blocksByChunk.get(key)||[])){const exposed=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]].some(([dx,dy,dz])=>!blocks.has(blockKey(data.x+dx,data.y+dy,data.z+dz)));if(!exposed)continue;if(!byType.has(data.type))byType.set(data.type,[]);byType.get(data.type).push(data)}for(const [type,list] of byType){const inst=new THREE.InstancedMesh(geo,materials[type]||materials.Grass,list.length);const matrix=new THREE.Matrix4();list.forEach((d,i)=>{matrix.makeTranslation(d.x+.5,d.y+.5,d.z+.5);inst.setMatrixAt(i,matrix)});inst.instanceMatrix.needsUpdate=true;inst.userData.instanceBlocks=list;inst.computeBoundingSphere();inst.frustumCulled=false;group.add(inst)}}
 function flushDirtyChunks(){for(const key of dirtyChunks)rebuildChunk(key);dirtyChunks.clear()}
-function clearWorld(){chunkQueue.length=0;queuedChunks.clear();initialChunkPending.clear();initialLoading=false;$('loadingScreen').style.display='none';for(const item of droppedItems)scene.remove(item.mesh);droppedItems.length=0;for(const p of breakParticles){scene.remove(p.mesh);p.mesh.material.dispose()}breakParticles.length=0;for(const group of chunkGroups.values())scene.remove(group);chunkGroups.clear();for(const m of waterTiles)scene.remove(m);waterTiles.length=0;blocks.clear();blocksByChunk.clear();dirtyChunks.clear();generatedChunks.clear();lastChunkX=lastChunkZ=Infinity}
-function unloadChunk(key){const group=chunkGroups.get(key);if(!group)return;for(const d of (blocksByChunk.get(key)||[]))blocks.delete(blockKey(d.x,d.y,d.z));blocksByChunk.delete(key);generatedChunks.delete(key);scene.remove(group);chunkGroups.delete(key);dirtyChunks.delete(key);for(let i=waterTiles.length-1;i>=0;i--){const w=waterTiles[i];if(w.userData.chunkKey===key){scene.remove(w);waterTiles.splice(i,1)}}}
+function clearWorld(){for(const mob of [...animals])removeAnimal(mob);chunkQueue.length=0;queuedChunks.clear();initialChunkPending.clear();initialLoading=false;$('loadingScreen').style.display='none';for(const item of droppedItems)scene.remove(item.mesh);droppedItems.length=0;for(const p of breakParticles){scene.remove(p.mesh);p.mesh.material.dispose()}breakParticles.length=0;for(const group of chunkGroups.values())scene.remove(group);chunkGroups.clear();for(const m of waterTiles)scene.remove(m);waterTiles.length=0;blocks.clear();blocksByChunk.clear();dirtyChunks.clear();generatedChunks.clear();lastChunkX=lastChunkZ=Infinity}
+function unloadChunk(key){const group=chunkGroups.get(key);if(!group)return;for(const mob of [...animals])if(mob.chunk===key)removeAnimal(mob);for(const d of (blocksByChunk.get(key)||[]))blocks.delete(blockKey(d.x,d.y,d.z));blocksByChunk.delete(key);generatedChunks.delete(key);scene.remove(group);chunkGroups.delete(key);dirtyChunks.delete(key);for(let i=waterTiles.length-1;i>=0;i--){const w=waterTiles[i];if(w.userData.chunkKey===key){scene.remove(w);waterTiles.splice(i,1)}}}
+
+const animals=[],animalMeshes=[];
+const animalMats={cow:new THREE.MeshLambertMaterial({color:0xf0eee4}),cowPatch:new THREE.MeshLambertMaterial({color:0x49352b}),pig:new THREE.MeshLambertMaterial({color:0xe99b9b}),pigNose:new THREE.MeshLambertMaterial({color:0xc96f78}),sheep:new THREE.MeshLambertMaterial({color:0xf0eee1}),wool:new THREE.MeshLambertMaterial({color:0xf8f5e9}),wolf:new THREE.MeshLambertMaterial({color:0x858b91}),wolfDark:new THREE.MeshLambertMaterial({color:0x4e555d}),leg:new THREE.MeshLambertMaterial({color:0x554638}),eye:new THREE.MeshLambertMaterial({color:0x171717})};
+const animalBox=new THREE.BoxGeometry(1,1,1);
+function animalPart(group,mat,x,y,z,sx,sy,sz){const m=new THREE.Mesh(animalBox,mat);m.position.set(x,y,z);m.scale.set(sx,sy,sz);group.add(m);return m}
+function makeAnimal(type,x,z,chunk){
+ const group=new THREE.Group(),body=type==='wolf'?[.82,.48,.42]:type==='sheep'?[.92,.65,.55]:[.92,.58,.52],base=type==='cow'?animalMats.cow:type==='pig'?animalMats.pig:type==='sheep'?animalMats.sheep:animalMats.wolf,legs=[];
+ animalPart(group,base,0,.67,0,...body);
+ if(type==='cow'){animalPart(group,animalMats.cowPatch,-.25,.72,-.215,.25,.24,.025);animalPart(group,animalMats.cowPatch,.24,.55,.215,.22,.2,.025)}
+ if(type==='sheep')animalPart(group,animalMats.wool,0,.88,0,.98,.25,.61);
+ animalPart(group,base,0,.72,.39,.38,.38,.36);
+ if(type==='cow'){animalPart(group,animalMats.cow,-.14,.96,.39,.09,.22,.09);animalPart(group,animalMats.cow,.14,.96,.39,.09,.22,.09)}
+ if(type==='pig')animalPart(group,animalMats.pigNose,0,.66,.59,.23,.16,.045);
+ if(type==='wolf'){animalPart(group,animalMats.wolfDark,0,.59,.58,.2,.18,.12);animalPart(group,animalMats.wolfDark,-.13,.98,.39,.12,.2,.12);animalPart(group,animalMats.wolfDark,.13,.98,.39,.12,.2,.12)}
+ for(const side of [-1,1])animalPart(group,animalMats.eye,side*.105,.82,.57,.055,.055,.025);
+ for(const xx of [-.28,.28])for(const zz of [-.16,.16])legs.push(animalPart(group,animalMats.leg,xx,.29,zz,.15,.48,.15));
+ group.position.set(x,terrainHeight(Math.round(x),Math.round(z))+1,z);scene.add(group);
+ const mob={type,group,legs,chunk,hp:type==='wolf'?5:3,phase:Math.random()*6.28,dir:Math.random()*Math.PI*2,turn:2+Math.random()*5,speed:type==='wolf'?1.25:.65};animals.push(mob);for(const child of group.children)animalMeshes.push(child);
+}
+function spawnChunkAnimals(cx,cz){
+ const chunk=cx+','+cz;
+ for(let n=0;n<2;n++){const x=cx*CHUNK_SIZE+3+Math.floor(seededNoise(cx*19+n*7,cz*23+5)*10),z=cz*CHUNK_SIZE+3+Math.floor(seededNoise(cx*29+4,cz*17+n)*10),biome=biomeAt(x,z);if(biome==='desert')continue;const roll=seededNoise(x+71,z-39),type=biome==='taiga'?(roll<.55?'wolf':roll<.76?'sheep':'cow'):roll<.34?'cow':roll<.68?'pig':'sheep';makeAnimal(type,x+.5,z+.5,chunk)}
+}
+function removeAnimal(mob){scene.remove(mob.group);for(const child of mob.group.children){const i=animalMeshes.indexOf(child);if(i>=0)animalMeshes.splice(i,1)}const i=animals.indexOf(mob);if(i>=0)animals.splice(i,1)}
+function updateAnimals(dt){for(const mob of animals){mob.turn-=dt;if(mob.turn<=0){mob.dir+=(Math.random()-.5)*2.5;mob.turn=2+Math.random()*5}const nx=mob.group.position.x+Math.sin(mob.dir)*mob.speed*dt,nz=mob.group.position.z+Math.cos(mob.dir)*mob.speed*dt,floor=terrainHeight(Math.round(nx),Math.round(nz))+1;if(Math.abs(floor-mob.group.position.y)<1.1){mob.group.position.x=nx;mob.group.position.z=nz;mob.group.position.y+=(floor-mob.group.position.y)*Math.min(1,dt*7)}else mob.dir+=Math.PI*.7;mob.group.rotation.y=mob.dir;mob.phase+=dt*7;mob.legs.forEach((leg,i)=>{leg.rotation.x=Math.sin(mob.phase+(i%2)*Math.PI)*.38})}}
+function hitAnimal(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const hit=ray.intersectObjects(animalMeshes,false).find(h=>h.distance<4.5);if(!hit)return false;const mob=animals.find(a=>a.group.children.includes(hit.object));if(!mob)return false;mob.hp--;toast(mob.type[0].toUpperCase()+mob.type.slice(1)+' hit · '+Math.max(0,mob.hp)+' HP');if(mob.hp<=0){if(gameMode==='survival'){const drops=mob.type==='cow'?{Steak:2}:mob.type==='pig'?{Porkchop:2}:mob.type==='sheep'?{Mutton:2,Wool:1+Math.floor(Math.random()*2)}:{};for(const [item,count] of Object.entries(drops))if(!addInventoryItem(item,count))toast('Inventory full! Some drops were lost');refreshInventory()}removeAnimal(mob)}return true}
+
 function generateChunk(cx,cz){
  const key=cx+','+cz;if(generatedChunks.has(key))return;generatedChunks.add(key);getChunk(cx*CHUNK_SIZE,cz*CHUNK_SIZE);
  for(let x=cx*CHUNK_SIZE;x<(cx+1)*CHUNK_SIZE;x++)for(let z=cz*CHUNK_SIZE;z<(cz+1)*CHUNK_SIZE;z++){
@@ -163,6 +190,7 @@ function generateChunk(cx,cz){
   }
  }
  flushDirtyChunks();
+ spawnChunkAnimals(cx,cz);
  const ownGroup=chunkGroups.get(key);
  if(!ownGroup||ownGroup.children.length===0)throw new Error('Chunk '+key+' produced no visible block meshes');
 }
@@ -539,7 +567,7 @@ if(mobileActive){
 }
 
 function targetBlock(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const meshes=[];for(const group of chunkGroups.values())for(const child of group.children)if(child.isInstancedMesh)meshes.push(child);const hit=ray.intersectObjects(meshes,false).find(h=>h.distance<7);if(hit)hit.blockData=hit.object.userData.instanceBlocks[hit.instanceId];return hit}
-renderer.domElement.addEventListener('mousedown',e=>{if(e.button===1)e.preventDefault();if(inventoryOpen)return;if(!locked&&!mobileActive){if(!settingsOpen&&!inventoryOpen)lock();return}if(settingsOpen||inventoryOpen)return;if(e.button!==0&&e.button!==1&&e.button!==2)return;const hit=targetBlock();if(!hit)return;const d=hit.blockData;
+renderer.domElement.addEventListener('mousedown',e=>{if(e.button===1)e.preventDefault();if(inventoryOpen)return;if(!locked&&!mobileActive){if(!settingsOpen&&!inventoryOpen)lock();return}if(settingsOpen||inventoryOpen)return;if(e.button!==0&&e.button!==1&&e.button!==2)return;const hit=targetBlock();if(e.button===0&&hitAnimal())return;if(!hit)return;const d=hit.blockData;
 if(e.button===2&&d.type==='Crafting Table'){openCraftingTable();return}
 if(e.button===2&&gameMode==='survival'){
  const held=selectedHotbarItem(),tool=held?.type;
@@ -549,7 +577,7 @@ if(e.button===2&&gameMode==='survival'){
   if(!consumeInventoryItem(tool,1)){toast('You need seeds');return}
   addBlock(d.x,d.y+1,d.z,crop);refreshInventory();toast(crop.replace(' Crop','')+' planted!');return;
  }
- const food={Steak:[8,0],Chicken:[6,0],Rabbit:[5,0],Bunny:[5,0],Carrot:[3,0],Bread:[5,0],'Vegetable Stew':[7,0],'Rabbit Stew':[8,0]};
+ const food={Steak:[8,0],Porkchop:[6,0],Mutton:[6,0],Chicken:[6,0],Rabbit:[5,0],Bunny:[5,0],Carrot:[3,0],Bread:[5,0],'Vegetable Stew':[7,0],'Rabbit Stew':[8,0]};
  if(food[tool]){const [restore]=food[tool];if(hunger>=20){toast('You are not hungry');return}consumeInventoryItem(tool,1);hunger=Math.min(20,hunger+restore);updateSurvivalHud();refreshInventory();toast('Ate '+tool+' · +'+restore+' hunger');return}
 }
 if(e.button===1){if(!d)return;const blockIndex=defs.findIndex(item=>item[0]===d.type);if(blockIndex<0)return;if(gameMode==='survival'){toast('Use your inventory to arrange blocks');return}equipBlock(blockIndex);return;}if(!d)return;if(e.button===2&&(d.type==='Piston'||d.type==='Sticky Piston')){togglePiston(d);return}if(e.button===0){if(d.y<=terrainHeight(d.x,d.z)-3){toast('Deep bedrock cannot be broken');return}if(gameMode==='survival'){
@@ -576,7 +604,7 @@ function update(dt){
  else if(ny<player.y&&collidesAt(player.x,ny,player.z)){ny=Math.floor(ny)+1.001;velocityY=0;onGround=true}
  player.y=ny;camera.position.set(player.x,player.y+1.5,player.z);camera.rotation.set(pitch,yaw,0)
 }
-let runtimeErrorShown=false;function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;try{processChunkQueue(dt);if($('start').style.display==='none'&&!settingsOpen&&!inventoryOpen&&!craftingTableOpen&&!initialLoading)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);updateChunkVisibility();renderer.render(scene,camera)}catch(error){console.error('SMOKEBLOCKS frame failed:',error);if(!runtimeErrorShown){runtimeErrorShown=true;window.smokeReportError?.('GAME FRAME FAILED',error?.stack||error?.message||error);toast('Game error — see diagnostic box')}}}requestAnimationFrame(loop);applyLanguage('en');
+let runtimeErrorShown=false;function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;try{processChunkQueue(dt);if($('start').style.display==='none'&&!settingsOpen&&!inventoryOpen&&!craftingTableOpen&&!initialLoading)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);updateAnimals(dt);updateChunkVisibility();renderer.render(scene,camera)}catch(error){console.error('SMOKEBLOCKS frame failed:',error);if(!runtimeErrorShown){runtimeErrorShown=true;window.smokeReportError?.('GAME FRAME FAILED',error?.stack||error?.message||error);toast('Game error — see diagnostic box')}}}requestAnimationFrame(loop);applyLanguage('en');
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 </script><script src="game-nav.js"></script>
 </body></html>
