@@ -235,6 +235,72 @@ function updateChunkVisibility(force=false){
 }
 function spawnBlockParticles(d){const source=materials[d.type]||materials.Grass;for(let i=0;i<9;i++){const mat=source.clone();mat.transparent=true;mat.opacity=1;mat.depthWrite=false;const size=.13+Math.random()*.09;const mesh=new THREE.Mesh(new THREE.BoxGeometry(size,size,size),mat);mesh.position.set(d.x+.5+(Math.random()-.5)*.55,d.y+.5+(Math.random()-.5)*.55,d.z+.5+(Math.random()-.5)*.55);scene.add(mesh);breakParticles.push({mesh,vx:(Math.random()-.5)*4,vy:1.2+Math.random()*3,vz:(Math.random()-.5)*4,age:0,life:.45+Math.random()*.35})}}
 function updateBreakParticles(dt){for(let i=breakParticles.length-1;i>=0;i--){const p=breakParticles[i];p.age+=dt;p.vy-=10*dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.mesh.rotation.x+=dt*7;p.mesh.rotation.y+=dt*9;p.mesh.material.opacity=Math.max(0,1-p.age/p.life);if(p.age>=p.life){scene.remove(p.mesh);p.mesh.material.dispose();breakParticles.splice(i,1)}}}
+function dropSelectedBlock(){
+ let type;
+ if(gameMode==='creative')type=defs[hotbarTypes[selected]]?.[0];
+ else{
+  const item=selectedHotbarItem();
+  if(!item||item.count<=0){toast('Selected hotbar slot is empty');return}
+  type=item.type;item.count--;
+  if(item.count<=0)inventorySlots[27+selected]=null;
+  syncBlockCounts();refreshInventory();
+ }
+ if(!type)return;
+ const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+ const mesh=new THREE.Mesh(new THREE.BoxGeometry(.42,.42,.42),materials[type]||materials.Grass);
+ mesh.position.set(player.x+forward.x*.9,player.y+1.05,player.z+forward.z*.9);
+ scene.add(mesh);
+ droppedItems.push({type,mesh,vx:forward.x*2,vy:2.2,vz:forward.z*2,age:0});
+}
+function updateDroppedItems(dt){
+ for(let i=droppedItems.length-1;i>=0;i--){
+  const item=droppedItems[i];item.age+=dt;
+  item.vy-=12*dt;
+  item.mesh.position.x+=item.vx*dt;item.mesh.position.y+=item.vy*dt;item.mesh.position.z+=item.vz*dt;
+  const floor=terrainHeight(Math.round(item.mesh.position.x),Math.round(item.mesh.position.z))+.72;
+  if(item.mesh.position.y<floor){item.mesh.position.y=floor;item.vy=Math.max(0,item.vy)*-.18;item.vx*=.72;item.vz*=.72}
+  item.mesh.rotation.x+=dt*1.8;item.mesh.rotation.y+=dt*2.4;
+  const dx=item.mesh.position.x-player.x,dy=item.mesh.position.y-(player.y+.8),dz=item.mesh.position.z-player.z;
+  if(gameMode==='survival'&&dx*dx+dy*dy+dz*dz<2.25){
+   if(addInventoryItem(item.type,1)){scene.remove(item.mesh);droppedItems.splice(i,1);refreshInventory();toast('+1 '+item.type);continue}
+  }
+  if(item.age>=180){scene.remove(item.mesh);droppedItems.splice(i,1)}
+ }
+}
+function togglePiston(d){
+ if(d.extended){retractPiston(d);return}
+ const f=d.facing||{x:0,z:1},tx=d.x+f.x,ty=d.y,tz=d.z+f.z;
+ const target=blocks.get(blockKey(tx,ty,tz));
+ if(target){
+  if(target.type==='Piston'||target.type==='Sticky Piston'||target.type==='Piston Head'){toast('Piston is blocked');return}
+  const nx=tx+f.x,ny=ty+f.y,nz=tz+f.z;
+  if(blocks.has(blockKey(nx,ny,nz))){toast('Piston is blocked');return}
+  const oldKey=chunkKey(target.x,target.z);
+  blocks.delete(blockKey(target.x,target.y,target.z));blocksByChunk.get(oldKey)?.delete(target);dirtyChunks.add(oldKey);
+  const moved=addBlock(nx,ny,nz,target.type,{...target,x:undefined,y:undefined,z:undefined});
+  d.pushedData={type:target.type,extra:Object.fromEntries(Object.entries(target).filter(([k])=>!['x','y','z','type'].includes(k))),x:nx,y:ny,z:nz,fromX:tx,fromY:ty,fromZ:tz};
+ }
+ d.extended=true;
+ addBlock(tx,ty,tz,'Piston Head',{pistonX:d.x,pistonY:d.y,pistonZ:d.z});
+ dirtyChunks.add(chunkKey(d.x,d.z));flushDirtyChunks();
+}
+function retractPiston(d){
+ if(!d.extended)return;
+ const f=d.facing||{x:0,z:1},hx=d.x+f.x,hy=d.y+f.y,hz=d.z+f.z;
+ const head=blocks.get(blockKey(hx,hy,hz));
+ if(head?.type==='Piston Head'){
+  blocks.delete(blockKey(hx,hy,hz));blocksByChunk.get(chunkKey(hx,hz))?.delete(head);dirtyChunks.add(chunkKey(hx,hz));
+ }
+ if(d.pushedData){
+  const p=d.pushedData,at=blocks.get(blockKey(p.x,p.y,p.z));
+  if(at&&at.type===p.type){
+   blocks.delete(blockKey(p.x,p.y,p.z));blocksByChunk.get(chunkKey(p.x,p.z))?.delete(at);dirtyChunks.add(chunkKey(p.x,p.z));
+   if(!blocks.has(blockKey(p.fromX,p.fromY,p.fromZ)))addBlock(p.fromX,p.fromY,p.fromZ,p.type,p.extra||{});
+  }
+  d.pushedData=null;
+ }
+ d.extended=false;flushDirtyChunks();
+}
 function removeBlock(d){if(d.type==='Piston'||d.type==='Sticky Piston')retractPiston(d);blocks.delete(blockKey(d.x,d.y,d.z));const ck=chunkKey(d.x,d.z);blocksByChunk.get(ck)?.delete(d);dirtyChunks.add(ck);flushDirtyChunks()}
 // Core inventory state and hotbar UI (kept outside world generation).
 let gameMode='creative',selected=0,inventoryOpen=false;
@@ -365,7 +431,7 @@ function update(dt){
  else if(ny<player.y&&collidesAt(player.x,ny,player.z)){ny=Math.floor(ny)+1.001;velocityY=0;onGround=true}
  player.y=ny;camera.position.set(player.x,player.y+1.5,player.z);camera.rotation.set(pitch,yaw,0)
 }
-function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;processChunkQueue(dt);if(locked&&!initialLoading)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);updateChunkVisibility();renderer.render(scene,camera)}requestAnimationFrame(loop);applyLanguage('en');
+let runtimeErrorShown=false;function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;try{processChunkQueue(dt);if(locked&&!initialLoading)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);updateChunkVisibility()}catch(error){console.error('SMOKEBLOCKS runtime update failed:',error);if(!runtimeErrorShown){runtimeErrorShown=true;toast('Game update error: '+(error?.message||String(error)))}}renderer.render(scene,camera)}requestAnimationFrame(loop);applyLanguage('en');
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 </script><script src="game-nav.js"></script>
 </body></html>
