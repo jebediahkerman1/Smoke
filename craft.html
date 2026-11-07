@@ -90,11 +90,12 @@ const armorItems={'Stone Helmet':{slot:0,color:0x9b9b9b,points:2},'Stone Chestpl
 function moveInventoryItem(fk,from,tk,to){
  if(fk===tk&&from===to)return;
  const source=fk==='offhand'?offhandSlot.item:fk==='armor'?armorSlots[from]:inventorySlots[from];if(!source)return;
+ const target=tk==='offhand'?offhandSlot.item:tk==='armor'?armorSlots[to]:inventorySlots[to];
  if(tk==='armor'&&armorItems[source.type]?.slot!==to){toast('That item does not fit this armor slot');return}
- const target=tk==='offhand'?offhandSlot.item:inventorySlots[to];
+ if(fk==='armor'&&target&&armorItems[target.type]?.slot!==from){toast('Armor pieces can only go in their matching slot');return}
  if(fk==='offhand')offhandSlot.item=null;else if(fk==='armor')armorSlots[from]=null;else inventorySlots[from]=null;
- if(tk==='offhand')offhandSlot.item=source;else inventorySlots[to]=source;
- if(target){if(fk==='offhand')offhandSlot.item=target;else if(fk==='armor'){if(armorItems[target.type]?.slot!==from){toast('Armor pieces can only go in their matching slot');if(tk==='offhand')offhandSlot.item=null;else inventorySlots[to]=null;if(fk==='offhand')offhandSlot.item=source;else armorSlots[from]=source;return}armorSlots[from]=target}else inventorySlots[from]=target}
+ if(tk==='offhand')offhandSlot.item=source;else if(tk==='armor')armorSlots[to]=source;else inventorySlots[to]=source;
+ if(target){if(fk==='offhand')offhandSlot.item=target;else if(fk==='armor')armorSlots[from]=target;else inventorySlots[from]=target}
  syncBlockCounts();refreshInventory();
 }
 function inventoryCategory(name){if(name.includes('Log')||name.includes('Planks')||name.includes('Leaves'))return 'Wood & Nature';if(['Grass','Dirt','Stone','Cobblestone','Sand','Sandstone','Gravel','Clay'].includes(name))return 'Terrain';if(['Bricks'].includes(name))return 'Building';if(['Snow','Ice'].includes(name))return 'Cold Blocks';if(['Piston','Sticky Piston','Piston Head','Redstone Block'].includes(name))return 'Redstone & Mechanisms';return 'Other'}
