@@ -92,7 +92,7 @@ function chunkKey(x,z){return Math.floor(x/CHUNK_SIZE)+','+Math.floor(z/CHUNK_SI
 function getChunk(x,z){const key=chunkKey(x,z);if(!chunkGroups.has(key)){const group=new THREE.Group();group.userData.chunkKey=key;scene.add(group);chunkGroups.set(key,group)}return chunkGroups.get(key)}
 const dirtyChunks=new Set(),blocksByChunk=new Map();
 function addBlock(x,y,z,type,extra={}){const k=blockKey(x,y,z);if(blocks.has(k))return;const data={x,y,z,type,...extra},ck=chunkKey(x,z);getChunk(x,z);blocks.set(k,data);if(!blocksByChunk.has(ck))blocksByChunk.set(ck,new Set());blocksByChunk.get(ck).add(data);dirtyChunks.add(ck);return data}
-function rebuildChunk(key){const group=chunkGroups.get(key);if(!group)return;group.clear();const byType=new Map();for(const data of (blocksByChunk.get(key)||[])){const exposed=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]].some(([dx,dy,dz])=>!blocks.has(blockKey(data.x+dx,data.y+dy,data.z+dz)));if(!exposed)continue;if(!byType.has(data.type))byType.set(data.type,[]);byType.get(data.type).push(data)}for(const [type,list] of byType){const inst=new THREE.InstancedMesh(geo,materials[type]||materials.Grass,list.length);const matrix=new THREE.Matrix4();list.forEach((d,i)=>{matrix.makeTranslation(d.x+.5,d.y+.5,d.z+.5);inst.setMatrixAt(i,matrix)});inst.instanceMatrix.needsUpdate=true;inst.userData.instanceBlocks=list;inst.computeBoundingSphere();group.add(inst)}}
+function rebuildChunk(key){const group=chunkGroups.get(key);if(!group)return;group.clear();const byType=new Map();for(const data of (blocksByChunk.get(key)||[])){const exposed=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]].some(([dx,dy,dz])=>!blocks.has(blockKey(data.x+dx,data.y+dy,data.z+dz)));if(!exposed)continue;if(!byType.has(data.type))byType.set(data.type,[]);byType.get(data.type).push(data)}for(const [type,list] of byType){const inst=new THREE.InstancedMesh(geo,materials[type]||materials.Grass,list.length);const matrix=new THREE.Matrix4();list.forEach((d,i)=>{matrix.makeTranslation(d.x+.5,d.y+.5,d.z+.5);inst.setMatrixAt(i,matrix)});inst.instanceMatrix.needsUpdate=true;inst.userData.instanceBlocks=list;inst.computeBoundingSphere();inst.frustumCulled=false;group.add(inst)}}
 function flushDirtyChunks(){for(const key of dirtyChunks)rebuildChunk(key);dirtyChunks.clear()}
 function clearWorld(){chunkQueue.length=0;queuedChunks.clear();initialChunkPending.clear();initialLoading=false;$('loadingScreen').style.display='none';for(const item of droppedItems)scene.remove(item.mesh);droppedItems.length=0;for(const p of breakParticles){scene.remove(p.mesh);p.mesh.material.dispose()}breakParticles.length=0;for(const group of chunkGroups.values())scene.remove(group);chunkGroups.clear();for(const m of waterTiles)scene.remove(m);waterTiles.length=0;blocks.clear();blocksByChunk.clear();dirtyChunks.clear();generatedChunks.clear();lastChunkX=lastChunkZ=Infinity}
 function unloadChunk(key){const group=chunkGroups.get(key);if(!group)return;for(const d of (blocksByChunk.get(key)||[]))blocks.delete(blockKey(d.x,d.y,d.z));blocksByChunk.delete(key);generatedChunks.delete(key);scene.remove(group);chunkGroups.delete(key);dirtyChunks.delete(key);for(let i=waterTiles.length-1;i>=0;i--){const w=waterTiles[i];if(w.userData.chunkKey===key){scene.remove(w);waterTiles.splice(i,1)}}}
@@ -112,6 +112,8 @@ function generateChunk(cx,cz){
   }
  }
  flushDirtyChunks();
+ const ownGroup=chunkGroups.get(key);
+ if(!ownGroup||ownGroup.children.length===0)throw new Error('Chunk '+key+' produced no visible block meshes');
 }
 
 function enqueueChunk(cx,cz,initial=false){
@@ -148,7 +150,7 @@ function processChunkQueue(dt){
  let success=false;
  try{
   generateChunk(item.cx,item.cz);
-  success=generatedChunks.has(key);
+  success=generatedChunks.has(key)&&(blocksByChunk.get(key)?.size||0)>0&&((chunkGroups.get(key)?.children.length)||0)>0;
  }catch(error){
   console.error('SMOKEBLOCKS chunk generation failed:',key,error);
   unloadChunk(key);
@@ -175,7 +177,7 @@ function generateWorld(){
  player.x=0;player.z=5;player.y=terrainHeight(0,5)+1.01;
  velocityY=0;onGround=true;fallStartY=null;
  camera.position.set(player.x,player.y+1.5,player.z);
- camera.rotation.set(pitch,yaw,0);
+ pitch=-0.22;camera.rotation.set(pitch,yaw,0);
  initialLoading=true;initialChunkDone=0;initialChunkPending.clear();initialChunkTotal=(renderDistance*2+1)**2;chunkLoadClock=0;
  $('loadingScreen').style.display='grid';updateLoadingScreen();
  // Build the player's immediate surroundings first so the world is never an empty sky.
