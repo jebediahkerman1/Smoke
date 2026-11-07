@@ -178,7 +178,18 @@ function generateWorld(){
  camera.rotation.set(pitch,yaw,0);
  initialLoading=true;initialChunkDone=0;initialChunkPending.clear();initialChunkTotal=(renderDistance*2+1)**2;chunkLoadClock=0;
  $('loadingScreen').style.display='grid';updateLoadingScreen();
+ // Build the player's immediate surroundings first so the world is never an empty sky.
+ try{
+  generateChunk(0,0);
+  initialChunkDone=1;
+ }catch(error){
+  console.error('SMOKEBLOCKS spawn chunk failed:',error);
+  $('loadingDetail').textContent='World generation error: '+(error?.message||String(error));
+  $('loadingPercent').textContent='ERROR';
+  toast('World generation failed. Open the browser console for details.');
+ }
  updateChunkVisibility(true);
+ updateLoadingScreen();
  updateSurvivalHud();
 }
 function updateChunkVisibility(force=false){
