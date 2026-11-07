@@ -21,7 +21,29 @@ const $=id=>document.getElementById(id),root=$('game');
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x7bb6e7);scene.fog=new THREE.Fog(0x7bb6e7,45,115);
 const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,720);camera.rotation.order='YXZ';
 const renderer=new THREE.WebGLRenderer({antialias:false});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;root.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xd9efff,0x68754a,2));const sun=new THREE.DirectionalLight(0xfff1d1,2.2);sun.position.set(-25,40,15);scene.add(sun);
+const hemi=new THREE.HemisphereLight(0xd9efff,0x68754a,1.8);scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xfff1d1,2.2);sun.position.set(-25,40,15);scene.add(sun);
+const moonLight=new THREE.DirectionalLight(0x9bb8e8,0);scene.add(moonLight);
+const sunOrb=new THREE.Mesh(new THREE.SphereGeometry(3,16,12),new THREE.MeshBasicMaterial({color:0xfff0a0}));scene.add(sunOrb);
+const moonOrb=new THREE.Mesh(new THREE.SphereGeometry(2.2,16,12),new THREE.MeshBasicMaterial({color:0xdce8ff}));scene.add(moonOrb);
+let dayCycleSeconds=0,worldStarted=false;
+const daySky=new THREE.Color(0x7bb6e7),nightSky=new THREE.Color(0x081326),skyColor=new THREE.Color();
+function updateDayNight(dt){
+ if(!worldStarted)return;
+ dayCycleSeconds=(dayCycleSeconds+dt)%1200;
+ const phase=dayCycleSeconds/1200*Math.PI*2;
+ const elevation=Math.sin(phase);
+ const daylight=THREE.MathUtils.smoothstep(elevation,-.16,.24);
+ const orbitX=Math.cos(phase)*115,orbitY=elevation*105;
+ sun.position.set(orbitX,orbitY,35);sunOrb.position.copy(sun.position);
+ moonLight.position.set(-orbitX,-orbitY,-35);moonOrb.position.copy(moonLight.position);
+ sun.intensity=.03+2.25*daylight;
+ moonLight.intensity=.025+.48*(1-daylight);
+ hemi.intensity=.22+1.55*daylight;
+ skyColor.copy(nightSky).lerp(daySky,daylight);
+ scene.background.copy(skyColor);scene.fog.color.copy(skyColor);
+ sunOrb.visible=elevation>-.12;moonOrb.visible=elevation<.12;
+}
 const defs=[['Grass',0x62ad3e],['Dirt',0x8a5a36],['Stone',0x888888],['Cobblestone',0x777777],['Oak Planks',0xb98a50],['Oak Log',0x80552d],['Leaves',0x3e8836],['Sand',0xd9c17b],['Bricks',0x9c5142],['Birch Planks',0xd8c99a],['Birch Log',0xe4dfc8],['Birch Leaves',0x6ca84b],['Spruce Planks',0x79502f],['Spruce Log',0x62452f],['Spruce Leaves',0x285b3c],['Jungle Planks',0xb77b43],['Jungle Log',0x98623b],['Jungle Leaves',0x278044],['Sandstone',0xc9ad73],['Cactus',0x32834a],['Snow',0xeaf5fa],['Ice',0x9bd9ec],['Gravel',0x77736d],['Clay',0x9aa6a8],['Piston',0x9b8b68],['Sticky Piston',0x8cae70],['Piston Head',0xb99a6b],['Redstone Block',0x9f2424]];
 function pixelTexture(name,base){
  const cv=document.createElement('canvas');cv.width=cv.height=16;const g=cv.getContext('2d');
@@ -42,6 +64,30 @@ function pixelTexture(name,base){
 }
 const materials={};defs.forEach(([n,color])=>{const map=pixelTexture(n,color);materials[n]=new THREE.MeshLambertMaterial({map})});
 const geo=new THREE.BoxGeometry(1,1,1),blocks=new Map(),waterTiles=[],droppedItems=[],breakParticles=[],chunkGroups=new Map(),CHUNK_SIZE=16;const MAX_INVENTORY_SLOTS=36;let renderDistance=3,worldSeed=0,lastChunkX=Infinity,lastChunkZ=Infinity;const generatedChunks=new Set();function updateFog(){const edge=renderDistance*CHUNK_SIZE;scene.fog.near=Math.max(8,edge*.66);scene.fog.far=Math.max(scene.fog.near+8,edge*.99);camera.far=Math.max(220,edge*2.2);camera.updateProjectionMatrix()}updateFog();const blockKey=(x,y,z)=>x+','+y+','+z;const waterMaterial=new THREE.MeshLambertMaterial({color:0x329ce0,transparent:true,opacity:.78,depthWrite:false});const waterGeo=new THREE.BoxGeometry(1,.055,1);
+// Deterministic smooth terrain noise and biome selection.
+function seededNoise(x,z){
+ const n=Math.sin(x*127.1+z*311.7+worldSeed*.00013)*43758.5453123;
+ return n-Math.floor(n);
+}
+function smoothNoise(x,z,scale=32){
+ const gx=x/scale,gz=z/scale,ix=Math.floor(gx),iz=Math.floor(gz),fx=gx-ix,fz=gz-iz;
+ const sx=fx*fx*(3-2*fx),sz=fz*fz*(3-2*fz);
+ const a=seededNoise(ix,iz),b=seededNoise(ix+1,iz),c=seededNoise(ix,iz+1),d=seededNoise(ix+1,iz+1);
+ return (a+(b-a)*sx)*(1-sz)+(c+(d-c)*sx)*sz;
+}
+function biomeAt(x,z){
+ const climate=smoothNoise(x+1700,z-900,115),detail=smoothNoise(x-600,z+1300,43);
+ if(climate<.23)return 'taiga';
+ if(climate>.78)return 'desert';
+ if(detail>.72)return 'jungle';
+ return 'plains';
+}
+function terrainHeight(x,z){
+ const broad=smoothNoise(x+worldSeed*.00001,z-worldSeed*.00001,105);
+ const medium=smoothNoise(x+320,z-510,43);
+ const detail=smoothNoise(x-90,z+240,19);
+ return Math.max(-5,Math.min(15,Math.floor(-2+(broad-.48)*25+(medium-.5)*12+(detail-.5)*3)));
+}
 function chunkKey(x,z){return Math.floor(x/CHUNK_SIZE)+','+Math.floor(z/CHUNK_SIZE)}
 function getChunk(x,z){const key=chunkKey(x,z);if(!chunkGroups.has(key)){const group=new THREE.Group();group.userData.chunkKey=key;scene.add(group);chunkGroups.set(key,group)}return chunkGroups.get(key)}
 const dirtyChunks=new Set(),blocksByChunk=new Map();
@@ -70,6 +116,7 @@ function generateChunk(cx,cz){
 
 function generateWorld(){
  clearWorld();
+ worldStarted=true;dayCycleSeconds=0;
  worldSeed=Math.floor(Math.random()*1000000000);
  player.x=0;player.z=5;player.y=terrainHeight(0,5)+1.01;
  velocityY=0;onGround=true;fallStartY=null;
@@ -211,7 +258,7 @@ function update(dt){
  else if(ny<player.y&&collidesAt(player.x,ny,player.z)){ny=Math.floor(ny)+1.001;velocityY=0;onGround=true}
  player.y=ny;camera.position.set(player.x,player.y+1.5,player.z);camera.rotation.set(pitch,yaw,0)
 }
-function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;if(locked)update(dt);updateSurvival(dt);updateDroppedItems(dt);updateBreakParticles(dt);updateChunkVisibility();renderer.render(scene,camera)}requestAnimationFrame(loop);applyLanguage('en');
+function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;if(locked)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);updateChunkVisibility();renderer.render(scene,camera)}requestAnimationFrame(loop);applyLanguage('en');
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 </script><script src="game-nav.js"></script>
 </body></html>
