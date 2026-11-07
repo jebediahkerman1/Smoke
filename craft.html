@@ -34,9 +34,12 @@ function updateDayNight(dt){
  const phase=dayCycleSeconds/1200*Math.PI*2;
  const elevation=Math.sin(phase);
  const daylight=THREE.MathUtils.smoothstep(elevation,-.16,.24);
- const orbitX=Math.cos(phase)*115,orbitY=elevation*105;
- sun.position.set(orbitX,orbitY,35);sunOrb.position.copy(sun.position);
- moonLight.position.set(-orbitX,-orbitY,-35);moonOrb.position.copy(moonLight.position);
+ const orbitX=Math.sin(phase)*70,orbitY=player.y+38+elevation*48;
+ const forwardX=-Math.sin(yaw),forwardZ=-Math.cos(yaw),rightX=Math.cos(yaw),rightZ=-Math.sin(yaw);
+ const skyX=player.x+forwardX*95+rightX*orbitX,skyZ=player.z+forwardZ*95+rightZ*orbitX;
+ sun.position.set(skyX,orbitY,skyZ);sunOrb.position.set(skyX,orbitY,skyZ);
+ const moonX=player.x+forwardX*95-rightX*orbitX,moonZ=player.z+forwardZ*95-rightZ*orbitX;
+ moonLight.position.set(moonX,player.y+38-elevation*48,moonZ);moonOrb.position.copy(moonLight.position);
  sun.intensity=.03+2.25*daylight;
  moonLight.intensity=.025+.48*(1-daylight);
  hemi.intensity=.22+1.55*daylight;
