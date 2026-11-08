@@ -766,7 +766,8 @@ if(mobileActive){
 }
 
 function targetBlock(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const meshes=[];for(const group of chunkGroups.values())for(const child of group.children)if(child.isInstancedMesh)meshes.push(child);const hit=ray.intersectObjects(meshes,false).find(h=>h.distance<7);if(hit)hit.blockData=hit.object.userData.instanceBlocks[hit.instanceId];return hit}
-renderer.domElement.addEventListener('mousedown',e=>{if(e.button===1)e.preventDefault();if(inventoryOpen)return;if(!locked&&!mobileActive){if(!settingsOpen&&!inventoryOpen)lock();return}if(settingsOpen||inventoryOpen)return;if(e.button!==0&&e.button!==1&&e.button!==2)return;if(e.button===2&&gameMode==='survival'&&selectedHotbarItem()?.type==='Bone'&&tameWolf())return;const hit=targetBlock();if(e.button===0&&hitAnimal())return;if(!hit)return;const d=hit.blockData;
+renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
+renderer.domElement.addEventListener('mousedown',e=>{if(e.button===1||e.button===2)e.preventDefault();if(inventoryOpen)return;if(!locked&&!mobileActive){if(!settingsOpen&&!inventoryOpen)lock();return}if(settingsOpen||inventoryOpen)return;if(e.button!==0&&e.button!==1&&e.button!==2)return;if(e.button===2&&gameMode==='survival'&&selectedHotbarItem()?.type==='Bone'&&tameWolf())return;const hit=targetBlock();if(e.button===0&&hitAnimal())return;if(!hit)return;const d=hit.blockData;
 if(e.button===2&&d.type==='Crafting Table'){openCraftingTable();return}
 if(e.button===2&&gameMode==='survival'){
  const held=selectedHotbarItem(),tool=held?.type;
