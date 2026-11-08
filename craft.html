@@ -197,10 +197,10 @@ const animalMats={cow:new THREE.MeshLambertMaterial({color:0xf0eee4}),cowPatch:n
 const animalBox=new THREE.BoxGeometry(1,1,1);
 function animalPart(group,mat,x,y,z,sx,sy,sz){const m=new THREE.Mesh(animalBox,mat);m.position.set(x,y,z);m.scale.set(sx,sy,sz);group.add(m);return m}
 function makeAnimal(type,x,z,chunk){
- const group=new THREE.Group(),body=type==='wolf'?[.72,.48,.58]:type==='sheep'?[.68,.62,.62]:type==='pig'?[.68,.55,.60]:[.80,.58,.70],base=type==='cow'?animalMats.cow:type==='pig'?animalMats.pig:type==='sheep'?animalMats.sheep:animalMats.wolf,legs=[];
+ const group=new THREE.Group(),body=type==='wolf'?[.58,.48,.72]:type==='sheep'?[.62,.62,.68]:type==='pig'?[.60,.55,.68]:[.70,.58,.80],base=type==='cow'?animalMats.cow:type==='pig'?animalMats.pig:type==='sheep'?animalMats.sheep:animalMats.wolf,legs=[];
  animalPart(group,base,0,.67,0,...body);
  if(type==='cow'){animalPart(group,animalMats.cowPatch,-.25,.72,-.215,.25,.24,.025);animalPart(group,animalMats.cowPatch,.24,.55,.215,.22,.2,.025)}
- if(type==='sheep')animalPart(group,animalMats.wool,0,.88,0,.74,.23,.70);
+ if(type==='sheep')animalPart(group,animalMats.wool,0,.88,0,.70,.23,.74);
  animalPart(group,base,0,.72,.49,(type==='pig'||type==='sheep')?.32:.38,.38,(type==='pig'||type==='sheep')?.32:.36);
  if(type==='cow'){animalPart(group,animalMats.cow,-.14,.96,.39,.09,.22,.09);animalPart(group,animalMats.cow,.14,.96,.39,.09,.22,.09)}
  if(type==='pig')animalPart(group,animalMats.pigNose,0,.66,.66,.2,.15,.045);
