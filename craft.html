@@ -401,7 +401,7 @@ function generateWorld(seedValue){
  clearWorld();
  worldStarted=true;dayCycleSeconds=0;
  worldSeed=seedToNumber(seedValue);
- $('currentWorldSeed').textContent=String(worldSeed);
+ $('currentWorldSeed').textContent=String(worldSeed);$('worldSeedInput').value=String(worldSeed);
  const safeSpawn=findSafePlayerSpawn(0,5);player.x=safeSpawn.x;player.z=safeSpawn.z;player.y=safeSpawn.y;
  velocityY=0;onGround=true;fallStartY=null;
  // Face into the spawn chunk so the first view looks across generated terrain, not out over its edge.
