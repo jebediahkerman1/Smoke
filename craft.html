@@ -85,7 +85,7 @@ const renderer=new THREE.WebGLRenderer({antialias:false});renderer.setSize(inner
 const hemi=new THREE.HemisphereLight(0xd9efff,0x68754a,1.8);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xfff1d1,2.2);sun.position.set(-25,40,15);scene.add(sun);
 const moonLight=new THREE.DirectionalLight(0x9bb8e8,0);scene.add(moonLight);
-const sunOrb=new THREE.Mesh(new THREE.BoxGeometry(5,5,1),new THREE.MeshBasicMaterial({color:0xfff0a0,fog:false,depthWrite:false}));scene.add(sunOrb);
+const sunOrb=new THREE.Mesh(new THREE.BoxGeometry(10,10,1),new THREE.MeshBasicMaterial({color:0xfff0a0,fog:false,depthWrite:false}));scene.add(sunOrb);
 const moonOrb=new THREE.Mesh(new THREE.BoxGeometry(4,4,1),new THREE.MeshBasicMaterial({color:0xdce8ff,fog:false,depthWrite:false}));scene.add(moonOrb);
 let dayCycleSeconds=0,worldStarted=false;
 const daySky=new THREE.Color(0x7bb6e7),nightSky=new THREE.Color(0x081326),skyColor=new THREE.Color();
