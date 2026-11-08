@@ -85,8 +85,8 @@ const renderer=new THREE.WebGLRenderer({antialias:false});renderer.setSize(inner
 const hemi=new THREE.HemisphereLight(0xd9efff,0x68754a,1.8);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xfff1d1,2.2);sun.position.set(-25,40,15);scene.add(sun);
 const moonLight=new THREE.DirectionalLight(0x9bb8e8,0);scene.add(moonLight);
-const sunOrb=new THREE.Mesh(new THREE.BoxGeometry(5,5,1),new THREE.MeshBasicMaterial({color:0xfff0a0}));scene.add(sunOrb);
-const moonOrb=new THREE.Mesh(new THREE.BoxGeometry(4,4,1),new THREE.MeshBasicMaterial({color:0xdce8ff}));scene.add(moonOrb);
+const sunOrb=new THREE.Mesh(new THREE.BoxGeometry(5,5,1),new THREE.MeshBasicMaterial({color:0xfff0a0,fog:false,depthWrite:false}));scene.add(sunOrb);
+const moonOrb=new THREE.Mesh(new THREE.BoxGeometry(4,4,1),new THREE.MeshBasicMaterial({color:0xdce8ff,fog:false,depthWrite:false}));scene.add(moonOrb);
 let dayCycleSeconds=0,worldStarted=false;
 const daySky=new THREE.Color(0x7bb6e7),nightSky=new THREE.Color(0x081326),skyColor=new THREE.Color();
 function updateDayNight(dt){
@@ -99,6 +99,7 @@ function updateDayNight(dt){
  const skyX=player.x-90,skyY=player.y+78,skyZ=player.z-110;
  sun.position.set(skyX,skyY,skyZ);sunOrb.position.set(skyX,skyY,skyZ);
  moonLight.position.set(player.x+90,player.y+78,player.z+110);moonOrb.position.copy(moonLight.position);
+ sunOrb.quaternion.copy(camera.quaternion);moonOrb.quaternion.copy(camera.quaternion);
  sun.intensity=.03+2.25*daylight;
  moonLight.intensity=.025+.48*(1-daylight);
  hemi.intensity=.22+1.55*daylight;
