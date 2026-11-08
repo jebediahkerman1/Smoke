@@ -196,7 +196,7 @@ function riverAt(x,z){
  return eastWest<3.8||northSouth<3.4;
 }
 function biomeAt(x,z){
- const climate=smoothNoise(x+1700,z-900,115),detail=smoothNoise(x-600,z+1300,43);
+ const climate=smoothNoise(x+1700+worldSeed*.00017,z-900-worldSeed*.00011,115),detail=smoothNoise(x-600-worldSeed*.00009,z+1300+worldSeed*.00013,43);
  if(climate<.23)return 'taiga';
  if(climate>.78)return 'desert';
  if(detail>.72)return 'jungle';
@@ -392,7 +392,7 @@ function findSafePlayerSpawn(originX=0,originZ=5){
 function seedToNumber(value){
  const raw=String(value??'').trim();
  if(!raw)return Math.floor(Math.random()*1000000000);
- if(/^[-+]?\\d+$/.test(raw))return Number(BigInt(raw) & 0xffffffffn);
+ if(/^[-+]?\d+$/.test(raw))return Number(BigInt(raw) & 0xffffffffn);
  let hash=2166136261;
  for(let i=0;i<raw.length;i++){hash^=raw.charCodeAt(i);hash=Math.imul(hash,16777619)}
  return hash>>>0;
