@@ -197,16 +197,16 @@ const animalMats={cow:new THREE.MeshLambertMaterial({color:0xf0eee4}),cowPatch:n
 const animalBox=new THREE.BoxGeometry(1,1,1);
 function animalPart(group,mat,x,y,z,sx,sy,sz){const m=new THREE.Mesh(animalBox,mat);m.position.set(x,y,z);m.scale.set(sx,sy,sz);group.add(m);return m}
 function makeAnimal(type,x,z,chunk){
- const group=new THREE.Group(),body=type==='wolf'?[.82,.48,.42]:type==='sheep'?[.78,.62,.46]:type==='pig'?[.78,.55,.43]:[.92,.58,.52],base=type==='cow'?animalMats.cow:type==='pig'?animalMats.pig:type==='sheep'?animalMats.sheep:animalMats.wolf,legs=[];
+ const group=new THREE.Group(),body=type==='wolf'?[.72,.48,.58]:type==='sheep'?[.68,.62,.62]:type==='pig'?[.68,.55,.60]:[.80,.58,.70],base=type==='cow'?animalMats.cow:type==='pig'?animalMats.pig:type==='sheep'?animalMats.sheep:animalMats.wolf,legs=[];
  animalPart(group,base,0,.67,0,...body);
  if(type==='cow'){animalPart(group,animalMats.cowPatch,-.25,.72,-.215,.25,.24,.025);animalPart(group,animalMats.cowPatch,.24,.55,.215,.22,.2,.025)}
- if(type==='sheep')animalPart(group,animalMats.wool,0,.88,0,.84,.23,.53);
- animalPart(group,base,0,.72,.39,(type==='pig'||type==='sheep')?.32:.38,.38,(type==='pig'||type==='sheep')?.32:.36);
+ if(type==='sheep')animalPart(group,animalMats.wool,0,.88,0,.74,.23,.70);
+ animalPart(group,base,0,.72,.49,(type==='pig'||type==='sheep')?.32:.38,.38,(type==='pig'||type==='sheep')?.32:.36);
  if(type==='cow'){animalPart(group,animalMats.cow,-.14,.96,.39,.09,.22,.09);animalPart(group,animalMats.cow,.14,.96,.39,.09,.22,.09)}
- if(type==='pig')animalPart(group,animalMats.pigNose,0,.66,.56,.2,.15,.045);
+ if(type==='pig')animalPart(group,animalMats.pigNose,0,.66,.66,.2,.15,.045);
  if(type==='wolf'){animalPart(group,animalMats.wolfDark,0,.59,.58,.2,.18,.12);animalPart(group,animalMats.wolfDark,-.13,.98,.39,.12,.2,.12);animalPart(group,animalMats.wolfDark,.13,.98,.39,.12,.2,.12)}
- for(const side of [-1,1])animalPart(group,animalMats.eye,side*.095,.82,.55,.05,.055,.025);
- const legSpread=(type==='pig'||type==='sheep')?.24:.28,legWidth=(type==='pig'||type==='sheep')?.12:.15;for(const xx of [-legSpread,legSpread])for(const zz of [-.16,.16])legs.push(animalPart(group,animalMats.leg,xx,.29,zz,legWidth,.48,legWidth));
+ for(const side of [-1,1])animalPart(group,animalMats.eye,side*.095,.82,.65,.05,.055,.025);
+ const legSpread=(type==='pig'||type==='sheep')?.24:.28,legWidth=(type==='pig'||type==='sheep')?.12:.15;for(const xx of [-legSpread,legSpread])for(const zz of [-.23,.23])legs.push(animalPart(group,animalMats.leg,xx,.29,zz,legWidth,.48,legWidth));
  group.position.set(x,terrainHeight(Math.round(x),Math.round(z))+1,z);for(const part of group.children){part.material=part.material.clone();part.userData.normalColor=part.material.color?part.material.color.clone():null}scene.add(group);
  const mob={type,group,legs,chunk,hitFlash:0,fleeTimer:0,hp:type==='wolf'?5:3,maxHp:type==='wolf'?5:3,tamed:false,owner:false,target:null,attackTick:0,phase:Math.random()*6.28,dir:Math.random()*Math.PI*2,turn:2+Math.random()*5,speed:type==='wolf'?1.25:.65};animals.push(mob);for(const child of group.children)animalMeshes.push(child);
 }
