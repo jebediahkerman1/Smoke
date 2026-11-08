@@ -188,7 +188,7 @@ function smoothNoise(x,z,scale=32){
  return (a+(b-a)*sx)*(1-sz)+(c+(d-c)*sx)*sz;
 }
 function oceanAt(x,z){
- return smoothNoise(x+worldSeed*.0007+830,z-worldSeed*.0007-510,260)>.69;
+ return smoothNoise(x+worldSeed*.0007+830,z-worldSeed*.0007-510,300)>.78;
 }
 function riverAt(x,z){
  const phase=worldSeed*.0000007;
@@ -199,7 +199,8 @@ function riverAt(x,z){
 function biomeAt(x,z){
  const climate=smoothNoise(x+1700+worldSeed*.00017,z-900-worldSeed*.00011,115),detail=smoothNoise(x-600-worldSeed*.00009,z+1300+worldSeed*.00013,43);
  if(climate<.23)return 'taiga';
- if(climate>.78&&x*x+z*z>128*128)return 'desert';
+ if(climate>.86&&x*x+z*z>320*320)return 'desert';
+ if(x*x+z*z<96*96)return 'plains';
  if(detail>.72)return 'jungle';
  if(detail>.64)return 'cherry';
  return 'plains';
@@ -217,7 +218,7 @@ function addBlock(x,y,z,type,extra={}){const k=blockKey(x,y,z);if(blocks.has(k))
 function rebuildChunk(key){const group=chunkGroups.get(key);if(!group)return;group.clear();const byType=new Map();for(const data of (blocksByChunk.get(key)||[])){const exposed=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]].some(([dx,dy,dz])=>{const neighbor=blocks.get(blockKey(data.x+dx,data.y+dy,data.z+dz));return !neighbor||neighbor.type==='Tall Grass'});if(!exposed)continue;if(!byType.has(data.type))byType.set(data.type,[]);byType.get(data.type).push(data)}for(const [type,list] of byType){const material=type==='Tall Grass'?materials[type].clone():materials[type]||materials.Grass;if(type==='Tall Grass')material.side=THREE.DoubleSide;const inst=new THREE.InstancedMesh(blockGeometries[type]||geo,material,list.length);const matrix=new THREE.Matrix4();list.forEach((d,i)=>{matrix.makeTranslation(d.x+.5,d.y+.5,d.z+.5);inst.setMatrixAt(i,matrix)});inst.instanceMatrix.needsUpdate=true;inst.userData.instanceBlocks=list;inst.computeBoundingSphere();inst.frustumCulled=true;group.add(inst)}}
 function flushDirtyChunks(){for(const key of dirtyChunks)rebuildChunk(key);dirtyChunks.clear()}
 function clearWorld(){for(const mob of [...animals])removeAnimal(mob);chunkQueue.length=0;queuedChunks.clear();initialChunkPending.clear();initialLoading=false;$('loadingScreen').style.display='none';for(const item of droppedItems)scene.remove(item.mesh);droppedItems.length=0;for(const p of breakParticles){scene.remove(p.mesh);p.mesh.material.dispose()}breakParticles.length=0;for(const p of leafParticles){scene.remove(p.mesh);p.mesh.material.dispose()}leafParticles.length=0;for(const group of chunkGroups.values())scene.remove(group);chunkGroups.clear();for(const m of waterTiles)scene.remove(m);waterTiles.length=0;waterColumns.clear();blocks.clear();blocksByChunk.clear();dirtyChunks.clear();generatedChunks.clear();lastChunkX=lastChunkZ=Infinity}
-function unloadChunk(key,deferRebuild=false){const group=chunkGroups.get(key);if(!group)return;for(const mob of [...animals])if(mob.chunk===key)removeAnimal(mob);for(const d of (blocksByChunk.get(key)||[]))blocks.delete(blockKey(d.x,d.y,d.z));blocksByChunk.delete(key);generatedChunks.delete(key);scene.remove(group);chunkGroups.delete(key);dirtyChunks.delete(key);for(let i=waterTiles.length-1;i>=0;i--){const w=waterTiles[i];if(w.userData.chunkKey===key){scene.remove(w);waterTiles.splice(i,1);waterColumns.delete(w.userData.columnKey)}}const [cx,cz]=key.split(',').map(Number);for(const neighbor of [[cx-1,cz],[cx+1,cz],[cx,cz-1],[cx,cz+1]]){const nk=neighbor.join(',');if(chunkGroups.has(nk))dirtyChunks.add(nk)}if(!deferRebuild)flushDirtyChunks()}
+function unloadChunk(key,deferRebuild=false){const group=chunkGroups.get(key);if(!group)return;for(const mob of [...animals])if(mob.chunk===key)removeAnimal(mob);for(const d of (blocksByChunk.get(key)||[]))blocks.delete(blockKey(d.x,d.y,d.z));blocksByChunk.delete(key);generatedChunks.delete(key);scene.remove(group);chunkGroups.delete(key);dirtyChunks.delete(key);for(let i=waterTiles.length-1;i>=0;i--){const w=waterTiles[i];if(w.userData.chunkKey===key){scene.remove(w);waterTiles.splice(i,1);for(const columnKey of (w.userData.columnKeys||[]))waterColumns.delete(columnKey)}}const [cx,cz]=key.split(',').map(Number);for(const neighbor of [[cx-1,cz],[cx+1,cz],[cx,cz-1],[cx,cz+1]]){const nk=neighbor.join(',');if(chunkGroups.has(nk))dirtyChunks.add(nk)}if(!deferRebuild)flushDirtyChunks()}
 
 const animals=[],animalMeshes=[];
 const animalMats={cow:new THREE.MeshLambertMaterial({color:0xf0eee4}),cowPatch:new THREE.MeshLambertMaterial({color:0x49352b}),pig:new THREE.MeshLambertMaterial({color:0xe99b9b}),pigNose:new THREE.MeshLambertMaterial({color:0xc96f78}),sheep:new THREE.MeshLambertMaterial({color:0xf0eee1}),wool:new THREE.MeshLambertMaterial({color:0xf8f5e9}),wolf:new THREE.MeshLambertMaterial({color:0x858b91}),wolfDark:new THREE.MeshLambertMaterial({color:0x4e555d}),leg:new THREE.MeshLambertMaterial({color:0x554638}),eye:new THREE.MeshLambertMaterial({color:0x171717})};
@@ -269,16 +270,16 @@ function tameWolf(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const hit=r
 function hitAnimal(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const hit=ray.intersectObjects(animalMeshes,false).find(h=>h.distance<4.5);if(!hit)return false;const mob=animals.find(a=>a.group.children.includes(hit.object));if(!mob)return false;if(mob.tamed){toast('Your wolf is on your side!');return true}mob.hp--;mob.fleeTimer=4.5;mob.hitFlash=.32;const awayX=mob.group.position.x-player.x,awayZ=mob.group.position.z-player.z;mob.dir=Math.atan2(awayX,awayZ);mob.speed=4.8;for(const part of mob.group.children)if(part.material.color)part.material.color.setRGB(0.92,0.34,0.34);toast(mob.type[0].toUpperCase()+mob.type.slice(1)+' hit · '+Math.max(0,mob.hp)+' HP');if(mob.hp<=0){if(gameMode==='survival'){const drops={Bone:1,...(mob.type==='cow'?{Steak:2}:mob.type==='pig'?{Porkchop:2}:mob.type==='sheep'?{Mutton:2,Wool:1+Math.floor(Math.random()*2)}:{})};for(const [item,count] of Object.entries(drops))if(!addInventoryItem(item,count))toast('Inventory full! Some drops were lost');refreshInventory()}removeAnimal(mob)}return true}
 
 function generateChunk(cx,cz){
- const key=cx+','+cz;if(generatedChunks.has(key))return;generatedChunks.add(key);getChunk(cx*CHUNK_SIZE,cz*CHUNK_SIZE);
+ const key=cx+','+cz;if(generatedChunks.has(key))return;generatedChunks.add(key);getChunk(cx*CHUNK_SIZE,cz*CHUNK_SIZE);const chunkWaterData=[];
  for(let x=cx*CHUNK_SIZE;x<(cx+1)*CHUNK_SIZE;x++)for(let z=cz*CHUNK_SIZE;z<(cz+1)*CHUNK_SIZE;z++){
-  const biome=biomeAt(x,z),rawH=terrainHeight(x,z),ocean=oceanAt(x,z),river=!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river&&rawH<1){for(let dx=-2;dx<=2&&!coast;dx++)for(let dz=-2;dz<=2&&!coast;dz++)if(oceanAt(x+dx,z+dz)||riverAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river||coast,h=(ocean||river)?Math.min(rawH,ocean?-4:-2):rawH,top=biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
+  const biome=biomeAt(x,z),rawH=terrainHeight(x,z),ocean=oceanAt(x,z),river=!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river){for(let dx=-1;dx<=1&&!coast;dx++)for(let dz=-1;dz<=1&&!coast;dz++)if((dx||dz)&&oceanAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river,h=(ocean||river)?Math.min(rawH,ocean?-4:-2):rawH,top=coast?'Sand':biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
   // Flat inland lakes remain separate from the larger ocean and river network.
   const flat=Math.abs(terrainHeight(x+1,z)-rawH)===0&&Math.abs(terrainHeight(x-1,z)-rawH)===0&&Math.abs(terrainHeight(x,z+1)-rawH)===0&&Math.abs(terrainHeight(x,z-1)-rawH)===0;
   const lakeCandidate=biome==='plains'&&flat&&smoothNoise(x+worldSeed*.013,z-worldSeed*.017,16)>.79;
   const lake=!seaWater&&lakeCandidate;
   const iceLake=!seaWater&&!lake&&biome==='taiga'&&flat&&smoothNoise(x+worldSeed*.013+420,z-worldSeed*.017-260,16)>.79;
   const pondDepth=2+Math.floor(seededNoise(x+worldSeed%137,z-worldSeed%251)*5);
-  const waterBed=(ocean||river||coast)?h:(lake||iceLake)?h-pondDepth:h;
+  const waterBed=(ocean||river)?h:(lake||iceLake)?h-pondDepth:h;
   for(let y=-8;y<=h;y++){
    if((seaWater||lake||iceLake)&&y>waterBed)continue;
    const type=y===waterBed?'Sand':y===h?(iceLake?'Ice':top):y>=h-3?'Dirt':biome==='desert'&&y>=h-6?'Sandstone':'Stone';
@@ -286,8 +287,9 @@ function generateChunk(cx,cz){
   }
   if(iceLake)addBlock(x,h,z,'Ice');
   if(seaWater||lake){
-   const bottom=waterBed+.5,surface=seaWater?1.5:h+.5,depth=Math.max(.1,surface-bottom);
-   const water=new THREE.Mesh(waterGeo,waterMaterial);water.scale.set(1,depth,1);water.position.set(x+.5,bottom+depth/2,z+.5);water.userData.chunkKey=key;water.userData.columnKey=x+','+z;water.userData.bottom=bottom;water.userData.surface=surface;water.userData.waterType=ocean?'ocean':river?'river':coast?'shore':'lake';scene.add(water);waterTiles.push(water);waterColumns.set(water.userData.columnKey,water.userData);
+   const bottom=waterBed+.5,surface=seaWater?1.5:h+.5,depth=Math.max(.1,surface-bottom),columnKey=x+','+z;
+   const waterData={chunkKey:key,columnKey,bottom,surface,waterType:ocean?'ocean':river?'river':'lake',x:x+.5,y:bottom+depth/2,z:z+.5,depth};
+   chunkWaterData.push(waterData);waterColumns.set(columnKey,waterData);
   }
   // Tall, block-built ice spikes rise from frozen taiga lakes.
   if(iceLake&&x>=cx*CHUNK_SIZE+3&&x<(cx+1)*CHUNK_SIZE-3&&z>=cz*CHUNK_SIZE+3&&z<(cz+1)*CHUNK_SIZE-3&&seededNoise(x+worldSeed%313+71,z-worldSeed%197-43)>.996){
@@ -308,6 +310,7 @@ function generateChunk(cx,cz){
   }
   if(biome==='taiga'&&!lake&&!iceLake&&!ocean&&!river&&roll>.78){let topBlock=null;for(let sy=h+12;sy>=h-1;sy--){const candidate=blocks.get(blockKey(x,sy,z));if(candidate){topBlock=candidate;break}}if(topBlock&&topBlock.type!=='Snow'&&topBlock.type!=='Snow Layer'&&!blocks.has(blockKey(x,topBlock.y+1,z)))addBlock(x,topBlock.y+1,z,'Snow Layer')}
  }
+ if(chunkWaterData.length){const waterMesh=new THREE.InstancedMesh(waterGeo,waterMaterial,chunkWaterData.length),matrix=new THREE.Matrix4();for(let i=0;i<chunkWaterData.length;i++){const w=chunkWaterData[i];matrix.makeScale(1,w.depth,1);matrix.setPosition(w.x,w.y,w.z);waterMesh.setMatrixAt(i,matrix)}waterMesh.instanceMatrix.needsUpdate=true;waterMesh.userData.chunkKey=key;waterMesh.userData.columnKeys=chunkWaterData.map(w=>w.columnKey);scene.add(waterMesh);waterTiles.push(waterMesh)}
  flushDirtyChunks();
  spawnChunkAnimals(cx,cz);
  const ownGroup=chunkGroups.get(key);
@@ -790,7 +793,7 @@ function collidesAt(x,y,z){
  for(let bx=minX;bx<=maxX;bx++)for(let bz=minZ;bz<=maxZ;bz++)for(let by=minY;by<=maxY;by++){const block=blocks.get(blockKey(bx,by,bz));if(block&&block.type!=='Tall Grass')return true;}
  return false;
 }
-function waterAt(x,z){return waterColumns.get(Math.round(x)+','+Math.round(z))||null}
+function waterAt(x,z){return waterColumns.get(Math.floor(x)+','+Math.floor(z))||null}
 function update(dt){
  const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));let move=new THREE.Vector3();
  const water=waterAt(player.x,player.z),inWater=!!(water&&player.y+1.72>water.bottom+.04&&player.y<water.surface-.02);
