@@ -88,11 +88,11 @@ const armBox=new THREE.BoxGeometry(1,1,1),armSleeve=new THREE.Mesh(armBox,armShi
 const armHand=new THREE.Mesh(armBox,armSkinMaterial);armHand.scale.set(.22,.34,.225);armHand.position.set(0,-.235,0);firstPersonArm.add(armHand);
 function applyPlayerSkin(skin,shirt){if(skin)playerSkin.skin=skin;if(shirt)playerSkin.shirt=shirt;armSkinMaterial.color.set(playerSkin.skin);armShirtMaterial.color.set(playerSkin.shirt);try{localStorage.setItem('smokeblocks-player-skin',JSON.stringify(playerSkin))}catch(e){}}
 try{const savedSkin=JSON.parse(localStorage.getItem('smokeblocks-player-skin')||'null');if(savedSkin){if(/^#[0-9a-f]{6}$/i.test(savedSkin.skin||''))playerSkin.skin=savedSkin.skin;if(/^#[0-9a-f]{6}$/i.test(savedSkin.shirt||''))playerSkin.shirt=savedSkin.shirt;}}catch(e){}
-const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance',precision:'mediump'});renderer.setSize(innerWidth,innerHeight);let adaptivePixelRatio=Math.min(devicePixelRatio,1.25);renderer.setPixelRatio(adaptivePixelRatio);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=true;root.appendChild(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);let adaptivePixelRatio=Math.min(devicePixelRatio,1.25);renderer.setPixelRatio(adaptivePixelRatio);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=true;root.appendChild(renderer.domElement);
 // Adaptive resolution protects frame rate on weaker GPUs while retaining full detail when performance allows.
 let perfSampleTime=0,perfFrames=0,perfFps=60,perfAdjustClock=0;
-function updateAdaptiveResolution(dt){
- perfSampleTime+=dt;perfFrames++;perfAdjustClock+=dt;
+function updateAdaptiveResolution(frameDelta){
+ perfSampleTime+=frameDelta;perfFrames++;perfAdjustClock+=frameDelta;
  if(perfSampleTime>=1){perfFps=perfFrames/perfSampleTime;perfFrames=0;perfSampleTime=0}
  if(perfAdjustClock<2)return;perfAdjustClock=0;
  const target=perfFps<42?Math.max(.7,adaptivePixelRatio-.15):perfFps>57?Math.min(Math.min(devicePixelRatio,1.25),adaptivePixelRatio+.05):adaptivePixelRatio;
@@ -766,7 +766,7 @@ function update(dt){
  else if(ny<player.y&&collidesAt(player.x,ny,player.z)){ny=Math.floor(ny)+1.001;velocityY=0;onGround=true}
  player.y=ny;camera.position.set(player.x,player.y+1.5,player.z);camera.rotation.set(pitch,yaw,0)
 }
-let runtimeErrorShown=false;function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;waterFlowTexture.offset.y=(waterFlowTexture.offset.y-dt*.12)%1;try{updateAdaptiveResolution(dt);processChunkQueue(dt);if($('start').style.display==='none'&&!settingsOpen&&!inventoryOpen&&!craftingTableOpen&&!initialLoading)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);if(perfFps>=35){spawnLeafParticles(dt);updateLeafParticles(dt);updateAnimals(dt)}else{updateAnimals(dt)}updateChunkVisibility();renderer.render(scene,camera)}catch(error){console.error('SMOKEBLOCKS frame failed:',error);if(!runtimeErrorShown){runtimeErrorShown=true;window.smokeReportError?.('GAME FRAME FAILED',error?.stack||error?.message||error);toast('Game error — see diagnostic box')}}}requestAnimationFrame(loop);const initialLanguage=(()=>{try{return localStorage.getItem('smokeblocks-language')||'en'}catch(e){return 'en'}})();applyLanguage(initialLanguage);
+let runtimeErrorShown=false;function loop(t){requestAnimationFrame(loop);const frameDelta=Math.max(0,(t-last)/1000||0),dt=Math.min(.04,frameDelta);last=t;waterFlowTexture.offset.y=(waterFlowTexture.offset.y-dt*.12)%1;try{updateAdaptiveResolution(frameDelta);processChunkQueue(dt);if($('start').style.display==='none'&&!settingsOpen&&!inventoryOpen&&!craftingTableOpen&&!initialLoading)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);if(perfFps>=35){spawnLeafParticles(dt);updateLeafParticles(dt);updateAnimals(dt)}else{updateAnimals(dt)}updateChunkVisibility();renderer.render(scene,camera)}catch(error){console.error('SMOKEBLOCKS frame failed:',error);if(!runtimeErrorShown){runtimeErrorShown=true;window.smokeReportError?.('GAME FRAME FAILED',error?.stack||error?.message||error);toast('Game error — see diagnostic box')}}}requestAnimationFrame(loop);const initialLanguage=(()=>{try{return localStorage.getItem('smokeblocks-language')||'en'}catch(e){return 'en'}})();applyLanguage(initialLanguage);
 addEventListener('resize',updateMobileOrientation);
 </script><script src="game-nav.js"></script>
 </body></html>
