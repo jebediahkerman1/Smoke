@@ -252,9 +252,17 @@ function generateChunk(cx,cz){
   // Small, deeper ponds in very flat plains. Random pond depths range from 2 to 6 blocks.
   const flat=Math.abs(terrainHeight(x+1,z)-h)<=0&&Math.abs(terrainHeight(x-1,z)-h)<=0&&Math.abs(terrainHeight(x,z+1)-h)<=0&&Math.abs(terrainHeight(x,z-1)-h)<=0;
   const lake=biome==='plains'&&flat&&smoothNoise(x+worldSeed*.013,z-worldSeed*.017,16)>.79;
+  const iceLake=biome==='taiga'&&flat&&smoothNoise(x+worldSeed*.013+420,z-worldSeed*.017-260,16)>.79;
   const pondDepth=2+Math.floor(seededNoise(x+worldSeed%137,z-worldSeed%251)*5);
-  for(let y=-8;y<=h;y++){let type=lake&&y===h-pondDepth?'Sand':y===h?(lake?'Sand':top):y>=h-3?(biome==='desert'?'Sand':biome==='taiga'?'Dirt':'Dirt'):(biome==='desert'&&y>=h-6?'Sandstone':'Stone');if(!(lake&&y>h-pondDepth))addBlock(x,y,z,type)}
+  for(let y=-8;y<=h;y++){let type=(lake||iceLake)&&y===h-pondDepth?'Sand':y===h?(iceLake?'Ice':lake?'Sand':top):y>=h-3?(biome==='desert'?'Sand':biome==='taiga'?'Dirt':'Dirt'):(biome==='desert'&&y>=h-6?'Sandstone':'Stone');if(!((lake||iceLake)&&y>h-pondDepth))addBlock(x,y,z,type)}
   if(lake){const bottom=h-pondDepth+.5,surface=h+.5,depth=surface-bottom;const water=new THREE.Mesh(waterGeo,waterMaterial);water.scale.set(1,depth,1);water.position.set(x+.5,bottom+depth/2,z+.5);water.userData.chunkKey=key;water.userData.columnKey=x+','+z;water.userData.bottom=bottom;water.userData.surface=surface;scene.add(water);waterTiles.push(water);waterColumns.set(water.userData.columnKey,water.userData)}
+  // Tall, block-built ice spikes rise from frozen taiga lakes.
+  if(iceLake&&x>=cx*CHUNK_SIZE+3&&x<(cx+1)*CHUNK_SIZE-3&&z>=cz*CHUNK_SIZE+3&&z<(cz+1)*CHUNK_SIZE-3&&seededNoise(x+worldSeed%313+71,z-worldSeed%197-43)>.996){
+   for(let level=1;level<=12;level++){
+    const radius=level<=3?2:level<=6?1:0;
+    for(let dx=-radius;dx<=radius;dx++)for(let dz=-radius;dz<=radius;dz++)addBlock(x+dx,h+level,z+dz,level>=9?'Blue Ice':'Ice');
+   }
+  }
   const roll=seededNoise(x+worldSeed%71,z-worldSeed%97);
   // Flat Lands / plains get scattered tufts of tall grass between the trees.
   if(biome==='plains'&&!lake&&roll>.82&&roll<.94)addBlock(x,h+1,z,'Tall Grass');
