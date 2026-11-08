@@ -271,23 +271,23 @@ function hitAnimal(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const hit=
 function generateChunk(cx,cz){
  const key=cx+','+cz;if(generatedChunks.has(key))return;generatedChunks.add(key);getChunk(cx*CHUNK_SIZE,cz*CHUNK_SIZE);
  for(let x=cx*CHUNK_SIZE;x<(cx+1)*CHUNK_SIZE;x++)for(let z=cz*CHUNK_SIZE;z<(cz+1)*CHUNK_SIZE;z++){
-  const biome=biomeAt(x,z),rawH=terrainHeight(x,z),ocean=oceanAt(x,z),river=!ocean&&riverAt(x,z),h=(ocean||river)?Math.min(rawH,ocean?-4:-2):rawH,top=biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
+  const biome=biomeAt(x,z),rawH=terrainHeight(x,z),ocean=oceanAt(x,z),river=!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river&&rawH<1){for(let dx=-2;dx<=2&&!coast;dx++)for(let dz=-2;dz<=2&&!coast;dz++)if(oceanAt(x+dx,z+dz)||riverAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river||coast,h=(ocean||river)?Math.min(rawH,ocean?-4:-2):rawH,top=biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
   // Flat inland lakes remain separate from the larger ocean and river network.
   const flat=Math.abs(terrainHeight(x+1,z)-rawH)===0&&Math.abs(terrainHeight(x-1,z)-rawH)===0&&Math.abs(terrainHeight(x,z+1)-rawH)===0&&Math.abs(terrainHeight(x,z-1)-rawH)===0;
   const lakeCandidate=biome==='plains'&&flat&&smoothNoise(x+worldSeed*.013,z-worldSeed*.017,16)>.79;
-  const lake=!ocean&&!river&&lakeCandidate;
-  const iceLake=!ocean&&!river&&!lake&&biome==='taiga'&&flat&&smoothNoise(x+worldSeed*.013+420,z-worldSeed*.017-260,16)>.79;
+  const lake=!seaWater&&lakeCandidate;
+  const iceLake=!seaWater&&!lake&&biome==='taiga'&&flat&&smoothNoise(x+worldSeed*.013+420,z-worldSeed*.017-260,16)>.79;
   const pondDepth=2+Math.floor(seededNoise(x+worldSeed%137,z-worldSeed%251)*5);
-  const waterBed=(ocean||river)?h:(lake||iceLake)?h-pondDepth:h;
+  const waterBed=(ocean||river||coast)?h:(lake||iceLake)?h-pondDepth:h;
   for(let y=-8;y<=h;y++){
-   if((ocean||river||lake||iceLake)&&y>waterBed)continue;
+   if((seaWater||lake||iceLake)&&y>waterBed)continue;
    const type=y===waterBed?'Sand':y===h?(iceLake?'Ice':top):y>=h-3?'Dirt':biome==='desert'&&y>=h-6?'Sandstone':'Stone';
    addBlock(x,y,z,type);
   }
   if(iceLake)addBlock(x,h,z,'Ice');
-  if(ocean||river||lake){
-   const bottom=waterBed+.5,surface=ocean||river?1.5:h+.5,depth=Math.max(.1,surface-bottom);
-   const water=new THREE.Mesh(waterGeo,waterMaterial);water.scale.set(1,depth,1);water.position.set(x+.5,bottom+depth/2,z+.5);water.userData.chunkKey=key;water.userData.columnKey=x+','+z;water.userData.bottom=bottom;water.userData.surface=surface;water.userData.waterType=ocean?'ocean':river?'river':'lake';scene.add(water);waterTiles.push(water);waterColumns.set(water.userData.columnKey,water.userData);
+  if(seaWater||lake){
+   const bottom=waterBed+.5,surface=seaWater?1.5:h+.5,depth=Math.max(.1,surface-bottom);
+   const water=new THREE.Mesh(waterGeo,waterMaterial);water.scale.set(1,depth,1);water.position.set(x+.5,bottom+depth/2,z+.5);water.userData.chunkKey=key;water.userData.columnKey=x+','+z;water.userData.bottom=bottom;water.userData.surface=surface;water.userData.waterType=ocean?'ocean':river?'river':coast?'shore':'lake';scene.add(water);waterTiles.push(water);waterColumns.set(water.userData.columnKey,water.userData);
   }
   // Tall, block-built ice spikes rise from frozen taiga lakes.
   if(iceLake&&x>=cx*CHUNK_SIZE+3&&x<(cx+1)*CHUNK_SIZE-3&&z>=cz*CHUNK_SIZE+3&&z<(cz+1)*CHUNK_SIZE-3&&seededNoise(x+worldSeed%313+71,z-worldSeed%197-43)>.996){
@@ -297,9 +297,9 @@ function generateChunk(cx,cz){
    }
   }
   const roll=seededNoise(x+worldSeed%71,z-worldSeed%97);
-  if(biome==='plains'&&!lake&&!iceLake&&!ocean&&!river&&roll>.82&&roll<.94)addBlock(x,h+1,z,'Tall Grass');
-  if(biome==='cherry'&&!lake&&!iceLake&&!ocean&&!river&&roll>.90)addBlock(x,h+1,z,'Tall Grass');
-  if(biome==='desert'&&!ocean&&!river&&roll>.986&&h>=0){const height=2+Math.floor(seededNoise(x+9,z+2)*3);for(let y=1;y<=height;y++)addBlock(x,h+y,z,'Cactus')}
+  if(biome==='plains'&&!lake&&!iceLake&&!seaWater&&roll>.82&&roll<.94)addBlock(x,h+1,z,'Tall Grass');
+  if(biome==='cherry'&&!lake&&!iceLake&&!seaWater&&roll>.90)addBlock(x,h+1,z,'Tall Grass');
+  if(biome==='desert'&&!seaWater&&roll>.986&&h>=0){const height=2+Math.floor(seededNoise(x+9,z+2)*3);for(let y=1;y<=height;y++)addBlock(x,h+y,z,'Cactus')}
   else if(biome!=='desert'&&!lake&&!iceLake&&!ocean&&!river&&roll>(biome==='jungle'?.965:biome==='taiga'?.925:biome==='plains'?.91:biome==='cherry'?.95:.972)&&h>=0&&x>=cx*CHUNK_SIZE+3&&x<(cx+1)*CHUNK_SIZE-3&&z>=cz*CHUNK_SIZE+3&&z<(cz+1)*CHUNK_SIZE-3){
    const kind=biome==='taiga'?'Spruce':biome==='jungle'?'Jungle':biome==='cherry'?'Cherry':seededNoise(x+21,z+17)>.5?'Birch':'Oak',trunk=(biome==='jungle'?6:biome==='taiga'||biome==='cherry'?5:3)+Math.floor(seededNoise(x+8,z+4)*2),log=kind+' Log',leaves=kind+' Leaves';
    for(let y=1;y<=trunk;y++)addBlock(x,h+y,z,log);
