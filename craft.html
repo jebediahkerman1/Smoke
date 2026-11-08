@@ -95,10 +95,15 @@ function updateDayNight(dt){
  const phase=dayCycleSeconds/1200*Math.PI*2;
  const elevation=Math.sin(phase);
  const daylight=THREE.MathUtils.smoothstep(elevation,-.16,.24);
- // Fixed sky positions: the sun and moon stay in place while daylight cycles.
- const skyX=player.x-90,skyY=player.y+78,skyZ=player.z-110;
- sun.position.set(skyX,skyY,skyZ);sunOrb.position.set(skyX,skyY,skyZ);
- moonLight.position.set(player.x+90,player.y+78,player.z+110);moonOrb.position.copy(moonLight.position);
+ // Slowly sweep the sun from one horizon to the other in a smooth sky arc.
+ const sunX=Math.cos(phase)*110;
+ const sunY=player.y+15+Math.sin(phase)*78;
+ const sunZ=player.z-110;
+ sun.position.set(player.x+sunX,sunY,sunZ);
+ sunOrb.position.copy(sun.position);
+ const moonPhase=phase+Math.PI;
+ moonLight.position.set(player.x+Math.cos(moonPhase)*110,player.y+15+Math.sin(moonPhase)*78,player.z-110);
+ moonOrb.position.copy(moonLight.position);
  sunOrb.quaternion.copy(camera.quaternion);moonOrb.quaternion.copy(camera.quaternion);
  sun.intensity=.03+2.25*daylight;
  moonLight.intensity=.025+.48*(1-daylight);
