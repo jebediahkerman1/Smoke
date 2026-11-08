@@ -152,6 +152,7 @@ function pixelTexture(name,base){
  const tex=new THREE.CanvasTexture(cv);tex.magFilter=THREE.NearestFilter;tex.minFilter=THREE.NearestFilter;tex.colorSpace=THREE.SRGBColorSpace;return tex;
 }
 const materials={};defs.forEach(([n,color])=>{const map=pixelTexture(n,color);materials[n]=new THREE.MeshLambertMaterial({map})});
+const dirtMenuTexture=materials['Dirt'].map.image.toDataURL();for(const id of ['start','loadingScreen']){const panel=document.getElementById(id);panel.style.backgroundColor='#8a5a36';panel.style.backgroundImage='url('+dirtMenuTexture+')';panel.style.backgroundRepeat='repeat';panel.style.backgroundSize='64px 64px';panel.style.imageRendering='pixelated'}
 const geo=new THREE.BoxGeometry(1,1,1);
 function compoundBlockGeometry(parts){
  const positions=[],normals=[],uvs=[];
