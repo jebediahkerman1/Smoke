@@ -800,7 +800,7 @@ function update(dt){
  if(keys.KeyW||keys.ArrowUp||touchKeys.KeyW)move.add(forward);if(keys.KeyS||keys.ArrowDown||touchKeys.KeyS)move.sub(forward);if(keys.KeyD||keys.ArrowRight||touchKeys.KeyD)move.add(right);if(keys.KeyA||keys.ArrowLeft||touchKeys.KeyA)move.sub(right);
  if(move.lengthSq()){if(gameMode==='survival'&&!inWater&&keys.ShiftLeft)addExhaustion(dt*.12);move.normalize().multiplyScalar((inWater?3.15:(crouching?2.2:(keys.ShiftLeft?10:5.3)))*dt);const nx=player.x+move.x,nz=player.z+move.z;if(!collidesAt(nx,player.y,player.z))player.x=nx;if(!collidesAt(player.x,player.y,nz))player.z=nz}
  const oldY=player.y,wasGrounded=onGround;if(wasGrounded)fallStartY=player.y;let ny;
- const floorY=terrainHeight(Math.round(player.x),Math.round(player.z))+1.01;
+ let floorY=terrainHeight(Math.floor(player.x),Math.floor(player.z))+1.01;const supportX=Math.floor(player.x),supportZ=Math.floor(player.z);for(let by=24;by>=-8;by--){const support=blocks.get(blockKey(supportX,by,supportZ));if(support&&support.type!=='Tall Grass'){floorY=by+1.01;break}}
  if(inWater){
   const waterFloor=water.bottom+.5,swimTop=water.surface-.12;
   if(keys.Space||touchKeys.Space)velocityY=Math.min(4.2,velocityY+20*dt);
