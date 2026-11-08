@@ -272,7 +272,7 @@ function hitAnimal(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const hit=
 function generateChunk(cx,cz){
  const key=cx+','+cz;if(generatedChunks.has(key))return;generatedChunks.add(key);getChunk(cx*CHUNK_SIZE,cz*CHUNK_SIZE);const chunkWaterData=[];
  for(let x=cx*CHUNK_SIZE;x<(cx+1)*CHUNK_SIZE;x++)for(let z=cz*CHUNK_SIZE;z<(cz+1)*CHUNK_SIZE;z++){
-  const biome=biomeAt(x,z),rawH=terrainHeight(x,z),ocean=oceanAt(x,z),river=!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river){for(let dx=-1;dx<=1&&!coast;dx++)for(let dz=-1;dz<=1&&!coast;dz++)if((dx||dz)&&oceanAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river,h=(ocean||river)?Math.min(rawH,ocean?-4:-2):rawH,top=coast?'Sand':biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
+  const biome=biomeAt(x,z),rawH=terrainHeight(x,z),ocean=oceanAt(x,z),river=!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river){for(let dx=-1;dx<=1&&!coast;dx++)for(let dz=-1;dz<=1&&!coast;dz++)if((dx||dz)&&oceanAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river,h=ocean?Math.min(rawH,-4):river?rawH-2:rawH,riverSurface=rawH+1,top=coast?'Sand':biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
   // Flat inland lakes remain separate from the larger ocean and river network.
   const flat=Math.abs(terrainHeight(x+1,z)-rawH)===0&&Math.abs(terrainHeight(x-1,z)-rawH)===0&&Math.abs(terrainHeight(x,z+1)-rawH)===0&&Math.abs(terrainHeight(x,z-1)-rawH)===0;
   const lakeCandidate=biome==='plains'&&flat&&smoothNoise(x+worldSeed*.013,z-worldSeed*.017,16)>.79;
@@ -282,12 +282,12 @@ function generateChunk(cx,cz){
   const waterBed=(ocean||river)?h:(lake||iceLake)?h-pondDepth:h;
   for(let y=-8;y<=h;y++){
    if((seaWater||lake||iceLake)&&y>waterBed)continue;
-   const type=y===waterBed?'Sand':y===h?(iceLake?'Ice':top):y>=h-3?'Dirt':biome==='desert'&&y>=h-6?'Sandstone':'Stone';
+   const type=(seaWater||lake||iceLake)&&y===waterBed?'Sand':y===h?(iceLake?'Ice':top):y>=h-3?'Dirt':biome==='desert'&&y>=h-6?'Sandstone':'Stone';
    addBlock(x,y,z,type);
   }
   if(iceLake)addBlock(x,h,z,'Ice');
   if(seaWater||lake){
-   const bottom=waterBed+.5,surface=seaWater?1.5:h+.5,depth=Math.max(.1,surface-bottom),columnKey=x+','+z;
+   const bottom=waterBed+1,surface=ocean?1.5:river?riverSurface:h+.5,depth=Math.max(.1,surface-bottom),columnKey=x+','+z;
    const waterData={chunkKey:key,columnKey,bottom,surface,waterType:ocean?'ocean':river?'river':'lake',x:x+.5,y:bottom+depth/2,z:z+.5,depth};
    chunkWaterData.push(waterData);waterColumns.set(columnKey,waterData);
   }
