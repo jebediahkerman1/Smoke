@@ -101,8 +101,10 @@ function updateDayNight(dt){
  const sunZ=player.z-110;
  sun.position.set(player.x+sunX,sunY,sunZ);
  sunOrb.position.copy(sun.position);
- const moonPhase=phase+Math.PI;
- moonLight.position.set(player.x+Math.cos(moonPhase)*110,player.y+15+Math.sin(moonPhase)*78,player.z-110);
+ // The moon rises on the opposite vertical arc as the sun descends.
+ const moonX=-Math.cos(phase)*110;
+ const moonY=player.y+15-Math.sin(phase)*78;
+ moonLight.position.set(player.x+moonX,moonY,player.z-110);
  moonOrb.position.copy(moonLight.position);
  sunOrb.quaternion.copy(camera.quaternion);moonOrb.quaternion.copy(camera.quaternion);
  sun.intensity=.03+2.25*daylight;
@@ -110,7 +112,7 @@ function updateDayNight(dt){
  hemi.intensity=.22+1.55*daylight;
  skyColor.copy(nightSky).lerp(daySky,daylight);
  scene.background.copy(skyColor);scene.fog.color.copy(skyColor);
- sunOrb.visible=elevation>-.12;moonOrb.visible=elevation<.12;
+ sunOrb.visible=elevation>-.12;moonOrb.visible=elevation<.18;
 }
 const defs=[['Grass',0x62ad3e],['Tall Grass',0x579b37],['Dirt',0x8a5a36],['Stone',0x888888],['Cobblestone',0x777777],['Oak Planks',0xb98a50],['Oak Stairs',0xa9824b],['Oak Fence',0x9a6b39],['Oak Log',0x80552d],['Cherry Log',0x9b685e],['Cherry Planks',0xe6a0b8],['Cherry Leaves',0xf18db2],['Snow Layer',0xf4f7fa],['Leaves',0x3e8836],['Sand',0xd9c17b],['Bricks',0x9c5142],['Birch Planks',0xd8c99a],['Birch Log',0xe4dfc8],['Birch Leaves',0x6ca84b],['Spruce Planks',0x79502f],['Spruce Log',0x62452f],['Spruce Leaves',0x285b3c],['Jungle Planks',0xb77b43],['Jungle Log',0x98623b],['Jungle Leaves',0x278044],['Sandstone',0xc9ad73],['Cactus',0x32834a],['Snow',0xeaf5fa],['Ice',0x9bd9ec],['Gravel',0x77736d],['Clay',0x9aa6a8],['Piston',0x9b8b68],['Sticky Piston',0x8cae70],['Piston Head',0xb99a6b],['Redstone Block',0x9f2424],['Crafting Table',0x9a7044],['Farmland',0x76502f],['Wheat Crop',0xd8bd4f],['Carrot Crop',0xe58a32],['Potato Crop',0xb58a55],['Hoe',0x8b6540],['Wheat Seeds',0x9fc45a],['Carrot Seeds',0xe98b35],['Potato Seeds',0xb58c59],['Wheat',0xd9c16b],['Potato',0xb99468],['Carrot',0xf08024],['Steak',0x8d3828],['Chicken',0xe4c5a1],['Rabbit',0xb88c69],['Bunny',0xb88c69],['Vegetable Stew',0xb56c32],['Rabbit Stew',0x9a593b],['Bread',0xc99748],['Porkchop',0xb96b62],['Mutton',0xc17b68],['Wool',0xe8e3d8],['Bone',0xe5dfc9]];
 function pixelTexture(name,base){
