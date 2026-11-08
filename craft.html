@@ -88,7 +88,17 @@ const armBox=new THREE.BoxGeometry(1,1,1),armSleeve=new THREE.Mesh(armBox,armShi
 const armHand=new THREE.Mesh(armBox,armSkinMaterial);armHand.scale.set(.22,.34,.225);armHand.position.set(0,-.235,0);firstPersonArm.add(armHand);
 function applyPlayerSkin(skin,shirt){if(skin)playerSkin.skin=skin;if(shirt)playerSkin.shirt=shirt;armSkinMaterial.color.set(playerSkin.skin);armShirtMaterial.color.set(playerSkin.shirt);try{localStorage.setItem('smokeblocks-player-skin',JSON.stringify(playerSkin))}catch(e){}}
 try{const savedSkin=JSON.parse(localStorage.getItem('smokeblocks-player-skin')||'null');if(savedSkin){if(/^#[0-9a-f]{6}$/i.test(savedSkin.skin||''))playerSkin.skin=savedSkin.skin;if(/^#[0-9a-f]{6}$/i.test(savedSkin.shirt||''))playerSkin.shirt=savedSkin.shirt;}}catch(e){}
-const renderer=new THREE.WebGLRenderer({antialias:false});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;root.appendChild(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance',precision:'mediump'});renderer.setSize(innerWidth,innerHeight);let adaptivePixelRatio=Math.min(devicePixelRatio,1.25);renderer.setPixelRatio(adaptivePixelRatio);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=true;root.appendChild(renderer.domElement);
+// Adaptive resolution protects frame rate on weaker GPUs while retaining full detail when performance allows.
+let perfSampleTime=0,perfFrames=0,perfFps=60,perfAdjustClock=0;
+function updateAdaptiveResolution(dt){
+ perfSampleTime+=dt;perfFrames++;perfAdjustClock+=dt;
+ if(perfSampleTime>=1){perfFps=perfFrames/perfSampleTime;perfFrames=0;perfSampleTime=0}
+ if(perfAdjustClock<2)return;perfAdjustClock=0;
+ const target=perfFps<42?Math.max(.7,adaptivePixelRatio-.15):perfFps>57?Math.min(Math.min(devicePixelRatio,1.25),adaptivePixelRatio+.05):adaptivePixelRatio;
+ if(Math.abs(target-adaptivePixelRatio)>.02){adaptivePixelRatio=target;renderer.setPixelRatio(adaptivePixelRatio);renderer.setSize(innerWidth,innerHeight,false)}
+}
+window.smokePerf=()=>({fps:Math.round(perfFps),pixelRatio:+adaptivePixelRatio.toFixed(2),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,chunks:chunkGroups.size,blocks:blocks.size});
 const hemi=new THREE.HemisphereLight(0xd9efff,0x68754a,1.8);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xfff1d1,3.0);sun.position.set(-25,40,15);scene.add(sun);scene.add(sun.target);
 const moonLight=new THREE.DirectionalLight(0x9bb8e8,0);scene.add(moonLight);
@@ -197,7 +207,7 @@ function addBlock(x,y,z,type,extra={}){const k=blockKey(x,y,z);if(blocks.has(k))
 function rebuildChunk(key){const group=chunkGroups.get(key);if(!group)return;group.clear();const byType=new Map();for(const data of (blocksByChunk.get(key)||[])){const exposed=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]].some(([dx,dy,dz])=>{const neighbor=blocks.get(blockKey(data.x+dx,data.y+dy,data.z+dz));return !neighbor||neighbor.type==='Tall Grass'});if(!exposed)continue;if(!byType.has(data.type))byType.set(data.type,[]);byType.get(data.type).push(data)}for(const [type,list] of byType){const material=type==='Tall Grass'?materials[type].clone():materials[type]||materials.Grass;if(type==='Tall Grass')material.side=THREE.DoubleSide;const inst=new THREE.InstancedMesh(blockGeometries[type]||geo,material,list.length);const matrix=new THREE.Matrix4();list.forEach((d,i)=>{matrix.makeTranslation(d.x+.5,d.y+.5,d.z+.5);inst.setMatrixAt(i,matrix)});inst.instanceMatrix.needsUpdate=true;inst.userData.instanceBlocks=list;inst.computeBoundingSphere();inst.frustumCulled=true;group.add(inst)}}
 function flushDirtyChunks(){for(const key of dirtyChunks)rebuildChunk(key);dirtyChunks.clear()}
 function clearWorld(){for(const mob of [...animals])removeAnimal(mob);chunkQueue.length=0;queuedChunks.clear();initialChunkPending.clear();initialLoading=false;$('loadingScreen').style.display='none';for(const item of droppedItems)scene.remove(item.mesh);droppedItems.length=0;for(const p of breakParticles){scene.remove(p.mesh);p.mesh.material.dispose()}breakParticles.length=0;for(const p of leafParticles){scene.remove(p.mesh);p.mesh.material.dispose()}leafParticles.length=0;for(const group of chunkGroups.values())scene.remove(group);chunkGroups.clear();for(const m of waterTiles)scene.remove(m);waterTiles.length=0;waterColumns.clear();blocks.clear();blocksByChunk.clear();dirtyChunks.clear();generatedChunks.clear();lastChunkX=lastChunkZ=Infinity}
-function unloadChunk(key){const group=chunkGroups.get(key);if(!group)return;for(const mob of [...animals])if(mob.chunk===key)removeAnimal(mob);for(const d of (blocksByChunk.get(key)||[]))blocks.delete(blockKey(d.x,d.y,d.z));blocksByChunk.delete(key);generatedChunks.delete(key);scene.remove(group);chunkGroups.delete(key);dirtyChunks.delete(key);for(let i=waterTiles.length-1;i>=0;i--){const w=waterTiles[i];if(w.userData.chunkKey===key){scene.remove(w);waterTiles.splice(i,1);waterColumns.delete(w.userData.columnKey)}}const [cx,cz]=key.split(',').map(Number);for(const neighbor of [[cx-1,cz],[cx+1,cz],[cx,cz-1],[cx,cz+1]]){const nk=neighbor.join(',');if(chunkGroups.has(nk))dirtyChunks.add(nk)}flushDirtyChunks()}
+function unloadChunk(key,deferRebuild=false){const group=chunkGroups.get(key);if(!group)return;for(const mob of [...animals])if(mob.chunk===key)removeAnimal(mob);for(const d of (blocksByChunk.get(key)||[]))blocks.delete(blockKey(d.x,d.y,d.z));blocksByChunk.delete(key);generatedChunks.delete(key);scene.remove(group);chunkGroups.delete(key);dirtyChunks.delete(key);for(let i=waterTiles.length-1;i>=0;i--){const w=waterTiles[i];if(w.userData.chunkKey===key){scene.remove(w);waterTiles.splice(i,1);waterColumns.delete(w.userData.columnKey)}}const [cx,cz]=key.split(',').map(Number);for(const neighbor of [[cx-1,cz],[cx+1,cz],[cx,cz-1],[cx,cz+1]]){const nk=neighbor.join(',');if(chunkGroups.has(nk))dirtyChunks.add(nk)}if(!deferRebuild)flushDirtyChunks()}
 
 const animals=[],animalMeshes=[];
 const animalMats={cow:new THREE.MeshLambertMaterial({color:0xf0eee4}),cowPatch:new THREE.MeshLambertMaterial({color:0x49352b}),pig:new THREE.MeshLambertMaterial({color:0xe99b9b}),pigNose:new THREE.MeshLambertMaterial({color:0xc96f78}),sheep:new THREE.MeshLambertMaterial({color:0xf0eee1}),wool:new THREE.MeshLambertMaterial({color:0xf8f5e9}),wolf:new THREE.MeshLambertMaterial({color:0x858b91}),wolfDark:new THREE.MeshLambertMaterial({color:0x4e555d}),leg:new THREE.MeshLambertMaterial({color:0x554638}),eye:new THREE.MeshLambertMaterial({color:0x171717})};
@@ -390,10 +400,13 @@ function updateChunkVisibility(force=false){
   for(const cx of columns)wanted.push({cx,cz});
  }
  for(const c of wanted)enqueueChunk(c.cx,c.cz,initialLoading&&initialChunkDone<initialChunkTotal);
+ let removedAny=false;
  for(const key of [...chunkGroups.keys()]){
   const [cx,cz]=key.split(',').map(Number);
-  if((cx-pcx)*(cx-pcx)+(cz-pcz)*(cz-pcz)>radiusSq)unloadChunk(key);
+  if((cx-pcx)*(cx-pcx)+(cz-pcz)*(cz-pcz)>radiusSq){unloadChunk(key,true);removedAny=true}
  }
+ // Rebuild surviving edge chunks once after the entire unload batch, not once per removed chunk.
+ if(removedAny)flushDirtyChunks();
  for(const water of waterTiles){
   const [cx,cz]=water.userData.chunkKey.split(',').map(Number);
   water.visible=(cx-pcx)*(cx-pcx)+(cz-pcz)*(cz-pcz)<=radiusSq;
@@ -753,7 +766,7 @@ function update(dt){
  else if(ny<player.y&&collidesAt(player.x,ny,player.z)){ny=Math.floor(ny)+1.001;velocityY=0;onGround=true}
  player.y=ny;camera.position.set(player.x,player.y+1.5,player.z);camera.rotation.set(pitch,yaw,0)
 }
-let runtimeErrorShown=false;function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;waterFlowTexture.offset.y=(waterFlowTexture.offset.y-dt*.12)%1;try{processChunkQueue(dt);if($('start').style.display==='none'&&!settingsOpen&&!inventoryOpen&&!craftingTableOpen&&!initialLoading)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);spawnLeafParticles(dt);updateLeafParticles(dt);updateAnimals(dt);updateChunkVisibility();renderer.render(scene,camera)}catch(error){console.error('SMOKEBLOCKS frame failed:',error);if(!runtimeErrorShown){runtimeErrorShown=true;window.smokeReportError?.('GAME FRAME FAILED',error?.stack||error?.message||error);toast('Game error — see diagnostic box')}}}requestAnimationFrame(loop);const initialLanguage=(()=>{try{return localStorage.getItem('smokeblocks-language')||'en'}catch(e){return 'en'}})();applyLanguage(initialLanguage);
+let runtimeErrorShown=false;function loop(t){requestAnimationFrame(loop);const dt=Math.min(.04,(t-last)/1000||0);last=t;waterFlowTexture.offset.y=(waterFlowTexture.offset.y-dt*.12)%1;try{updateAdaptiveResolution(dt);processChunkQueue(dt);if($('start').style.display==='none'&&!settingsOpen&&!inventoryOpen&&!craftingTableOpen&&!initialLoading)update(dt);updateSurvival(dt);updateDayNight(dt);updateDroppedItems(dt);updateBreakParticles(dt);if(perfFps>=35){spawnLeafParticles(dt);updateLeafParticles(dt);updateAnimals(dt)}else{updateAnimals(dt)}updateChunkVisibility();renderer.render(scene,camera)}catch(error){console.error('SMOKEBLOCKS frame failed:',error);if(!runtimeErrorShown){runtimeErrorShown=true;window.smokeReportError?.('GAME FRAME FAILED',error?.stack||error?.message||error);toast('Game error — see diagnostic box')}}}requestAnimationFrame(loop);const initialLanguage=(()=>{try{return localStorage.getItem('smokeblocks-language')||'en'}catch(e){return 'en'}})();applyLanguage(initialLanguage);
 addEventListener('resize',updateMobileOrientation);
 </script><script src="game-nav.js"></script>
 </body></html>
