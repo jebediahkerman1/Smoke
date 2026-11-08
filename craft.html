@@ -302,10 +302,11 @@ function generateChunk(cx,cz){
    }
   }
   const roll=seededNoise(x+worldSeed%71,z-worldSeed%97);
+  const plainsGridX=Math.floor(x/11),plainsGridZ=Math.floor(z/11),plainsTreeSpot=x===plainsGridX*11+3+Math.floor(seededNoise(plainsGridX+worldSeed%127,plainsGridZ-worldSeed%181)*5)&&z===plainsGridZ*11+3+Math.floor(seededNoise(plainsGridX-worldSeed%163+47,plainsGridZ+worldSeed%199+83)*5);
   if(biome==='plains'&&!lake&&!iceLake&&!seaWater&&roll>.82&&roll<.94)addBlock(x,h+1,z,'Tall Grass');
   if(biome==='cherry'&&!lake&&!iceLake&&!seaWater&&roll>.90)addBlock(x,h+1,z,'Tall Grass');
   if(biome==='desert'&&!seaWater&&roll>.986&&h>=0){const height=2+Math.floor(seededNoise(x+9,z+2)*3);for(let y=1;y<=height;y++)addBlock(x,h+y,z,'Cactus')}
-  else if(biome!=='desert'&&!lake&&!iceLake&&!ocean&&!river&&roll>(biome==='plains'?(flat?.52:.82):biome==='jungle'?.965:biome==='taiga'?.925:biome==='cherry'?.95:.972)){
+  else if(biome!=='desert'&&!lake&&!iceLake&&!ocean&&!river&&(biome==='plains'?plainsTreeSpot:roll>(biome==='jungle'?.965:biome==='taiga'?.925:biome==='cherry'?.95:.972))){
    const kind=biome==='taiga'?'Spruce':biome==='jungle'?'Jungle':biome==='cherry'?'Cherry':seededNoise(x+21,z+17)>.5?'Birch':'Oak',trunk=(biome==='jungle'?6:biome==='taiga'||biome==='cherry'?5:3)+Math.floor(seededNoise(x+8,z+4)*2),log=kind+' Log',leaves=kind+' Leaves',treeRadius=kind==='Jungle'||kind==='Cherry'||kind==='Spruce'?3:2;let touchesWater=false;for(let dx=-treeRadius;dx<=treeRadius&&!touchesWater;dx++)for(let dz=-treeRadius;dz<=treeRadius&&!touchesWater;dz++)if(isWaterColumnAt(x+dx,z+dz))touchesWater=true;
     if(!touchesWater){
    for(let y=1;y<=trunk;y++)addBlock(x,h+y,z,log);
