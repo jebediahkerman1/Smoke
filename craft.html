@@ -83,9 +83,9 @@ const scene=new THREE.Scene();scene.background=new THREE.Color(0x7bb6e7);scene.f
 const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,720);camera.rotation.order='YXZ';
 const renderer=new THREE.WebGLRenderer({antialias:false});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;root.appendChild(renderer.domElement);
 const hemi=new THREE.HemisphereLight(0xd9efff,0x68754a,1.8);scene.add(hemi);
-const sun=new THREE.DirectionalLight(0xfff1d1,2.2);sun.position.set(-25,40,15);scene.add(sun);
+const sun=new THREE.DirectionalLight(0xfff1d1,3.0);sun.position.set(-25,40,15);scene.add(sun);scene.add(sun.target);
 const moonLight=new THREE.DirectionalLight(0x9bb8e8,0);scene.add(moonLight);
-const sunOrb=new THREE.Mesh(new THREE.BoxGeometry(10,10,1),new THREE.MeshBasicMaterial({color:0xfff0a0,fog:false,depthWrite:false}));scene.add(sunOrb);
+const sunOrb=new THREE.Mesh(new THREE.BoxGeometry(15,15,1),new THREE.MeshBasicMaterial({color:0xfff0a0,fog:false,depthWrite:false}));scene.add(sunOrb);
 const moonOrb=new THREE.Mesh(new THREE.BoxGeometry(4,4,1),new THREE.MeshBasicMaterial({color:0xdce8ff,fog:false,depthWrite:false}));scene.add(moonOrb);
 let dayCycleSeconds=0,worldStarted=false;
 const daySky=new THREE.Color(0x7bb6e7),nightSky=new THREE.Color(0x081326),skyColor=new THREE.Color();
@@ -100,6 +100,7 @@ function updateDayNight(dt){
  const sunY=player.y+15+Math.sin(phase)*78;
  const sunZ=player.z-110;
  sun.position.set(player.x+sunX,sunY,sunZ);
+ sun.target.position.set(player.x,player.y,player.z);
  sunOrb.position.copy(sun.position);
  // The moon rises on the opposite vertical arc as the sun descends.
  const moonX=-Math.cos(phase)*110;
@@ -107,7 +108,7 @@ function updateDayNight(dt){
  moonLight.position.set(player.x+moonX,moonY,player.z-110);
  moonOrb.position.copy(moonLight.position);
  sunOrb.quaternion.copy(camera.quaternion);moonOrb.quaternion.copy(camera.quaternion);
- sun.intensity=.03+2.25*daylight;
+ sun.intensity=.03+3.0*daylight;
  moonLight.intensity=.025+.48*(1-daylight);
  hemi.intensity=.22+1.55*daylight;
  skyColor.copy(nightSky).lerp(daySky,daylight);
