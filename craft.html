@@ -455,7 +455,7 @@ function* generateChunk(cx,cz){
  }worldGeneratingChunk=false;yield;worldGeneratingChunk=true;}
  worldGeneratingChunk=false;
  applyingWorldEdits=true;
- for(const [editKey,editType] of worldEdits){const [ex,ey,ez]=editKey.split(',').map(Number);if(chunkKey(ex,ez)!==key)continue;const existing=blocks.get(editKey);if(existing){blocks.delete(editKey);blocksByChunk.get(key)?.delete(existing);dirtyChunks.add(key)}if(editType!==null)addBlock(ex,ey,ez,editType)}
+ for(const [editKey,editType] of worldEdits){const [ex,ey,ez]=editKey.split(',').map(Number);if(chunkKey(ex,ez)!==key)continue;const existing=blocks.get(editKey);if(existing){blocks.delete(editKey);blocksByChunk.get(key)?.delete(existing);dirtyChunks.add(key)}if(editType!==null)addBlock(ex,ey,ez,editType,editType==='Water'?{waterSource:true,flowLevel:0}:{})}
  applyingWorldEdits=false;
  if(chunkWaterData.length){
   // Merge adjacent water columns into larger quads to hide the block grid.
