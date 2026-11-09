@@ -86,7 +86,7 @@ const firstPersonArm=new THREE.Group();firstPersonArm.position.set(.48,-.43,-.72
 const armSkinMaterial=new THREE.MeshLambertMaterial({color:playerSkin.skin}),armShirtMaterial=new THREE.MeshLambertMaterial({color:playerSkin.shirt});
 const armBox=new THREE.BoxGeometry(1,1,1),armSleeve=new THREE.Mesh(armBox,armShirtMaterial);armSleeve.scale.set(.245,.29,.25);armSleeve.position.set(0,.075,0);firstPersonArm.add(armSleeve);
 const armHand=new THREE.Mesh(armBox,armSkinMaterial);armHand.scale.set(.22,.34,.225);armHand.position.set(0,-.235,0);firstPersonArm.add(armHand);
-function applyPlayerSkin(skin,shirt){if(skin)playerSkin.skin=skin;if(shirt)playerSkin.shirt=shirt;armSkinMaterial.color.set(playerSkin.skin);armShirtMaterial.color.set(playerSkin.shirt);bodySkinMat.color.set(playerSkin.skin);bodyShirtMat.color.set(playerSkin.shirt);if(!uploadedSkinTexture)for(const part of playerBodyParts){if(part===bodyHead||part===bodyRightArm||part===bodyLeftArm)part.material.color.set(playerSkin.skin);else if(part===bodyTorso)part.material.color.set(playerSkin.shirt)}try{localStorage.setItem('smokeblocks-player-skin',JSON.stringify(playerSkin))}catch(e){}}
+function applyPlayerSkin(skin,shirt){if(skin)playerSkin.skin=skin;if(shirt)playerSkin.shirt=shirt;armSkinMaterial.color.set(playerSkin.skin);armShirtMaterial.color.set(playerSkin.shirt);bodySkinMat.color.set(playerSkin.skin);bodyShirtMat.color.set(playerSkin.shirt);if(!uploadedSkinTexture){bodyHead.material.color.set(playerSkin.skin);bodyTorso.material.color.set(playerSkin.shirt);bodyRightArm.material.color.set(playerSkin.shirt);bodyLeftArm.material.color.set(playerSkin.shirt)}try{localStorage.setItem('smokeblocks-player-skin',JSON.stringify(playerSkin))}catch(e){}}
 try{const savedSkin=JSON.parse(localStorage.getItem('smokeblocks-player-skin')||'null');if(savedSkin){if(/^#[0-9a-f]{6}$/i.test(savedSkin.skin||''))playerSkin.skin=savedSkin.skin;if(/^#[0-9a-f]{6}$/i.test(savedSkin.shirt||''))playerSkin.shirt=savedSkin.shirt;}}catch(e){}
 const playerBody=new THREE.Group();playerBody.visible=false;scene.add(playerBody);
 const playerBodyParts=[];
@@ -121,8 +121,9 @@ function applyUploadedSkin(dataUrl,save=true){
   if(save){try{localStorage.setItem('smokeblocks-uploaded-skin',dataUrl)}catch(e){toast('Skin applied, but browser storage is full')}}toast('Minecraft skin applied to your character');
  };img.onerror=()=>toast('Could not read that PNG skin');img.src=dataUrl;
 }
+$('skinTone').value=playerSkin.skin;$('shirtColor').value=playerSkin.shirt;$('skinTone').addEventListener('input',()=>applyPlayerSkin($('skinTone').value,null));$('shirtColor').addEventListener('input',()=>applyPlayerSkin(null,$('shirtColor').value));
 function updatePlayerBody(){
- playerBody.visible=thirdPerson;if(!thirdPerson)return;
+ playerBody.visible=thirdPerson;if(!thirdPerson){camera.position.set(player.x,player.y+(crouching?.95:1.5),player.z);camera.rotation.set(pitch,yaw,0);return}
  playerBody.position.set(player.x,player.y,player.z);playerBody.rotation.y=Math.PI-yaw;
  const moving=keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||touchKeys.KeyW||touchKeys.KeyA||touchKeys.KeyS||touchKeys.KeyD;
  const swing=moving?Math.sin(performance.now()*.012)*.42:0;
@@ -1043,7 +1044,7 @@ document.addEventListener('wheel',e=>{if(locked)choose(selected+(e.deltaY>0?1:-1
 function collidesAt(x,y,z){
  const minX=Math.floor(x-.28),maxX=Math.floor(x+.28),minZ=Math.floor(z-.28),maxZ=Math.floor(z+.28);
  const minY=Math.floor(y),maxY=Math.floor(y+(crouching?1.05:1.72));
- for(let bx=minX;bx<=maxX;bx++)for(let bz=minZ;bz<=maxZ;bz++)for(let by=minY;by<=maxY;by++){const block=blocks.get(blockKey(bx,by,bz));if(block&&!['Tall Grass','Rail','Minecart','Powdered Snow'].includes(block.type))return true;}
+ for(let bx=minX;bx<=maxX;bx++)for(let bz=minZ;bz<=maxZ;bz++)for(let by=minY;by<=maxY;by++){const block=blocks.get(blockKey(bx,by,bz));if(block&&!['Tall Grass','Rail','Minecart','Powdered Snow','Water'].includes(block.type))return true;}
  return false;
 }
 function waterAt(x,z){return waterColumns.get(Math.floor(x)+','+Math.floor(z))||null}
@@ -1053,7 +1054,7 @@ function update(dt){
  if(keys.KeyW||keys.ArrowUp||touchKeys.KeyW)move.add(forward);if(keys.KeyS||keys.ArrowDown||touchKeys.KeyS)move.sub(forward);if(keys.KeyD||keys.ArrowRight||touchKeys.KeyD)move.add(right);if(keys.KeyA||keys.ArrowLeft||touchKeys.KeyA)move.sub(right);
  if(move.lengthSq()){if(gameMode==='survival'&&!inWater&&keys.ShiftLeft)addExhaustion(dt*.12);move.normalize().multiplyScalar((inWater?3.15:(crouching?2.2:(keys.ShiftLeft?10:5.3)))*dt);const nx=player.x+move.x,nz=player.z+move.z;if(!collidesAt(nx,player.y,player.z))player.x=nx;if(!collidesAt(player.x,player.y,nz))player.z=nz}
  const oldY=player.y,wasGrounded=onGround;if(wasGrounded)fallStartY=player.y;let ny;
- let floorY=terrainHeight(Math.floor(player.x),Math.floor(player.z))+1.01;const supportX=Math.floor(player.x),supportZ=Math.floor(player.z);for(let by=64;by>=-48;by--){const support=blocks.get(blockKey(supportX,by,supportZ));if(support&&!['Tall Grass','Powdered Snow'].includes(support.type)){floorY=by+1.01;break}}
+ let floorY=terrainHeight(Math.floor(player.x),Math.floor(player.z))+1.01;const supportX=Math.floor(player.x),supportZ=Math.floor(player.z);for(let by=64;by>=-48;by--){const support=blocks.get(blockKey(supportX,by,supportZ));if(support&&!['Tall Grass','Powdered Snow','Water'].includes(support.type)){floorY=by+1.01;break}}
  if(flightMode){
   if(keys.Space||touchKeys.Space)velocityY=8;else if(keys.ShiftLeft||keys.ControlLeft||touchKeys.ShiftLeft||touchKeys.ControlLeft)velocityY=-8;else velocityY=0;
   ny=player.y+velocityY*dt;if(collidesAt(player.x,ny,player.z)){ny=player.y;velocityY=0}onGround=false;fallStartY=null;
