@@ -431,7 +431,7 @@ function generateWorld(seedValue,restorePosition=null){
  worldStarted=true;dayCycleSeconds=0;
  worldSeed=seedToNumber(seedValue);
  $('currentWorldSeed').textContent=String(worldSeed);$('worldSeedInput').value=String(worldSeed);
- const safeSpawn=restorePosition||findSafePlayerSpawn(0,5);player.x=Number(safeSpawn.x??safeSpawn.x)||.5;player.z=Number(safeSpawn.z??safeSpawn.z)||5.5;player.y=Number(safeSpawn.y??safeSpawn.y)||1.01;
+ const safeSpawn=restorePosition||findSafePlayerSpawn(0,5);player.x=Number(safeSpawn.x??.5);player.z=Number(safeSpawn.z??5.5);player.y=Number(safeSpawn.y??1.01);
  velocityY=0;onGround=true;fallStartY=null;
  // Face into the spawn chunk so the first view looks across generated terrain, not out over its edge.
  yaw=Math.PI;pitch=-0.32;
