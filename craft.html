@@ -132,7 +132,7 @@ function updateDayNight(dt){
  scene.background.copy(skyColor);scene.fog.color.copy(skyColor);
  sunOrb.visible=elevation>-.12;moonOrb.visible=elevation<.18;
 }
-const defs=[['Grass',0x62ad3e],['Tall Grass',0x579b37],['Seaweed',0x287d49],['Dirt',0x8a5a36],['Stone',0x888888],['Cobblestone',0x777777],['Stick',0x9a7044],['Wooden Pickaxe',0x9b754b],['Oak Planks',0xb98a50],['Oak Stairs',0xa9824b],['Oak Fence',0x9a6b39],['Oak Log',0x80552d],['Cherry Log',0x9b685e],['Cherry Planks',0xe6a0b8],['Cherry Leaves',0xf18db2],['Snow Layer',0xf4f7fa],['Leaves',0x3e8836],['Sand',0xd9c17b],['Bricks',0x9c5142],['Birch Planks',0xd8c99a],['Birch Log',0xe4dfc8],['Birch Leaves',0x6ca84b],['Spruce Planks',0x79502f],['Spruce Log',0x62452f],['Spruce Leaves',0x285b3c],['Jungle Planks',0xb77b43],['Jungle Log',0x98623b],['Jungle Leaves',0x278044],['Sandstone',0xc9ad73],['Cactus',0x32834a],['Snow',0xeaf5fa],['Ice',0x9bd9ec],['Blue Ice',0x4b9de8],['Gravel',0x77736d],['Clay',0x9aa6a8],['Rail',0xb8b8b8],['Minecart',0x454545],['Piston',0x9b8b68],['Sticky Piston',0x8cae70],['Piston Head',0xb99a6b],['Redstone Block',0x9f2424],['Crafting Table',0x9a7044],['Farmland',0x76502f],['Wheat Crop',0xd8bd4f],['Carrot Crop',0xe58a32],['Potato Crop',0xb58a55],['Hoe',0x8b6540],['Wheat Seeds',0x9fc45a],['Carrot Seeds',0xe98b35],['Potato Seeds',0xb58c59],['Wheat',0xd9c16b],['Potato',0xb99468],['Carrot',0xf08024],['Steak',0x8d3828],['Chicken',0xe4c5a1],['Rabbit',0xb88c69],['Bunny',0xb88c69],['Vegetable Stew',0xb56c32],['Rabbit Stew',0x9a593b],['Bread',0xc99748],['Porkchop',0xb96b62],['Mutton',0xc17b68],['Wool',0xe8e3d8],['Bone',0xe5dfc9]];
+const defs=[['Grass',0x62ad3e],['Tall Grass',0x579b37],['Seaweed',0x287d49],['Dirt',0x8a5a36],['Stone',0x888888],['Cobblestone',0x777777],['Stick',0x9a7044],['Wooden Pickaxe',0x9b754b],['Oak Planks',0xb98a50],['Oak Stairs',0xa9824b],['Oak Fence',0x9a6b39],['Oak Log',0x80552d],['Cherry Log',0x9b685e],['Cherry Planks',0xe6a0b8],['Cherry Leaves',0xf18db2],['Snow Layer',0xf4f7fa],['Powdered Snow',0xdcecf2],['Leaves',0x3e8836],['Sand',0xd9c17b],['Bricks',0x9c5142],['Birch Planks',0xd8c99a],['Birch Log',0xe4dfc8],['Birch Leaves',0x6ca84b],['Spruce Planks',0x79502f],['Spruce Log',0x62452f],['Spruce Leaves',0x285b3c],['Jungle Planks',0xb77b43],['Jungle Log',0x98623b],['Jungle Leaves',0x278044],['Sandstone',0xc9ad73],['Cactus',0x32834a],['Snow',0xeaf5fa],['Ice',0x9bd9ec],['Blue Ice',0x4b9de8],['Gravel',0x77736d],['Clay',0x9aa6a8],['Rail',0xb8b8b8],['Minecart',0x454545],['Piston',0x9b8b68],['Sticky Piston',0x8cae70],['Piston Head',0xb99a6b],['Redstone Block',0x9f2424],['Crafting Table',0x9a7044],['Farmland',0x76502f],['Wheat Crop',0xd8bd4f],['Carrot Crop',0xe58a32],['Potato Crop',0xb58a55],['Hoe',0x8b6540],['Wheat Seeds',0x9fc45a],['Carrot Seeds',0xe98b35],['Potato Seeds',0xb58c59],['Wheat',0xd9c16b],['Potato',0xb99468],['Carrot',0xf08024],['Steak',0x8d3828],['Chicken',0xe4c5a1],['Rabbit',0xb88c69],['Bunny',0xb88c69],['Vegetable Stew',0xb56c32],['Rabbit Stew',0x9a593b],['Bread',0xc99748],['Porkchop',0xb96b62],['Mutton',0xc17b68],['Wool',0xe8e3d8],['Bone',0xe5dfc9]];
 function pixelTexture(name,base){
  const cv=document.createElement('canvas');cv.width=cv.height=16;const g=cv.getContext('2d');
  const rgb=[(base>>16)&255,(base>>8)&255,base&255];g.fillStyle='#'+base.toString(16).padStart(6,'0');g.fillRect(0,0,16,16);
@@ -177,6 +177,7 @@ const blockGeometries={
  'Tall Grass':tallGrassGeometry,
   'Seaweed':tallGrassGeometry,
  'Snow Layer':compoundBlockGeometry([[1,.09,1,0,-.455,0]]),
+ 'Powdered Snow':new THREE.BoxGeometry(1,1,1),
  'Rail':compoundBlockGeometry([[.92,.07,.92,0,-.455,0],[.10,.12,.92,-.34,-.40,0],[.10,.12,.92,.34,-.40,0]]),
  'Minecart':compoundBlockGeometry([[.82,.18,.72,0,-.28,0],[.72,.12,.62,0,-.12,0],[.12,.22,.12,-.28,-.40,-.24],[.12,.22,.12,.28,-.40,-.24],[.12,.22,.12,-.28,-.40,.24],[.12,.22,.12,.28,-.40,.24]]),
  'Oak Stairs':compoundBlockGeometry([[1,.5,1,0,-.25,0],[1,.5,.5,0,.25,-.25]]),
@@ -333,7 +334,8 @@ function generateChunk(cx,cz){
   // Flat inland lakes remain separate from the larger ocean and river network.
   const flat=Math.abs(terrainHeight(x+1,z)-rawH)===0&&Math.abs(terrainHeight(x-1,z)-rawH)===0&&Math.abs(terrainHeight(x,z+1)-rawH)===0&&Math.abs(terrainHeight(x,z-1)-rawH)===0;
   const lakeField=smoothNoise(x+worldSeed*.013,z-worldSeed*.017,38)*.72+smoothNoise(x-worldSeed*.021+340,z+worldSeed*.017-180,13)*.28;
-  const lakeCandidate=biome==='plains'&&lakeField>.79;
+  const lakeFlat=flat&&Math.max(...[[-5,0],[5,0],[0,-5],[0,5],[-4,-4],[4,-4],[-4,4],[4,4]].map(([dx,dz])=>terrainHeight(x+dx,z+dz)))-Math.min(...[[-5,0],[5,0],[0,-5],[0,5],[-4,-4],[4,-4],[-4,4],[4,4]].map(([dx,dz])=>terrainHeight(x+dx,z+dz)))<=1;
+  const lakeCandidate=biome==='plains'&&lakeFlat&&lakeField>.79;
   const lake=!seaWater&&lakeCandidate;
   const iceLake=!seaWater&&!lake&&biome==='taiga'&&flat&&smoothNoise(x+worldSeed*.013+420,z-worldSeed*.017-260,16)>.79;
   const pondDepth=2+Math.floor((smoothNoise(x+worldSeed*.019,z-worldSeed*.023,11)+seededNoise(x+worldSeed%137,z-worldSeed%251))*.5*8);
@@ -376,7 +378,7 @@ function generateChunk(cx,cz){
   if(biome==='plains'&&!lake&&!iceLake&&!seaWater&&roll>.82&&roll<.94)addBlock(x,h+1,z,'Tall Grass');
   if(biome==='cherry'&&!lake&&!iceLake&&!seaWater&&roll>.90)addBlock(x,h+1,z,'Tall Grass');
   if(biome==='desert'&&!seaWater&&roll>.986&&h>=0){const height=2+Math.floor(seededNoise(x+9,z+2)*3);for(let y=1;y<=height;y++)addBlock(x,h+y,z,'Cactus')}
-  else if(biome!=='desert'&&!lake&&!iceLake&&!ocean&&!river&&(biome==='plains'?plainsTreeSpot:roll>(biome==='jungle'?.965:biome==='taiga'?.925:biome==='cherry'?.95:.972))){
+  else if(biome!=='desert'&&!lake&&!iceLake&&!ocean&&!river&&(biome==='plains'?plainsTreeSpot:roll>(biome==='jungle'?.965:biome==='taiga'?.99:biome==='cherry'?.95:.972))){
    const kind=biome==='taiga'?'Spruce':biome==='jungle'?'Jungle':biome==='cherry'?'Cherry':seededNoise(x+21,z+17)>.8?'Birch':'Oak',trunk=(biome==='jungle'?6:biome==='taiga'||biome==='cherry'?5:3)+Math.floor(seededNoise(x+8,z+4)*2),log=kind+' Log',leaves=kind+' Leaves',treeRadius=kind==='Jungle'||kind==='Cherry'||kind==='Spruce'?3:2;let touchesWater=false;for(let dx=-treeRadius;dx<=treeRadius&&!touchesWater;dx++)for(let dz=-treeRadius;dz<=treeRadius&&!touchesWater;dz++)if(isWaterColumnAt(x+dx,z+dz))touchesWater=true;
     if(!touchesWater){
    for(let y=1;y<=trunk;y++)addBlock(x,h+y,z,log);
@@ -899,7 +901,7 @@ document.addEventListener('wheel',e=>{if(locked)choose(selected+(e.deltaY>0?1:-1
 function collidesAt(x,y,z){
  const minX=Math.floor(x-.28),maxX=Math.floor(x+.28),minZ=Math.floor(z-.28),maxZ=Math.floor(z+.28);
  const minY=Math.floor(y),maxY=Math.floor(y+(crouching?1.05:1.72));
- for(let bx=minX;bx<=maxX;bx++)for(let bz=minZ;bz<=maxZ;bz++)for(let by=minY;by<=maxY;by++){const block=blocks.get(blockKey(bx,by,bz));if(block&&!['Tall Grass','Rail','Minecart'].includes(block.type))return true;}
+ for(let bx=minX;bx<=maxX;bx++)for(let bz=minZ;bz<=maxZ;bz++)for(let by=minY;by<=maxY;by++){const block=blocks.get(blockKey(bx,by,bz));if(block&&!['Tall Grass','Rail','Minecart','Powdered Snow'].includes(block.type))return true;}
  return false;
 }
 function waterAt(x,z){return waterColumns.get(Math.floor(x)+','+Math.floor(z))||null}
@@ -909,7 +911,7 @@ function update(dt){
  if(keys.KeyW||keys.ArrowUp||touchKeys.KeyW)move.add(forward);if(keys.KeyS||keys.ArrowDown||touchKeys.KeyS)move.sub(forward);if(keys.KeyD||keys.ArrowRight||touchKeys.KeyD)move.add(right);if(keys.KeyA||keys.ArrowLeft||touchKeys.KeyA)move.sub(right);
  if(move.lengthSq()){if(gameMode==='survival'&&!inWater&&keys.ShiftLeft)addExhaustion(dt*.12);move.normalize().multiplyScalar((inWater?3.15:(crouching?2.2:(keys.ShiftLeft?10:5.3)))*dt);const nx=player.x+move.x,nz=player.z+move.z;if(!collidesAt(nx,player.y,player.z))player.x=nx;if(!collidesAt(player.x,player.y,nz))player.z=nz}
  const oldY=player.y,wasGrounded=onGround;if(wasGrounded)fallStartY=player.y;let ny;
- let floorY=terrainHeight(Math.floor(player.x),Math.floor(player.z))+1.01;const supportX=Math.floor(player.x),supportZ=Math.floor(player.z);for(let by=64;by>=-48;by--){const support=blocks.get(blockKey(supportX,by,supportZ));if(support&&support.type!=='Tall Grass'){floorY=by+1.01;break}}
+ let floorY=terrainHeight(Math.floor(player.x),Math.floor(player.z))+1.01;const supportX=Math.floor(player.x),supportZ=Math.floor(player.z);for(let by=64;by>=-48;by--){const support=blocks.get(blockKey(supportX,by,supportZ));if(support&&!['Tall Grass','Powdered Snow'].includes(support.type)){floorY=by+1.01;break}}
  if(flightMode){
   if(keys.Space||touchKeys.Space)velocityY=8;else if(keys.ShiftLeft||keys.ControlLeft||touchKeys.ShiftLeft||touchKeys.ControlLeft)velocityY=-8;else velocityY=0;
   ny=player.y+velocityY*dt;if(collidesAt(player.x,ny,player.z)){ny=player.y;velocityY=0}onGround=false;fallStartY=null;
@@ -921,7 +923,7 @@ function update(dt){
   ny=player.y+velocityY*dt;
   if(ny<waterFloor){ny=waterFloor;velocityY=0;onGround=true}else if(ny>swimTop){ny=swimTop;velocityY=Math.min(0,velocityY);onGround=false}else onGround=false;
   fallStartY=null;
- }else{velocityY-=22*dt;ny=player.y+velocityY*dt;if(ny<floorY){ny=floorY;velocityY=0;onGround=true;if(!wasGrounded&&fallStartY!==null&&fallStartY-floorY>3){const fall=Math.max(0,Math.floor(fallStartY-floorY-3));if(fall>0)damagePlayer(fall,'Fall damage')}if(!wasGrounded)fallStartY=null}}
+ }else{const powderX=Math.floor(player.x),powderZ=Math.floor(player.z),powderY=Math.floor(player.y+.65),inPowder=blocks.get(blockKey(powderX,powderY,powderZ))?.type==='Powdered Snow'||blocks.get(blockKey(powderX,Math.floor(player.y+1.35),powderZ))?.type==='Powdered Snow';velocityY-=22*dt;if(inPowder)velocityY=Math.max(velocityY,-2.1);ny=player.y+velocityY*dt;if(ny<floorY){ny=floorY;velocityY=0;onGround=true;if(!wasGrounded&&fallStartY!==null&&fallStartY-floorY>3){const fall=Math.max(0,Math.floor(fallStartY-floorY-3));if(fall>0)damagePlayer(fall,'Fall damage')}if(!wasGrounded)fallStartY=null}}
  if(ny>player.y){if(collidesAt(player.x,ny,player.z)){ny=Math.floor(ny+1.72)-1.72;velocityY=0}}
  else if(ny<player.y&&collidesAt(player.x,ny,player.z)){ny=Math.floor(ny)+1.001;velocityY=0;onGround=true}
  player.y=ny;camera.position.set(player.x,player.y+1.5,player.z);camera.rotation.set(pitch,yaw,0)
