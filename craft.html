@@ -201,10 +201,13 @@ function smoothNoise(x,z,scale=32){
  return (a+(b-a)*sx)*(1-sz)+(c+(d-c)*sx)*sz;
 }
 function oceanFieldAt(x,z){
- return smoothNoise(x+worldSeed*.0007+830,z-worldSeed*.0007-510,300);
+ const broad=smoothNoise(x+worldSeed*.0007+830,z-worldSeed*.0007-510,360);
+ const bays=smoothNoise(x-worldSeed*.0011-260,z+worldSeed*.0013+740,145);
+ const inlets=smoothNoise(x+worldSeed*.0021+95,z-worldSeed*.0019-130,57);
+ return broad*.66+bays*.25+inlets*.09;
 }
 function oceanBlendAt(x,z){
- const t=Math.max(0,Math.min(1,(oceanFieldAt(x,z)-.78)/.12));
+ const t=Math.max(0,Math.min(1,(oceanFieldAt(x,z)-.69)/.17));
  return t*t*(3-2*t);
 }
 function oceanBedHeight(rawH,x,z){
@@ -212,7 +215,7 @@ function oceanBedHeight(rawH,x,z){
 }
 function oceanAt(x,z){
  const field=oceanFieldAt(x,z);
- return field>.78&&oceanBedHeight(terrainHeight(x,z),x,z)<1.5;
+ return field>.69&&oceanBedHeight(terrainHeight(x,z),x,z)<1.5;
 }
 function riverAt(x,z){
  const phase=worldSeed*.0000007;
