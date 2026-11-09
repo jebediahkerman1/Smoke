@@ -38,7 +38,7 @@ $('boltState').textContent='BOLT: '+(state.bolt?'LOCKED':'UNLOCKED');$('boltDesc
 $('boardState').textContent='BOARDED: '+(state.boarded?'YES':'NO');$('boardDesc').textContent=state.boarded?'Planks reinforce the door.':'The door has no barricade.';
 $('doorArt').style.filter=state.boarded?'brightness(.65)':'none';
 $('leaveRoom').textContent=state.inside?'🚪 Exit room':'↩ Return to room';
-$('fillTub').disabled=!state.inside||state.bathtub>=50;$('drink').disabled=!state.inside||state.water<1;$('stoveCook').disabled=!state.inside||state.fuel<1||state.food<1;$('sleep').disabled=!state.inside||state.energy>90;$('scavenge').disabled=!state.inside;
+$('fillTub').disabled=!state.inside||state.bathtub>=50;$('drink').disabled=!state.inside||state.water+state.bathtub<1;$('stoveCook').disabled=!state.inside||state.fuel<1||state.food<1;$('sleep').disabled=!state.inside||state.energy>90;$('scavenge').disabled=!state.inside;
 $('bolt').disabled=!state.inside;$('board').disabled=!state.inside||state.boarded||state.planks<2;$('unboard').disabled=!state.inside||!state.boarded;$('lockpick').disabled=!state.inside||state.lockpicks<1||!state.doorLocked;
 $('wait').disabled=!state.inside;$('goDown').disabled=!state.alive;
 }
@@ -54,7 +54,7 @@ save();render();
 }
 function action(minutes,msg){tick(minutes);if(state.alive){say(msg);log(msg)}}
 $('fillTub').onclick=()=>{if(state.bathtub>=50)return;let amount=Math.min(30,50-state.bathtub);state.bathtub+=amount;action(25,'You fill the bathtub with '+amount+' litres of stored water. It may be useful if the building supply fails.')};
-$('drink').onclick=()=>{if(state.water<1)return;state.water--;state.thirst=clamp(state.thirst-35);state.health=clamp(state.health+2);action(2,'You drink a bottle of water. Thirst eases.')};
+$('drink').onclick=()=>{if(state.water+state.bathtub<1)return;let source=state.water>0?'bottle':'bathtub';if(source==='bottle')state.water--;else state.bathtub--;state.thirst=clamp(state.thirst-35);state.health=clamp(state.health+2);action(2,source==='bottle'?'You drink a bottle of water. Thirst eases.':'You drink a cup of stored bathtub water. Thirst eases.')};
 $('stoveCook').onclick=()=>{if(state.fuel<1||state.food<1)return;state.fuel--;state.food--;state.hunger=clamp(state.hunger-42);state.energy=clamp(state.energy+8);state.stoveUsed++;action(18,'You cook a hot meal on the portable stove. Fuel remaining: '+state.fuel+'.')};
 $('sleep').onclick=()=>{if(state.energy>90)return;state.energy=clamp(state.energy+65);state.health=clamp(state.health+8);action(360,'You unroll the sleeping bag, block out the noises and sleep for six hours.')};
 $('wait').onclick=()=>action(60,'You stay quiet and wait. The apartment feels smaller by the hour.');
