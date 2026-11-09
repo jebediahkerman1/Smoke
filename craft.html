@@ -183,8 +183,14 @@ const blockGeometries={
 const blocks=new Map(),leafParticles=[],seaweedPlants=[],waterTiles=[],waterColumns=new Map(),droppedItems=[],breakParticles=[],chunkGroups=new Map(),CHUNK_SIZE=16;const SIMULATION_DISTANCE_CHUNKS=4,SIMULATION_DISTANCE_BLOCKS=SIMULATION_DISTANCE_CHUNKS*CHUNK_SIZE;let mobTickAccumulator=0,itemTickAccumulator=0;const MAX_INVENTORY_SLOTS=36;let renderDistance=8,worldSeed=0,lastChunkX=Infinity,lastChunkZ=Infinity;const generatedChunks=new Set(),chunkQueue=[],queuedChunks=new Set(),initialChunkPending=new Set();let initialChunkTotal=0,initialChunkDone=0,initialLoading=false,chunkLoadClock=0;function updateFog(){const edge=renderDistance*CHUNK_SIZE;scene.fog.near=Math.max(8,edge*.66);scene.fog.far=Math.max(scene.fog.near+8,edge*.99);camera.far=Math.max(220,edge*2.2);camera.updateProjectionMatrix()}updateFog();const blockKey=(x,y,z)=>x+','+y+','+z;const waterFlowCanvas=document.createElement('canvas');waterFlowCanvas.width=waterFlowCanvas.height=64;const waterFlowCtx=waterFlowCanvas.getContext('2d');waterFlowCtx.fillStyle='#329ce0';waterFlowCtx.fillRect(0,0,64,64);waterFlowCtx.strokeStyle='rgba(210,245,255,.42)';waterFlowCtx.lineWidth=3;for(let row=0;row<4;row++){waterFlowCtx.beginPath();for(let x=-8;x<=72;x+=4){const y=row*18+Math.sin((x+row*11)*.16)*3;if(x===-8)waterFlowCtx.moveTo(x,y);else waterFlowCtx.lineTo(x,y)}waterFlowCtx.stroke()}const waterFlowTexture=new THREE.CanvasTexture(waterFlowCanvas);waterFlowTexture.wrapS=waterFlowTexture.wrapT=THREE.RepeatWrapping;waterFlowTexture.repeat.set(1,1);waterFlowTexture.magFilter=THREE.NearestFilter;waterFlowTexture.minFilter=THREE.LinearFilter;const waterMaterial=new THREE.MeshLambertMaterial({map:waterFlowTexture,color:0xffffff,transparent:true,opacity:.62,depthWrite:false,side:THREE.DoubleSide});const waterGeo=new THREE.BoxGeometry(1,1,1);const WATER_SURFACE=.48;
 // Deterministic smooth terrain noise and biome selection.
 function seededNoise(x,z){
- const n=Math.sin(x*127.1+z*311.7+worldSeed*.00013)*43758.5453123;
- return n-Math.floor(n);
+ // Mix the world seed with integer grid coordinates so each seed creates
+ // a genuinely different, repeatable noise field across the whole world.
+ let n=Math.imul(Math.floor(x)|0,374761393);
+ n=(n+Math.imul(Math.floor(z)|0,668265263))|0;
+ n=(n+Math.imul(worldSeed|0,1442695041))|0;
+ n=Math.imul(n^(n>>>13),1274126177);
+ n^=n>>>16;
+ return (n>>>0)/4294967296;
 }
 function smoothNoise(x,z,scale=32){
  const gx=x/scale,gz=z/scale,ix=Math.floor(gx),iz=Math.floor(gz),fx=gx-ix,fz=gz-iz;
