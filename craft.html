@@ -330,9 +330,9 @@ function updateAnimals(dt){for(const mob of [...animals]){const activeDx=mob.gro
 function tameWolf(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const hit=ray.intersectObjects(animalMeshes,false).find(h=>h.distance<4.5);if(!hit)return false;const wolf=animals.find(a=>a.group.children.includes(hit.object));if(!wolf||wolf.type!=='wolf')return false;if(wolf.tamed){toast('This wolf is already your companion');return true}if(!consumeInventoryItem('Bone',1)){toast('You need a Bone to tame a wolf');return true}wolf.tamed=true;wolf.owner=true;wolf.hp=wolf.maxHp;wolf.group.add(new THREE.Mesh(new THREE.TorusGeometry(.22,.055,6,12),new THREE.MeshLambertMaterial({color:0xb52d35})));wolf.group.children[wolf.group.children.length-1].position.set(0,.72,.12);wolf.speed=2.2;refreshInventory();toast('Wolf tamed! It will follow and protect you.');return true}
 function hitAnimal(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const hit=ray.intersectObjects(animalMeshes,false).find(h=>h.distance<4.5);if(!hit)return false;const mob=animals.find(a=>a.group.children.includes(hit.object));if(!mob)return false;if(mob.tamed){toast('Your wolf is on your side!');return true}mob.hp--;mob.fleeTimer=4.5;mob.hitFlash=.32;const awayX=mob.group.position.x-player.x,awayZ=mob.group.position.z-player.z;mob.dir=Math.atan2(awayX,awayZ);mob.speed=4.8;for(const part of mob.group.children)if(part.material.color)part.material.color.setRGB(0.92,0.34,0.34);toast(mob.type[0].toUpperCase()+mob.type.slice(1)+' hit · '+Math.max(0,mob.hp)+' HP');if(mob.hp<=0){if(gameMode==='survival'){const drops={Bone:1,...(mob.type==='cow'?{Steak:2}:mob.type==='pig'?{Porkchop:2}:mob.type==='sheep'?{Mutton:2,Wool:1+Math.floor(Math.random()*2)}:{})};for(const [item,count] of Object.entries(drops))if(!addInventoryItem(item,count))toast('Inventory full! Some drops were lost');refreshInventory()}removeAnimal(mob)}return true}
 
-function generateChunk(cx,cz){
+function* generateChunk(cx,cz){
  const key=cx+','+cz;if(generatedChunks.has(key))return;worldGeneratingChunk=true;generatedChunks.add(key);getChunk(cx*CHUNK_SIZE,cz*CHUNK_SIZE);const chunkWaterData=[];
- for(let x=cx*CHUNK_SIZE;x<(cx+1)*CHUNK_SIZE;x++)for(let z=cz*CHUNK_SIZE;z<(cz+1)*CHUNK_SIZE;z++){
+ for(let x=cx*CHUNK_SIZE;x<(cx+1)*CHUNK_SIZE;x++){for(let z=cz*CHUNK_SIZE;z<(cz+1)*CHUNK_SIZE;z++){
   const biome=biomeAt(x,z),rawH=terrainHeight(x,z),ocean=oceanAt(x,z),river=!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river){for(let dx=-1;dx<=1&&!coast;dx++)for(let dz=-1;dz<=1&&!coast;dz++)if((dx||dz)&&oceanAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river,h=ocean?oceanBedHeight(rawH,x,z):river?rawH-2:rawH,riverSurface=rawH+1,top=coast?'Sand':biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
   // Flat inland lakes remain separate from the larger ocean and river network.
   const flat=Math.abs(terrainHeight(x+1,z)-rawH)===0&&Math.abs(terrainHeight(x-1,z)-rawH)===0&&Math.abs(terrainHeight(x,z+1)-rawH)===0&&Math.abs(terrainHeight(x,z-1)-rawH)===0;
@@ -402,7 +402,7 @@ function generateChunk(cx,cz){
    }
   }
   if(biome==='taiga'&&!lake&&!iceLake&&!ocean&&!river&&roll>.78){let topBlock=null;for(let sy=h+12;sy>=h-1;sy--){const candidate=blocks.get(blockKey(x,sy,z));if(candidate){topBlock=candidate;break}}if(topBlock&&topBlock.type!=='Snow'&&topBlock.type!=='Snow Layer'&&!blocks.has(blockKey(x,topBlock.y+1,z)))addBlock(x,topBlock.y+1,z,'Snow Layer')}
- }
+ }worldGeneratingChunk=false;yield;worldGeneratingChunk=true;}
  worldGeneratingChunk=false;
  applyingWorldEdits=true;
  for(const [editKey,editType] of worldEdits){const [ex,ey,ez]=editKey.split(',').map(Number);if(chunkKey(ex,ez)!==key)continue;const existing=blocks.get(editKey);if(existing){blocks.delete(editKey);blocksByChunk.get(key)?.delete(existing);dirtyChunks.add(key)}if(editType!==null)addBlock(ex,ey,ez,editType)}
@@ -472,7 +472,7 @@ function generateChunk(cx,cz){
     const axis=dx!==0?'x':'z';
     const cx=dx===1?x+1.12:dx===-1?x-.12:x+.5;
     const cz=dz===1?z+1.12:dz===-1?z-.12:z+.5;
-    for(let level=Math.floor(y-.5);level>lower+.15;level--){
+    if(!performanceMode)for(let level=Math.floor(y-.5);level>lower+.15;level--){
      addFallBlock(cx,level+.5,cz,axis);
     }
    }
@@ -532,43 +532,38 @@ function finishInitialLoading(){
  setWorldText('loadingDetail','World ready!','finishInitialLoading');
  setTimeout(()=>$('loadingScreen').style.display='none',450);
 }
+let activeChunkTask=null;
 function processChunkQueue(dt){
- if(!chunkQueue.length&&initialLoading&&initialChunkPending.size){
+ if(!activeChunkTask&&!chunkQueue.length&&initialLoading&&initialChunkPending.size){
   for(const key of initialChunkPending){const [cx,cz]=key.split(',').map(Number);enqueueChunk(cx,cz,true)}
  }
- if(!chunkQueue.length)return;
- chunkLoadClock+=dt;
- if(chunkLoadClock<.012)return;
- chunkLoadClock=0;
- // Build one chunk per pass to avoid large frame-time spikes when exploring.
- const row=[chunkQueue.shift()];
- let processedInitial=false;
- for(const item of row){
-  if(item.initial)processedInitial=true;
-  const key=item.cx+','+item.cz;
+ if(!activeChunkTask){
+  if(!chunkQueue.length)return;
+  const item=chunkQueue.shift(),key=item.cx+','+item.cz;
   queuedChunks.delete(key);
-  let success=false;
-  try{
-   generateChunk(item.cx,item.cz);
-   success=generatedChunks.has(key)&&(blocksByChunk.get(key)?.size||0)>0&&((chunkGroups.get(key)?.children.length)||0)>0;
-  }catch(error){
-   console.error('SMOKEBLOCKS chunk generation failed:',key,error);
-   unloadChunk(key);
-   if(item.attempts<2){
-    item.attempts++;
-    queuedChunks.add(key);
-    chunkQueue.push(item);
-   }else{
-    initialChunkPending.delete(key);
-    toast('A chunk failed after 3 attempts. Check the browser console.');
-   }
+  try{activeChunkTask={item,key,task:generateChunk(item.cx,item.cz)}}catch(error){
+   console.error('SMOKEBLOCKS chunk generation failed:',key,error);worldGeneratingChunk=false;unloadChunk(key);
+   if(item.attempts<2){item.attempts++;queuedChunks.add(key);chunkQueue.push(item)}
+   else{initialChunkPending.delete(key);toast('A chunk failed after 3 attempts. Check the browser console')}
+   return;
   }
-  if(success&&item.initial)initialChunkPending.delete(key)
  }
- if(processedInitial&&initialLoading){
-  initialChunkDone=initialChunkTotal-initialChunkPending.size;
-  updateLoadingScreen();
-  if(initialChunkPending.size===0)finishInitialLoading();
+ const current=activeChunkTask;
+ try{
+  // Generate two 16-block-wide terrain rows per frame to avoid whole-chunk stalls.
+  let finished=false;
+  for(let row=0;row<2;row++){const result=current.task.next();if(result.done){finished=true;break}}
+  if(!finished)return;
+  const {item,key}=current;
+  const success=generatedChunks.has(key)&&(blocksByChunk.get(key)?.size||0)>0&&((chunkGroups.get(key)?.children.length)||0)>0;
+  activeChunkTask=null;
+  if(!success){unloadChunk(key);if(item.attempts<2){item.attempts++;queuedChunks.add(key);chunkQueue.push(item)}else{initialChunkPending.delete(key);toast('A chunk failed after 3 attempts. Check the browser console')}}
+  else if(item.initial)initialChunkPending.delete(key);
+  if(item.initial&&initialLoading){initialChunkDone=initialChunkTotal-initialChunkPending.size;updateLoadingScreen();if(initialChunkPending.size===0)finishInitialLoading()}
+ }catch(error){
+  const {item,key}=current;console.error('SMOKEBLOCKS chunk generation failed:',key,error);worldGeneratingChunk=false;activeChunkTask=null;unloadChunk(key);
+  if(item.attempts<2){item.attempts++;queuedChunks.add(key);chunkQueue.push(item)}
+  else{initialChunkPending.delete(key);toast('A chunk failed after 3 attempts. Check the browser console')}
  }
 }
 function findSafePlayerSpawn(originX=0,originZ=5){
