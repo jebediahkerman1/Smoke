@@ -132,7 +132,7 @@ function updateDayNight(dt){
  scene.background.copy(skyColor);scene.fog.color.copy(skyColor);
  sunOrb.visible=elevation>-.12;moonOrb.visible=elevation<.18;
 }
-const defs=[['Grass',0x62ad3e],['Tall Grass',0x579b37],['Seaweed',0x287d49],['Dirt',0x8a5a36],['Stone',0x888888],['Cobblestone',0x777777],['Oak Planks',0xb98a50],['Oak Stairs',0xa9824b],['Oak Fence',0x9a6b39],['Oak Log',0x80552d],['Cherry Log',0x9b685e],['Cherry Planks',0xe6a0b8],['Cherry Leaves',0xf18db2],['Snow Layer',0xf4f7fa],['Leaves',0x3e8836],['Sand',0xd9c17b],['Bricks',0x9c5142],['Birch Planks',0xd8c99a],['Birch Log',0xe4dfc8],['Birch Leaves',0x6ca84b],['Spruce Planks',0x79502f],['Spruce Log',0x62452f],['Spruce Leaves',0x285b3c],['Jungle Planks',0xb77b43],['Jungle Log',0x98623b],['Jungle Leaves',0x278044],['Sandstone',0xc9ad73],['Cactus',0x32834a],['Snow',0xeaf5fa],['Ice',0x9bd9ec],['Blue Ice',0x4b9de8],['Gravel',0x77736d],['Clay',0x9aa6a8],['Piston',0x9b8b68],['Sticky Piston',0x8cae70],['Piston Head',0xb99a6b],['Redstone Block',0x9f2424],['Crafting Table',0x9a7044],['Farmland',0x76502f],['Wheat Crop',0xd8bd4f],['Carrot Crop',0xe58a32],['Potato Crop',0xb58a55],['Hoe',0x8b6540],['Wheat Seeds',0x9fc45a],['Carrot Seeds',0xe98b35],['Potato Seeds',0xb58c59],['Wheat',0xd9c16b],['Potato',0xb99468],['Carrot',0xf08024],['Steak',0x8d3828],['Chicken',0xe4c5a1],['Rabbit',0xb88c69],['Bunny',0xb88c69],['Vegetable Stew',0xb56c32],['Rabbit Stew',0x9a593b],['Bread',0xc99748],['Porkchop',0xb96b62],['Mutton',0xc17b68],['Wool',0xe8e3d8],['Bone',0xe5dfc9]];
+const defs=[['Grass',0x62ad3e],['Tall Grass',0x579b37],['Seaweed',0x287d49],['Dirt',0x8a5a36],['Stone',0x888888],['Cobblestone',0x777777],['Oak Planks',0xb98a50],['Oak Stairs',0xa9824b],['Oak Fence',0x9a6b39],['Oak Log',0x80552d],['Cherry Log',0x9b685e],['Cherry Planks',0xe6a0b8],['Cherry Leaves',0xf18db2],['Snow Layer',0xf4f7fa],['Leaves',0x3e8836],['Sand',0xd9c17b],['Bricks',0x9c5142],['Birch Planks',0xd8c99a],['Birch Log',0xe4dfc8],['Birch Leaves',0x6ca84b],['Spruce Planks',0x79502f],['Spruce Log',0x62452f],['Spruce Leaves',0x285b3c],['Jungle Planks',0xb77b43],['Jungle Log',0x98623b],['Jungle Leaves',0x278044],['Sandstone',0xc9ad73],['Cactus',0x32834a],['Snow',0xeaf5fa],['Ice',0x9bd9ec],['Blue Ice',0x4b9de8],['Gravel',0x77736d],['Clay',0x9aa6a8],['Rail',0xb8b8b8],['Minecart',0x454545],['Piston',0x9b8b68],['Sticky Piston',0x8cae70],['Piston Head',0xb99a6b],['Redstone Block',0x9f2424],['Crafting Table',0x9a7044],['Farmland',0x76502f],['Wheat Crop',0xd8bd4f],['Carrot Crop',0xe58a32],['Potato Crop',0xb58a55],['Hoe',0x8b6540],['Wheat Seeds',0x9fc45a],['Carrot Seeds',0xe98b35],['Potato Seeds',0xb58c59],['Wheat',0xd9c16b],['Potato',0xb99468],['Carrot',0xf08024],['Steak',0x8d3828],['Chicken',0xe4c5a1],['Rabbit',0xb88c69],['Bunny',0xb88c69],['Vegetable Stew',0xb56c32],['Rabbit Stew',0x9a593b],['Bread',0xc99748],['Porkchop',0xb96b62],['Mutton',0xc17b68],['Wool',0xe8e3d8],['Bone',0xe5dfc9]];
 function pixelTexture(name,base){
  const cv=document.createElement('canvas');cv.width=cv.height=16;const g=cv.getContext('2d');
  const rgb=[(base>>16)&255,(base>>8)&255,base&255];g.fillStyle='#'+base.toString(16).padStart(6,'0');g.fillRect(0,0,16,16);
@@ -177,6 +177,8 @@ const blockGeometries={
  'Tall Grass':tallGrassGeometry,
   'Seaweed':tallGrassGeometry,
  'Snow Layer':compoundBlockGeometry([[1,.09,1,0,-.455,0]]),
+ 'Rail':compoundBlockGeometry([[.92,.07,.92,0,-.455,0],[.10,.12,.92,-.34,-.40,0],[.10,.12,.92,.34,-.40,0]]),
+ 'Minecart':compoundBlockGeometry([[.82,.18,.72,0,-.28,0],[.72,.12,.62,0,-.12,0],[.12,.22,.12,-.28,-.40,-.24],[.12,.22,.12,.28,-.40,-.24],[.12,.22,.12,-.28,-.40,.24],[.12,.22,.12,.28,-.40,.24]]),
  'Oak Stairs':compoundBlockGeometry([[1,.5,1,0,-.25,0],[1,.5,.5,0,.25,-.25]]),
  'Oak Fence':compoundBlockGeometry([[.22,1,.22,0,0,0],[.78,.16,.16,0,.22,0],[.78,.16,.16,0,-.2,0],[.16,.16,.78,0,.22,0],[.16,.16,.78,0,-.2,0]])
 };
@@ -228,10 +230,30 @@ function biomeAt(x,z){
  return 'plains';
 }
 function terrainHeight(x,z){
- const broad=smoothNoise(x+worldSeed*.00001,z-worldSeed*.00001,105);
- const medium=smoothNoise(x+320,z-510,43);
- const detail=smoothNoise(x-90,z+240,19);
- return Math.max(-5,Math.min(15,Math.floor(-2+(broad-.48)*25+(medium-.5)*12+(detail-.5)*3)));
+ const broad=smoothNoise(x+worldSeed*.00001,z-worldSeed*.00001,210);
+ const mountainMask=smoothNoise(x+worldSeed*.0003+910,z-worldSeed*.0002-370,390);
+ const ridges=Math.pow(Math.max(0,smoothNoise(x+640,z-920,92)-.42),1.35)*74;
+ const medium=smoothNoise(x+320,z-510,66);
+ const detail=smoothNoise(x-90,z+240,25);
+ const foothills=(broad-.48)*25;
+ const peaks=Math.max(0,mountainMask-.57)*82+ridges;
+ return Math.max(-18,Math.min(58,Math.floor(-2+foothills+(medium-.5)*18+(detail-.5)*4+peaks)));
+}
+function caveNoiseAt(x,y,z){
+ const broad=smoothNoise(x+worldSeed*.0017+y*1.9,z-worldSeed*.0013-y*2.3,19);
+ const detail=smoothNoise(x-y*3.1+worldSeed*.002,z+y*2.7-worldSeed*.001,8);
+ return broad*.62+detail*.38;
+}
+function isCavernAt(x,y,z,surfaceHeight){
+ if(y>surfaceHeight-5||y<-46)return false;
+ const cave=caveNoiseAt(x,y,z),chamber=smoothNoise(x+worldSeed*.003+y*4,z-worldSeed*.002-y*3,47);
+ return cave>.69||(y<-13&&chamber>.76&&cave>.55);
+}
+function mineshaftCellAt(x,z){
+ const gx=Math.floor(x/96),gz=Math.floor(z/96),localX=((x%96)+96)%96,localZ=((z%96)+96)%96;
+ const lane=Math.floor(seededNoise(gx+worldSeed%311,gz-worldSeed%197)*18)+37;
+ const cross=Math.floor(seededNoise(gx+worldSeed%127+81,gz-worldSeed%223-51)*18)+37;
+ return (Math.abs(localZ-lane)<=1&&localX>=10&&localX<=86)||(Math.abs(localX-cross)<=1&&localZ>=10&&localZ<=86);
 }
 function isWaterColumnAt(x,z){const biome=biomeAt(x,z),h=terrainHeight(x,z),ocean=oceanAt(x,z),river=!ocean&&riverAt(x,z);if(ocean||river)return true;const flat=terrainHeight(x+1,z)===h&&terrainHeight(x-1,z)===h&&terrainHeight(x,z+1)===h&&terrainHeight(x,z-1)===h;return (biome==='plains'&&flat&&smoothNoise(x+worldSeed*.013,z-worldSeed*.017,16)>.94)||(biome==='taiga'&&flat&&smoothNoise(x+worldSeed*.013+420,z-worldSeed*.017-260,16)>.79)}
  function chunkKey(x,z){return Math.floor(x/CHUNK_SIZE)+','+Math.floor(z/CHUNK_SIZE)}
@@ -298,13 +320,15 @@ function generateChunk(cx,cz){
   const biome=biomeAt(x,z),rawH=terrainHeight(x,z),ocean=oceanAt(x,z),river=!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river){for(let dx=-1;dx<=1&&!coast;dx++)for(let dz=-1;dz<=1&&!coast;dz++)if((dx||dz)&&oceanAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river,h=ocean?oceanBedHeight(rawH,x,z):river?rawH-2:rawH,riverSurface=rawH+1,top=coast?'Sand':biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
   // Flat inland lakes remain separate from the larger ocean and river network.
   const flat=Math.abs(terrainHeight(x+1,z)-rawH)===0&&Math.abs(terrainHeight(x-1,z)-rawH)===0&&Math.abs(terrainHeight(x,z+1)-rawH)===0&&Math.abs(terrainHeight(x,z-1)-rawH)===0;
-  const lakeCandidate=biome==='plains'&&flat&&smoothNoise(x+worldSeed*.013,z-worldSeed*.017,16)>.94;
+  const lakeField=smoothNoise(x+worldSeed*.013,z-worldSeed*.017,38)*.72+smoothNoise(x-worldSeed*.021+340,z+worldSeed*.017-180,13)*.28;
+  const lakeCandidate=biome==='plains'&&lakeField>.79;
   const lake=!seaWater&&lakeCandidate;
   const iceLake=!seaWater&&!lake&&biome==='taiga'&&flat&&smoothNoise(x+worldSeed*.013+420,z-worldSeed*.017-260,16)>.79;
-  const pondDepth=2+Math.floor(seededNoise(x+worldSeed%137,z-worldSeed%251)*5);
+  const pondDepth=2+Math.floor((smoothNoise(x+worldSeed*.019,z-worldSeed*.023,11)+seededNoise(x+worldSeed%137,z-worldSeed%251))*.5*8);
   const waterBed=(ocean||river)?h:(lake||iceLake)?h-pondDepth:h;
-  for(let y=-8;y<=h;y++){
+  for(let y=-48;y<=h;y++){
    if((seaWater||lake||iceLake)&&y>waterBed)continue;
+   if(isCavernAt(x,y,z,rawH))continue;
    const type=(seaWater||lake||iceLake)&&y===waterBed?'Sand':y===h?(iceLake?'Ice':top):y>=h-3?'Dirt':biome==='desert'&&y>=h-6?'Sandstone':'Stone';
    addBlock(x,y,z,type);
   }
@@ -313,6 +337,23 @@ function generateChunk(cx,cz){
    const bottom=waterBed+1,surface=ocean?1.5:river?riverSurface:h+.5,depth=Math.max(.1,surface-bottom),columnKey=x+','+z;
    const waterData={chunkKey:key,columnKey,bottom,surface,waterType:ocean?'ocean':river?'river':'lake',x:x+.5,y:bottom+depth/2,z:z+.5,depth};
    chunkWaterData.push(waterData);waterColumns.set(columnKey,waterData);if((ocean||river||lake)&&surface>waterBed+2.05&&seededNoise(x+worldSeed%193+401,z-worldSeed%167-307)>.88)addBlock(x,waterBed+1,z,'Seaweed');
+  }
+  // Abandoned mineshafts with timber supports, track and parked minecarts.
+  if(mineshaftCellAt(x,z)&&rawH>-2){
+   const shaftY=-17+Math.floor(smoothNoise(x+worldSeed*.01,z-worldSeed*.01,64)*5);
+   if(shaftY<rawH-7){
+    const gx=Math.floor(x/96),gz=Math.floor(z/96),lx=((x%96)+96)%96,lz=((z%96)+96)%96;
+    const lane=Math.floor(seededNoise(gx+worldSeed%311,gz-worldSeed%197)*18)+37;
+    const cross=Math.floor(seededNoise(gx+worldSeed%127+81,gz-worldSeed%223-51)*18)+37;
+    const alongX=Math.abs(lz-lane)<=1,alongZ=Math.abs(lx-cross)<=1;
+    if(alongX||alongZ){
+     addBlock(x,shaftY,z,'Oak Planks');
+     const along=alongX?lx:lz;
+     if(along%5===0){addBlock(x,shaftY+1,z,'Oak Fence');addBlock(x,shaftY+2,z,'Oak Fence');addBlock(x,shaftY+3,z,'Oak Fence')}
+     else if(along%17===8)addBlock(x,shaftY+1,z,'Minecart');
+     else addBlock(x,shaftY+1,z,'Rail');
+    }
+   }
   }
   // Tall, block-built ice spikes rise from frozen taiga lakes.
   if(iceLake&&x>=cx*CHUNK_SIZE+3&&x<(cx+1)*CHUNK_SIZE-3&&z>=cz*CHUNK_SIZE+3&&z<(cz+1)*CHUNK_SIZE-3&&seededNoise(x+worldSeed%313+71,z-worldSeed%197-43)>.996){
@@ -417,7 +458,7 @@ function findSafePlayerSpawn(originX=0,originZ=5){
   let blocked=false;
   for(let bx=Math.floor(p.x+.5-.29);bx<=Math.floor(p.x+.5+.29)&&!blocked;bx++)for(let bz=Math.floor(p.z+.5-.29);bz<=Math.floor(p.z+.5+.29)&&!blocked;bz++)for(let by=Math.floor(spawnY);by<=Math.floor(spawnY+1.72);by++){
    const block=blocks.get(blockKey(bx,by,bz));
-   if(block&&block.type!=='Tall Grass'&&block.type!=='Snow Layer'){blocked=true;break}
+   if(block&&block.type!=='Tall Grass'&&block.type!=='Snow Layer'&&block.type!=='Rail'&&block.type!=='Minecart'){blocked=true;break}
   }
   if(!blocked)return{x:p.x+.5,z:p.z+.5,y:spawnY};
  }
@@ -826,7 +867,7 @@ document.addEventListener('wheel',e=>{if(locked)choose(selected+(e.deltaY>0?1:-1
 function collidesAt(x,y,z){
  const minX=Math.floor(x-.28),maxX=Math.floor(x+.28),minZ=Math.floor(z-.28),maxZ=Math.floor(z+.28);
  const minY=Math.floor(y),maxY=Math.floor(y+(crouching?1.05:1.72));
- for(let bx=minX;bx<=maxX;bx++)for(let bz=minZ;bz<=maxZ;bz++)for(let by=minY;by<=maxY;by++){const block=blocks.get(blockKey(bx,by,bz));if(block&&block.type!=='Tall Grass')return true;}
+ for(let bx=minX;bx<=maxX;bx++)for(let bz=minZ;bz<=maxZ;bz++)for(let by=minY;by<=maxY;by++){const block=blocks.get(blockKey(bx,by,bz));if(block&&!['Tall Grass','Rail','Minecart'].includes(block.type))return true;}
  return false;
 }
 function waterAt(x,z){return waterColumns.get(Math.floor(x)+','+Math.floor(z))||null}
@@ -836,7 +877,7 @@ function update(dt){
  if(keys.KeyW||keys.ArrowUp||touchKeys.KeyW)move.add(forward);if(keys.KeyS||keys.ArrowDown||touchKeys.KeyS)move.sub(forward);if(keys.KeyD||keys.ArrowRight||touchKeys.KeyD)move.add(right);if(keys.KeyA||keys.ArrowLeft||touchKeys.KeyA)move.sub(right);
  if(move.lengthSq()){if(gameMode==='survival'&&!inWater&&keys.ShiftLeft)addExhaustion(dt*.12);move.normalize().multiplyScalar((inWater?3.15:(crouching?2.2:(keys.ShiftLeft?10:5.3)))*dt);const nx=player.x+move.x,nz=player.z+move.z;if(!collidesAt(nx,player.y,player.z))player.x=nx;if(!collidesAt(player.x,player.y,nz))player.z=nz}
  const oldY=player.y,wasGrounded=onGround;if(wasGrounded)fallStartY=player.y;let ny;
- let floorY=terrainHeight(Math.floor(player.x),Math.floor(player.z))+1.01;const supportX=Math.floor(player.x),supportZ=Math.floor(player.z);for(let by=24;by>=-8;by--){const support=blocks.get(blockKey(supportX,by,supportZ));if(support&&support.type!=='Tall Grass'){floorY=by+1.01;break}}
+ let floorY=terrainHeight(Math.floor(player.x),Math.floor(player.z))+1.01;const supportX=Math.floor(player.x),supportZ=Math.floor(player.z);for(let by=64;by>=-48;by--){const support=blocks.get(blockKey(supportX,by,supportZ));if(support&&support.type!=='Tall Grass'){floorY=by+1.01;break}}
  if(flightMode){
   if(keys.Space||touchKeys.Space)velocityY=8;else if(keys.ShiftLeft||keys.ControlLeft||touchKeys.ShiftLeft||touchKeys.ControlLeft)velocityY=-8;else velocityY=0;
   ny=player.y+velocityY*dt;if(collidesAt(player.x,ny,player.z)){ny=player.y;velocityY=0}onGround=false;fallStartY=null;
