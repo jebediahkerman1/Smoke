@@ -385,7 +385,7 @@ function generateChunk(cx,cz){
    const forestDensity=biome==='jungle'?.89:biome==='taiga'?.92:biome==='forest'?.91:biome==='cherry'?.95:.972;
    const gx=Math.floor(x/24),gz=Math.floor(z/24),megaX=gx*24+3+Math.floor(seededNoise(gx+worldSeed%191,gz-worldSeed%137)*15),megaZ=gz*24+3+Math.floor(seededNoise(gx-worldSeed%173+41,gz+worldSeed%211-29)*15);
    const megaTree=forestBiome&&x===megaX&&z===megaZ&&seededNoise(gx+worldSeed%239+71,gz-worldSeed%157-83)>.28;
-   const regularTree=biome==='plains'?plainsTreeSpot:roll>forestDensity;
+   const treeCellSize=10,treeCellX=Math.floor(x/treeCellSize),treeCellZ=Math.floor(z/treeCellSize),treeSpotX=treeCellX*treeCellSize+2+Math.floor(seededNoise(treeCellX+worldSeed%271,treeCellZ-worldSeed%193)*6),treeSpotZ=treeCellZ*treeCellSize+2+Math.floor(seededNoise(treeCellX-worldSeed%157+61,treeCellZ+worldSeed%229-37)*6),nearMegaTree=forestBiome&&Math.hypot(x-megaX,z-megaZ)<12,regularTree=biome==='plains'?plainsTreeSpot:(biome==='cherry'||forestBiome)?(x===treeSpotX&&z===treeSpotZ&&!nearMegaTree):roll>forestDensity;
    if(megaTree){
     const kind=biome==='taiga'?'Spruce':biome==='jungle'?'Jungle':'Oak',height=(biome==='jungle'?19:biome==='taiga'?17:15)+Math.floor(seededNoise(x+13,z+29)*7),log=kind+' Log',leaves=kind+' Leaves';
     let touchesWater=false;for(let dx=-5;dx<=6&&!touchesWater;dx++)for(let dz=-5;dz<=6&&!touchesWater;dz++)if(isWaterColumnAt(x+dx,z+dz))touchesWater=true;
