@@ -198,8 +198,19 @@ function smoothNoise(x,z,scale=32){
  const a=seededNoise(ix,iz),b=seededNoise(ix+1,iz),c=seededNoise(ix,iz+1),d=seededNoise(ix+1,iz+1);
  return (a+(b-a)*sx)*(1-sz)+(c+(d-c)*sx)*sz;
 }
+function oceanFieldAt(x,z){
+ return smoothNoise(x+worldSeed*.0007+830,z-worldSeed*.0007-510,300);
+}
+function oceanBlendAt(x,z){
+ const t=Math.max(0,Math.min(1,(oceanFieldAt(x,z)-.78)/.12));
+ return t*t*(3-2*t);
+}
+function oceanBedHeight(rawH,x,z){
+ return Math.floor(rawH+(-4-rawH)*oceanBlendAt(x,z));
+}
 function oceanAt(x,z){
- return smoothNoise(x+worldSeed*.0007+830,z-worldSeed*.0007-510,300)>.78;
+ const field=oceanFieldAt(x,z);
+ return field>.78&&oceanBedHeight(terrainHeight(x,z),x,z)<1.5;
 }
 function riverAt(x,z){
  const phase=worldSeed*.0000007;
@@ -284,7 +295,7 @@ function hitAnimal(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const hit=
 function generateChunk(cx,cz){
  const key=cx+','+cz;if(generatedChunks.has(key))return;worldGeneratingChunk=true;generatedChunks.add(key);getChunk(cx*CHUNK_SIZE,cz*CHUNK_SIZE);const chunkWaterData=[];
  for(let x=cx*CHUNK_SIZE;x<(cx+1)*CHUNK_SIZE;x++)for(let z=cz*CHUNK_SIZE;z<(cz+1)*CHUNK_SIZE;z++){
-  const biome=biomeAt(x,z),rawH=terrainHeight(x,z),ocean=oceanAt(x,z),river=!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river){for(let dx=-1;dx<=1&&!coast;dx++)for(let dz=-1;dz<=1&&!coast;dz++)if((dx||dz)&&oceanAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river,h=ocean?Math.min(rawH,-4):river?rawH-2:rawH,riverSurface=rawH+1,top=coast?'Sand':biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
+  const biome=biomeAt(x,z),rawH=terrainHeight(x,z),ocean=oceanAt(x,z),river=!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river){for(let dx=-1;dx<=1&&!coast;dx++)for(let dz=-1;dz<=1&&!coast;dz++)if((dx||dz)&&oceanAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river,h=ocean?oceanBedHeight(rawH,x,z):river?rawH-2:rawH,riverSurface=rawH+1,top=coast?'Sand':biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
   // Flat inland lakes remain separate from the larger ocean and river network.
   const flat=Math.abs(terrainHeight(x+1,z)-rawH)===0&&Math.abs(terrainHeight(x-1,z)-rawH)===0&&Math.abs(terrainHeight(x,z+1)-rawH)===0&&Math.abs(terrainHeight(x,z-1)-rawH)===0;
   const lakeCandidate=biome==='plains'&&flat&&smoothNoise(x+worldSeed*.013,z-worldSeed*.017,16)>.94;
