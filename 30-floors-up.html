@@ -8,20 +8,21 @@
 <div class="grid"><main class="panel"><div class="scene-head"><span id="location">APARTMENT 30B · INSIDE</span><span id="clock">DAY 1 · 08:00</span></div>
 <div class="scene" id="scene"><div class="window"></div><div class="skyline"></div><div class="room-label">30TH FLOOR · 30B</div><div class="floor"></div><div class="rug"></div><div class="bed"></div><div class="door" id="doorArt"></div><div class="stove"></div><div class="bath"></div><div class="scene-actions"><button id="leaveRoom">🚪 Exit room</button><button id="lookWindow">🪟 Look outside</button></div></div>
 <div class="stats" id="stats"></div><div class="section"><h2>YOUR APARTMENT</h2><div class="actions">
-<button id="fillTub">🛁 Fill bathtub <span>Store clean water for later</span></button><button id="drink">🥤 Drink water <span>Restore thirst</span></button>
+<button id="fillTub">🛁 Fill bathtub <span>Store clean water for later</span></button><button id="drink">🥤 Drink water <span>Restore thirst · bottles or tub</span></button><button id="eat">🥫 Eat food <span>Use one food ration</span></button>
 <button id="stoveCook">🔥 Use portable stove <span>Cook a meal · consumes fuel</span></button><button id="sleep">🛏 Use sleeping bag <span>Rest until morning</span></button>
 <button id="scavenge">📦 Search apartment <span>Check cupboards and drawers</span></button><button id="wait">⌛ Wait one hour <span>Pass time quietly</span></button>
 </div></div></main>
 <aside class="side"><section class="panel"><div class="section"><h2>DOOR SECURITY</h2><div class="door-controls"><div class="door-state"><b id="boltState">BOLT: UNLOCKED</b><span id="boltDesc">The heavy bolt is open.</span></div><div class="door-state"><b id="boardState">BOARDED: NO</b><span id="boardDesc">The door has no barricade.</span></div></div><div class="actions" style="margin-top:9px"><button id="bolt">🔒 Toggle bolt lock <span>Throw the heavy sliding bolt</span></button><button id="board">🪵 Board up door <span>Use planks to reinforce it</span></button><button id="lockpick">🗝 Use lockpick <span>Pick the cylinder lock</span></button><button id="unboard">🪓 Remove boards <span>Recover some planks</span></button></div></div></section>
 <section class="panel"><div class="section"><h2>BACKPACK & SUPPLIES</h2><div class="inventory" id="inventory"></div></div></section>
 <section class="panel"><div class="section"><h2>WHAT'S HAPPENING</h2><div class="status" id="status">The power is out. Somewhere far below, something is moving in the stairwell.</div></div><div class="section"><h2>APARTMENT LOG</h2><div class="log" id="log"><div class="event">You wake up in apartment 30B. The city below is silent.<small>Day 1 · 08:00</small></div></div></div></section>
+<section class="panel"><div class="section"><h2>DOWNSTAIRS · GROUND FLOOR</h2><div class="door-state"><b id="crashState">NO REPORT YET</b><span id="infectedState">The street below is quiet… for now.</span></div></div></section>
 <section class="panel"><div class="section"><h2>THE STAIRWELL</h2><p style="color:var(--muted);font-size:12px;line-height:1.5;margin:0 0 9px">Thirty floors below, the infected have overrun the building. Going downstairs means certain death.</p><button id="goDown" style="width:100%;border-color:#8c4844;background:#492c2d">☠ Go downstairs</button></div></section></aside></div><div class="foot">30 FLOORS UP · A SMOKE ORIGINAL · YOUR RUN SAVES IN THIS BROWSER</div></div>
 <div class="overlay" id="ending"><div class="dialog"><h2 id="endingTitle">THE END</h2><p id="endingText"></p><button id="restart">Start a new run</button></div></div>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
-let state={day:1,hour:8,minute:0,health:100,hunger:15,thirst:12,energy:85,water:12,food:3,fuel:3,planks:4,lockpicks:2,bathtub:0,bolt:false,boarded:false,doorLocked:true,inside:true,alive:true,scavenged:0,stoveUsed:0};
-const defaults=()=>({day:1,hour:8,minute:0,health:100,hunger:15,thirst:12,energy:85,water:12,food:3,fuel:3,planks:4,lockpicks:2,bathtub:0,bolt:false,boarded:false,doorLocked:true,inside:true,alive:true,scavenged:0,stoveUsed:0});
+let state={day:1,hour:8,minute:0,health:100,hunger:15,thirst:12,energy:85,water:12,food:5,fuel:3,planks:4,lockpicks:2,bathtub:0,bolt:false,boarded:false,doorLocked:true,inside:true,alive:true,scavenged:0,stoveUsed:0,crashTriggered:false,infectedDownstairs:0,peopleDownstairs:14};
+const defaults=()=>({day:1,hour:8,minute:0,health:100,hunger:15,thirst:12,energy:85,water:12,food:5,fuel:3,planks:4,lockpicks:2,bathtub:0,bolt:false,boarded:false,doorLocked:true,inside:true,alive:true,scavenged:0,stoveUsed:0,crashTriggered:false,infectedDownstairs:0,peopleDownstairs:14});
 const key='smoke-30-floors-up-v1';
 function log(msg){let el=document.createElement('div');el.className='event';el.textContent=msg;let small=document.createElement('small');small.textContent='Day '+state.day+' · '+time();el.appendChild(small);$('log').prepend(el);while($('log').children.length>30)$('log').lastChild.remove()}
 function time(){return String(state.hour).padStart(2,'0')+':'+String(state.minute).padStart(2,'0')}
@@ -38,7 +39,7 @@ $('boltState').textContent='BOLT: '+(state.bolt?'LOCKED':'UNLOCKED');$('boltDesc
 $('boardState').textContent='BOARDED: '+(state.boarded?'YES':'NO');$('boardDesc').textContent=state.boarded?'Planks reinforce the door.':'The door has no barricade.';
 $('doorArt').style.filter=state.boarded?'brightness(.65)':'none';
 $('leaveRoom').textContent=state.inside?'🚪 Exit room':'↩ Return to room';
-$('fillTub').disabled=!state.inside||state.bathtub>=50;$('drink').disabled=!state.inside||state.water+state.bathtub<1;$('stoveCook').disabled=!state.inside||state.fuel<1||state.food<1;$('sleep').disabled=!state.inside||state.energy>90;$('scavenge').disabled=!state.inside;
+$('fillTub').disabled=!state.inside||state.bathtub>=50;$('drink').disabled=!state.inside||state.water+state.bathtub<1;$('stoveCook').disabled=!state.inside||state.fuel<1||state.food<1;$('eat').disabled=!state.inside||state.food<1;$('sleep').disabled=!state.inside||state.energy>90;$('scavenge').disabled=!state.inside;$('crashState').textContent=state.crashTriggered?'CAR CRASH · DRIVER INFECTED':'NO REPORT YET';$('infectedState').textContent=state.crashTriggered?(state.infectedDownstairs+' / '+state.peopleDownstairs+' people downstairs infected'):'A few distant voices echo from the entrance.';
 $('bolt').disabled=!state.inside;$('board').disabled=!state.inside||state.boarded||state.planks<2;$('unboard').disabled=!state.inside||!state.boarded;$('lockpick').disabled=!state.inside||state.lockpicks<1||!state.doorLocked;
 $('wait').disabled=!state.inside;$('goDown').disabled=!state.alive;
 }
@@ -46,6 +47,8 @@ function end(title,msg){state.alive=false;$('endingTitle').textContent=title;$('
 function tick(minutes){
 if(!state.alive)return;let total=state.hour*60+state.minute+minutes;while(total>=1440){total-=1440;state.day++;log('Another day survived. The building groans around you.')}
 state.hour=Math.floor(total/60);state.minute=total%60;
+if(!state.crashTriggered&&state.day===1&&(state.hour>9||(state.hour===9&&state.minute>=30))){state.crashTriggered=true;state.infectedDownstairs=1;log('A violent CRASH erupts from the street below. A car has smashed into the entrance. The driver staggers out — then turns on the crowd.');say('You hear screaming below. The driver from the crashed car has become a zombie. People are being attacked.');}
+if(state.crashTriggered&&state.infectedDownstairs<state.peopleDownstairs){let hours=Math.max(0,minutes/60);state.infectedDownstairs=Math.min(state.peopleDownstairs,state.infectedDownstairs+Math.max(0,Math.floor(hours*4)));if(state.infectedDownstairs>=state.peopleDownstairs){state.infectedDownstairs=state.peopleDownstairs;log('The ground floor has gone silent. Everyone downstairs has been infected.');}}
 state.hunger=clamp(state.hunger+minutes/60*1.7);state.thirst=clamp(state.thirst+minutes/60*2.8);state.energy=clamp(state.energy-minutes/60*1.1);
 if(state.thirst>=100){state.health=clamp(state.health-minutes/60*7);say('Severe dehydration is setting in. Find water now.')}
 if(state.hunger>=100){state.health=clamp(state.health-minutes/60*4);say('You are starving. You need food.')}
@@ -54,7 +57,8 @@ save();render();
 }
 function action(minutes,msg){tick(minutes);if(state.alive){say(msg);log(msg)}}
 $('fillTub').onclick=()=>{if(state.bathtub>=50)return;let amount=Math.min(30,50-state.bathtub);state.bathtub+=amount;action(25,'You fill the bathtub with '+amount+' litres of stored water. It may be useful if the building supply fails.')};
-$('drink').onclick=()=>{if(state.water+state.bathtub<1)return;let source=state.water>0?'bottle':'bathtub';if(source==='bottle')state.water--;else state.bathtub--;state.thirst=clamp(state.thirst-35);state.health=clamp(state.health+2);action(2,source==='bottle'?'You drink a bottle of water. Thirst eases.':'You drink a cup of stored bathtub water. Thirst eases.')};
+$('drink').onclick=()=>{if(state.water+state.bathtub<1)return;let source=state.water>0?'bottle':'bathtub';if(source==='bottle')state.water--;else state.bathtub--;state.thirst=clamp(state.thirst-38);state.health=clamp(state.health+2);action(2,source==='bottle'?'You drink a bottle of water. Thirst eases.':'You drink a cup of stored bathtub water. Thirst eases.')};
+$('eat').onclick=()=>{if(state.food<1)return;state.food--;state.hunger=clamp(state.hunger-40);state.health=clamp(state.health+1);action(8,'You eat a food ration. Hunger settles for a while.')};
 $('stoveCook').onclick=()=>{if(state.fuel<1||state.food<1)return;state.fuel--;state.food--;state.hunger=clamp(state.hunger-42);state.energy=clamp(state.energy+8);state.stoveUsed++;action(18,'You cook a hot meal on the portable stove. Fuel remaining: '+state.fuel+'.')};
 $('sleep').onclick=()=>{if(state.energy>90)return;state.energy=clamp(state.energy+65);state.health=clamp(state.health+8);action(360,'You unroll the sleeping bag, block out the noises and sleep for six hours.')};
 $('wait').onclick=()=>action(60,'You stay quiet and wait. The apartment feels smaller by the hour.');
