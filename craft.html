@@ -231,6 +231,7 @@ function biomeAt(x,z){
  if(x*x+z*z<96*96)return 'plains';
  if(detail>.72)return 'jungle';
  if(detail>.64)return 'cherry';
+ if(detail>.53)return 'forest';
  return 'plains';
 }
 function mineshaftFloorAt(x,z,surfaceHeight){
@@ -378,12 +379,25 @@ function generateChunk(cx,cz){
   if(biome==='plains'&&!lake&&!iceLake&&!seaWater&&roll>.82&&roll<.94)addBlock(x,h+1,z,'Tall Grass');
   if(biome==='cherry'&&!lake&&!iceLake&&!seaWater&&roll>.90)addBlock(x,h+1,z,'Tall Grass');
   if(biome==='desert'&&!seaWater&&roll>.986&&h>=0){const height=2+Math.floor(seededNoise(x+9,z+2)*3);for(let y=1;y<=height;y++)addBlock(x,h+y,z,'Cactus')}
-  else if(biome!=='desert'&&!lake&&!iceLake&&!ocean&&!river&&(biome==='plains'?plainsTreeSpot:roll>(biome==='jungle'?.965:biome==='taiga'?.99:biome==='cherry'?.95:.972))){
-   const kind=biome==='taiga'?'Spruce':biome==='jungle'?'Jungle':biome==='cherry'?'Cherry':seededNoise(x+21,z+17)>.8?'Birch':'Oak',trunk=(biome==='jungle'?6:biome==='taiga'||biome==='cherry'?5:3)+Math.floor(seededNoise(x+8,z+4)*2),log=kind+' Log',leaves=kind+' Leaves',treeRadius=kind==='Jungle'||kind==='Cherry'||kind==='Spruce'?3:2;let touchesWater=false;for(let dx=-treeRadius;dx<=treeRadius&&!touchesWater;dx++)for(let dz=-treeRadius;dz<=treeRadius&&!touchesWater;dz++)if(isWaterColumnAt(x+dx,z+dz))touchesWater=true;
+  else if(biome!=='desert'&&!lake&&!iceLake&&!ocean&&!river){
+   const forestBiome=biome==='forest'||biome==='taiga'||biome==='jungle';
+   const forestDensity=biome==='jungle'?.89:biome==='taiga'?.92:biome==='forest'?.91:biome==='cherry'?.95:.972;
+   const gx=Math.floor(x/24),gz=Math.floor(z/24),megaX=gx*24+3+Math.floor(seededNoise(gx+worldSeed%191,gz-worldSeed%137)*15),megaZ=gz*24+3+Math.floor(seededNoise(gx-worldSeed%173+41,gz+worldSeed%211-29)*15);
+   const megaTree=forestBiome&&x===megaX&&z===megaZ&&seededNoise(gx+worldSeed%239+71,gz-worldSeed%157-83)>.28;
+   const regularTree=biome==='plains'?plainsTreeSpot:roll>forestDensity;
+   if(megaTree){
+    const kind=biome==='taiga'?'Spruce':biome==='jungle'?'Jungle':'Oak',height=(biome==='jungle'?19:biome==='taiga'?17:15)+Math.floor(seededNoise(x+13,z+29)*7),log=kind+' Log',leaves=kind+' Leaves';
+    let touchesWater=false;for(let dx=-5;dx<=6&&!touchesWater;dx++)for(let dz=-5;dz<=6&&!touchesWater;dz++)if(isWaterColumnAt(x+dx,z+dz))touchesWater=true;
     if(!touchesWater){
-   for(let y=1;y<=trunk;y++)addBlock(x,h+y,z,log);
-   if(kind==='Spruce'){for(let level=0;level<7;level++){const radius=level===6?0:Math.max(0,3-Math.floor(level/2));for(let dx=-radius;dx<=radius;dx++)for(let dz=-radius;dz<=radius;dz++)if(Math.abs(dx)+Math.abs(dz)<=radius+1)addBlock(x+dx,h+trunk-3+level,z+dz,leaves)}}
-   else {const radius=kind==='Jungle'||kind==='Cherry'?3:2;for(let dx=-radius;dx<=radius;dx++)for(let dz=-radius;dz<=radius;dz++)for(let dy=trunk-1;dy<=trunk+1;dy++){if(Math.abs(dx)+Math.abs(dz)+Math.abs(dy-trunk)>(kind==='Jungle'?6:4))continue;addBlock(x+dx,h+dy,z+dz,leaves)}}}
+     for(let dx=0;dx<2;dx++)for(let dz=0;dz<2;dz++)for(let y=1;y<=height;y++)addBlock(x+dx,h+y,z+dz,log);
+     const crownBase=height-5,radius=biome==='jungle'?6:biome==='taiga'?4:5;
+     for(let level=0;level<7;level++){const r=Math.max(1,radius-Math.floor(level/2));for(let dx=-r;dx<=r+1;dx++)for(let dz=-r;dz<=r+1;dz++){const edge=Math.max(Math.abs(dx-.5),Math.abs(dz-.5));if(edge<=r+.25)addBlock(x+dx,h+crownBase+level,z+dz,leaves)}}
+     if(biome==='jungle'){for(let side=0;side<4;side++){const bx=side===0?-3:side===1?4:side===2?0:1,bz=side===2?-3:side===3?4:side===0?0:1;for(let y=height-7;y<height-2;y++)addBlock(x+bx,h+y,z+bz,log)}}
+    }
+   }else if(regularTree&&( !forestBiome||seededNoise(x+21,z+17)>.35)){
+    const kind=biome==='taiga'?'Spruce':biome==='jungle'?'Jungle':biome==='cherry'?'Cherry':biome==='forest'?'Oak':seededNoise(x+21,z+17)>.8?'Birch':'Oak',trunk=(biome==='jungle'?6:biome==='taiga'||biome==='cherry'?5:3)+Math.floor(seededNoise(x+8,z+4)*2),log=kind+' Log',leaves=kind+' Leaves',treeRadius=kind==='Jungle'||kind==='Cherry'||kind==='Spruce'?3:2;let touchesWater=false;for(let dx=-treeRadius;dx<=treeRadius&&!touchesWater;dx++)for(let dz=-treeRadius;dz<=treeRadius&&!touchesWater;dz++)if(isWaterColumnAt(x+dx,z+dz))touchesWater=true;
+    if(!touchesWater){for(let y=1;y<=trunk;y++)addBlock(x,h+y,z,log);if(kind==='Spruce'){for(let level=0;level<7;level++){const radius=level===6?0:Math.max(0,3-Math.floor(level/2));for(let dx=-radius;dx<=radius;dx++)for(let dz=-radius;dz<=radius;dz++)if(Math.abs(dx)+Math.abs(dz)<=radius+1)addBlock(x+dx,h+trunk-3+level,z+dz,leaves)}}else{const radius=kind==='Jungle'||kind==='Cherry'?3:2;for(let dx=-radius;dx<=radius;dx++)for(let dz=-radius;dz<=radius;dz++)for(let dy=trunk-1;dy<=trunk+1;dy++){if(Math.abs(dx)+Math.abs(dz)+Math.abs(dy-trunk)>(kind==='Jungle'?6:4))continue;addBlock(x+dx,h+dy,z+dz,leaves)}}}
+   }
   }
   if(biome==='taiga'&&!lake&&!iceLake&&!ocean&&!river&&roll>.78){let topBlock=null;for(let sy=h+12;sy>=h-1;sy--){const candidate=blocks.get(blockKey(x,sy,z));if(candidate){topBlock=candidate;break}}if(topBlock&&topBlock.type!=='Snow'&&topBlock.type!=='Snow Layer'&&!blocks.has(blockKey(x,topBlock.y+1,z)))addBlock(x,topBlock.y+1,z,'Snow Layer')}
  }
