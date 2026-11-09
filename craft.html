@@ -524,6 +524,31 @@ function* generateChunk(cx,cz){
     }
    }
   }
+  // If this chunk is the lower side of a river drop, the higher neighbor may
+  // have been generated first and could not see this edge at the time. Build
+  // the missing waterfall here so chunk generation order never leaves a gap.
+  for(const w of chunkWaterData){
+   const x=w.x-.5,z=w.z-.5;
+   for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){
+    const neighbor=waterColumns.get((x+dx)+','+(z+dz));
+    if(!neighbor||neighbor.chunkKey===key||neighbor.waterType!=='river'||w.waterType!=='river'||neighbor.surface<=w.surface+.08)continue;
+    const hx=neighbor.x-.5,hz=neighbor.z-.5,hy=neighbor.surface,dropTo=w.surface,dirX=-dx,dirZ=-dz;
+    if(dirX===1){
+     addFallQuad([hx+1,hy,hz],[hx+1,hy,hz+1],[hx+1,dropTo,hz+1],[hx+1,dropTo,hz]);
+     addFallQuad([hx+.5,hy,hz+.05],[hx+.5,hy,hz+.95],[hx+1.5,dropTo,hz+.95],[hx+1.5,dropTo,hz+.05]);
+    }else if(dirX===-1){
+     addFallQuad([hx,hy,hz+1],[hx,hy,hz],[hx,dropTo,hz],[hx,dropTo,hz+1]);
+     addFallQuad([hx+.5,hy,hz+.95],[hx+.5,hy,hz+.05],[hx-.5,dropTo,hz+.05],[hx-.5,dropTo,hz+.95]);
+    }else if(dirZ===1){
+     addFallQuad([hx+1,hy,hz+1],[hx,hy,hz+1],[hx,dropTo,hz+1],[hx+1,dropTo,hz+1]);
+     addFallQuad([hx+.95,hy,hz+.5],[hx+.05,hy,hz+.5],[hx+.05,dropTo,hz+1.5],[hx+.95,dropTo,hz+1.5]);
+    }else{
+     addFallQuad([hx,hy,hz],[hx+1,hy,hz],[hx+1,dropTo,hz],[hx,dropTo,hz]);
+     addFallQuad([hx+.05,hy,hz+.5],[hx+.95,hy,hz+.5],[hx+.95,dropTo,hz-.5],[hx+.05,dropTo,hz-.5]);
+    }
+    if(!performanceMode){const axis=dirX!==0?'x':'z',cx=dirX===1?hx+1.12:dirX===-1?hx-.12:hx+.5,cz=dirZ===1?hz+1.12:dirZ===-1?hz-.12:hz+.5;for(let level=Math.floor(hy-.5);level>dropTo+.15;level--)addFallBlock(cx,level+.5,cz,axis)}
+   }
+  }
   const waterSurfaceGeometry=new THREE.BufferGeometry();
   waterSurfaceGeometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
   waterSurfaceGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
