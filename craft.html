@@ -411,6 +411,37 @@ function generateChunk(cx,cz){
    uvs.push(sx/24,sz/24,(sx+width)/24,sz/24,(sx+width)/24,(sz+depth)/24,sx/24,(sz+depth)/24);
    indices.push(base,base+2,base+1,base,base+3,base+2);
   }
+  // Add blue waterfall curtains and sloped wedge sheets wherever a river
+  // drops to a lower neighboring river column.
+  const fallPositions=[],fallUvs=[],fallIndices=[];
+  const addFallQuad=(a,b,c,d)=>{
+   const base=fallPositions.length/3;
+   fallPositions.push(...a,...b,...c,...d);
+   fallUvs.push(0,0,1,0,1,1,0,1);
+   fallIndices.push(base,base+1,base+2,base,base+2,base+3);
+  };
+  for(const w of chunkWaterData){
+   if(w.waterType!=='river')continue;
+   const x=w.x-.5,z=w.z-.5,y=w.surface;
+   for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){
+    const lower=surfaceMap.get((x+dx)+','+(z+dz));
+    if(lower===undefined||lower>=y-.75)continue;
+    const drop=y-lower;
+    if(dx===1){
+     addFallQuad([x+1,y,z],[x+1,y,z+1],[x+1,lower,z+1],[x+1,lower,z]);
+     addFallQuad([x+.5,y,z+.05],[x+.5,y,z+.95],[x+1.5,lower,z+.95],[x+1.5,lower,z+.05]);
+    }else if(dx===-1){
+     addFallQuad([x,y,z+1],[x,y,z],[x,lower,z],[x,lower,z+1]);
+     addFallQuad([x+.5,y,z+.95],[x+.5,y,z+.05],[x-.5,lower,z+.05],[x-.5,lower,z+.95]);
+    }else if(dz===1){
+     addFallQuad([x+1,y,z+1],[x,y,z+1],[x,lower,z+1],[x+1,lower,z+1]);
+     addFallQuad([x+.95,y,z+.5],[x+.05,y,z+.5],[x+.05,lower,z+1.5],[x+.95,lower,z+1.5]);
+    }else{
+     addFallQuad([x,y,z],[x+1,y,z],[x+1,lower,z],[x,lower,z]);
+     addFallQuad([x+.05,y,z+.5],[x+.95,y,z+.5],[x+.95,lower,z-.5],[x+.05,lower,z-.5]);
+    }
+   }
+  }
   const waterSurfaceGeometry=new THREE.BufferGeometry();
   waterSurfaceGeometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
   waterSurfaceGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
@@ -418,6 +449,15 @@ function generateChunk(cx,cz){
   const waterMesh=new THREE.Mesh(waterSurfaceGeometry,waterMaterial);
   waterMesh.userData.chunkKey=key;waterMesh.userData.columnKeys=chunkWaterData.map(w=>w.columnKey);
   waterMesh.frustumCulled=true;scene.add(waterMesh);waterTiles.push(waterMesh);
+  if(fallIndices.length){
+   const fallGeometry=new THREE.BufferGeometry();
+   fallGeometry.setAttribute('position',new THREE.Float32BufferAttribute(fallPositions,3));
+   fallGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(fallUvs,2));
+   fallGeometry.setIndex(fallIndices);fallGeometry.computeVertexNormals();
+   const fallMesh=new THREE.Mesh(fallGeometry,waterMaterial);
+   fallMesh.userData.chunkKey=key;fallMesh.userData.columnKeys=chunkWaterData.map(w=>w.columnKey);
+   fallMesh.frustumCulled=true;scene.add(fallMesh);waterTiles.push(fallMesh);
+  }
  }
  flushDirtyChunks();
  spawnChunkAnimals(cx,cz);
