@@ -392,11 +392,23 @@ function generateChunk(cx,cz){
  for(const [editKey,editType] of worldEdits){const [ex,ey,ez]=editKey.split(',').map(Number);if(chunkKey(ex,ez)!==key)continue;const existing=blocks.get(editKey);if(existing){blocks.delete(editKey);blocksByChunk.get(key)?.delete(existing);dirtyChunks.add(key)}if(editType!==null)addBlock(ex,ey,ez,editType)}
  applyingWorldEdits=false;
  if(chunkWaterData.length){
-  const positions=[],uvs=[],indices=[];
+  // Merge adjacent water columns into larger quads to hide the block grid.
+  const positions=[],uvs=[],indices=[],surfaceMap=new Map(),used=new Set();
+  for(const w of chunkWaterData)surfaceMap.set((w.x-.5)+','+(w.z-.5),w.surface);
   for(const w of chunkWaterData){
-   const x=w.x-.5,z=w.z-.5,y=w.surface,base=positions.length/3;
-   positions.push(x,y,z,x+1,y,z,x+1,y,z+1,x,y,z+1);
-   uvs.push(x/24,z/24,(x+1)/24,z/24,(x+1)/24,(z+1)/24,x/24,(z+1)/24);
+   const sx=w.x-.5,sz=w.z-.5,cell=sx+','+sz;
+   if(used.has(cell))continue;
+   const y=w.surface;let width=1;
+   while(surfaceMap.get((sx+width)+','+sz)===y&&!used.has((sx+width)+','+sz))width++;
+   let depth=1,canGrow=true;
+   while(canGrow){
+    for(let dx=0;dx<width;dx++)if(surfaceMap.get((sx+dx)+','+(sz+depth))!==y||used.has((sx+dx)+','+(sz+depth))){canGrow=false;break}
+    if(canGrow)depth++;
+   }
+   for(let dx=0;dx<width;dx++)for(let dz=0;dz<depth;dz++)used.add((sx+dx)+','+(sz+dz));
+   const base=positions.length/3;
+   positions.push(sx,y,sz,sx+width,y,sz,sx+width,y,sz+depth,sx,y,sz+depth);
+   uvs.push(sx/24,sz/24,(sx+width)/24,sz/24,(sx+width)/24,(sz+depth)/24,sx/24,(sz+depth)/24);
    indices.push(base,base+2,base+1,base,base+3,base+2);
   }
   const waterSurfaceGeometry=new THREE.BufferGeometry();
