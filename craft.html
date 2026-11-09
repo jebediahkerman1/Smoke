@@ -229,6 +229,15 @@ function biomeAt(x,z){
  if(detail>.64)return 'cherry';
  return 'plains';
 }
+function mineshaftFloorAt(x,z,surfaceHeight){
+ if(surfaceHeight<=-2||!mineshaftCellAt(x,z))return null;
+ const floor=-17+Math.floor(smoothNoise(x+worldSeed*.01,z-worldSeed*.01,64)*5);
+ return floor<surfaceHeight-7?floor:null;
+}
+function isMineshaftSpaceAt(x,y,z,surfaceHeight){
+ const floor=mineshaftFloorAt(x,z,surfaceHeight);
+ return floor!==null&&y>floor&&y<=floor+4;
+}
 function terrainHeight(x,z){
  const broad=smoothNoise(x+worldSeed*.00001,z-worldSeed*.00001,210);
  const mountainMask=smoothNoise(x+worldSeed*.0003+910,z-worldSeed*.0002-370,390);
@@ -328,8 +337,9 @@ function generateChunk(cx,cz){
   const waterBed=(ocean||river)?h:(lake||iceLake)?h-pondDepth:h;
   for(let y=-48;y<=h;y++){
    if((seaWater||lake||iceLake)&&y>waterBed)continue;
-   if(isCavernAt(x,y,z,rawH))continue;
-   const type=(seaWater||lake||iceLake)&&y===waterBed?'Sand':y===h?(iceLake?'Ice':top):y>=h-3?'Dirt':biome==='desert'&&y>=h-6?'Sandstone':'Stone';
+   const shaftFloor=mineshaftFloorAt(x,z,rawH);
+   if(isCavernAt(x,y,z,rawH)||isMineshaftSpaceAt(x,y,z,rawH))continue;
+   const type=(seaWater||lake||iceLake)&&y===waterBed?'Sand':shaftFloor!==null&&y===shaftFloor?'Oak Planks':y===h?(iceLake?'Ice':top):y>=h-3?'Dirt':biome==='desert'&&y>=h-6?'Sandstone':'Stone';
    addBlock(x,y,z,type);
   }
   if(iceLake)addBlock(x,h,z,'Ice');
@@ -339,20 +349,16 @@ function generateChunk(cx,cz){
    chunkWaterData.push(waterData);waterColumns.set(columnKey,waterData);if((ocean||river||lake)&&surface>waterBed+2.05&&seededNoise(x+worldSeed%193+401,z-worldSeed%167-307)>.88)addBlock(x,waterBed+1,z,'Seaweed');
   }
   // Abandoned mineshafts with timber supports, track and parked minecarts.
-  if(mineshaftCellAt(x,z)&&rawH>-2){
-   const shaftY=-17+Math.floor(smoothNoise(x+worldSeed*.01,z-worldSeed*.01,64)*5);
-   if(shaftY<rawH-7){
-    const gx=Math.floor(x/96),gz=Math.floor(z/96),lx=((x%96)+96)%96,lz=((z%96)+96)%96;
-    const lane=Math.floor(seededNoise(gx+worldSeed%311,gz-worldSeed%197)*18)+37;
-    const cross=Math.floor(seededNoise(gx+worldSeed%127+81,gz-worldSeed%223-51)*18)+37;
-    const alongX=Math.abs(lz-lane)<=1,alongZ=Math.abs(lx-cross)<=1;
-    if(alongX||alongZ){
-     addBlock(x,shaftY,z,'Oak Planks');
-     const along=alongX?lx:lz;
-     if(along%5===0){addBlock(x,shaftY+1,z,'Oak Fence');addBlock(x,shaftY+2,z,'Oak Fence');addBlock(x,shaftY+3,z,'Oak Fence')}
-     else if(along%17===8)addBlock(x,shaftY+1,z,'Minecart');
-     else addBlock(x,shaftY+1,z,'Rail');
-    }
+  const shaftY=mineshaftFloorAt(x,z,rawH);
+  if(shaftY!==null){
+   const gx=Math.floor(x/96),gz=Math.floor(z/96),lx=((x%96)+96)%96,lz=((z%96)+96)%96;
+   const lane=Math.floor(seededNoise(gx+worldSeed%311,gz-worldSeed%197)*18)+37;
+   const cross=Math.floor(seededNoise(gx+worldSeed%127+81,gz-worldSeed%223-51)*18)+37;
+   const alongX=Math.abs(lz-lane)<=1,alongZ=Math.abs(lx-cross)<=1,along=alongX?lx:lz;
+   if(alongX||alongZ){
+    if(along%5===0){addBlock(x,shaftY+1,z,'Oak Fence');addBlock(x,shaftY+2,z,'Oak Fence');addBlock(x,shaftY+3,z,'Oak Fence')}
+    else if(along%17===8)addBlock(x,shaftY+1,z,'Minecart');
+    else addBlock(x,shaftY+1,z,'Rail');
    }
   }
   // Tall, block-built ice spikes rise from frozen taiga lakes.
