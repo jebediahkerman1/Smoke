@@ -82,7 +82,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const $=id=>document.getElementById(id),root=$('game');
 
 const netConfig=window.SMOKE_SUPABASE_CONFIG;
-let netClient=null,netChannel=null,netRoomCode='',netPlayerName='Player',netPlayerId='',netIsHost=false,netReady=false,lastNetSend=0;
+let netClient=null,netChannel=null,netRoomCode='',netPlayerName='Player',netPlayerId='',netIsHost=false,netReady=false,lastNetSend=0,netWorldReceived=false;
 const remotePlayers=new Map();
 function netToast(message){toast('MULTIPLAYER · '+message)}
 function showRoomCode(){if(!netRoomCode)return;$('roomCodeValue').textContent=netRoomCode;$('settingsRoomCode').textContent=netRoomCode;$('roomBadge').style.display='flex'}
@@ -115,7 +115,7 @@ function ensureNetClient(){
 async function leaveMultiplayer(){
  if(netChannel){try{await netChannel.unsubscribe()}catch(_){}netChannel=null}
  for(const id of [...remotePlayers.keys()])removeRemotePlayer(id);
- netReady=false;netRoomCode='';netIsHost=false;hideRoomCode();
+ netReady=false;netWorldReceived=false;netRoomCode='';netIsHost=false;hideRoomCode();
 }
 async function openMultiplayerRoom(joining){
  try{
@@ -131,11 +131,11 @@ async function openMultiplayerRoom(joining){
   netChannel.on('broadcast',{event:'player'},({payload})=>updateRemotePlayer(payload));
   netChannel.on('broadcast',{event:'block-edit'},({payload})=>applyNetworkBlockEdit(payload));
   netChannel.on('broadcast',{event:'world-init-request'},async()=>{if(netIsHost&&worldStarted)await sendWorldInit()});
-  netChannel.on('broadcast',{event:'world-init'},({payload})=>{if(netIsHost||!payload)return;gameMode=payload.mode==='survival'?'survival':'creative';worldEdits.clear();for(const entry of(payload.edits||[]))if(Array.isArray(entry)&&entry.length===2)worldEdits.set(entry[0],entry[1]);activeWorldId=null;$('start').style.display='none';if(mobileActive){$('mobileControls').style.display='block';$('mobileSettingsButton').style.display='block'}if(!mobileActive)lock();generateWorld(String(payload.seed));netToast('Joined '+netRoomCode)});
+  netChannel.on('broadcast',{event:'world-init'},({payload})=>{if(netIsHost||!payload)return;netWorldReceived=true;gameMode=payload.mode==='survival'?'survival':'creative';worldEdits.clear();for(const entry of(payload.edits||[]))if(Array.isArray(entry)&&entry.length===2)worldEdits.set(entry[0],entry[1]);activeWorldId=null;$('start').style.display='none';if(mobileActive){$('mobileControls').style.display='block';$('mobileSettingsButton').style.display='block'}if(!mobileActive)lock();generateWorld(String(payload.seed));netToast('Joined '+netRoomCode)});
   const status=await new Promise((resolve,reject)=>{let settled=false;const timer=setTimeout(()=>{if(!settled){settled=true;reject(new Error('Supabase Realtime timed out. Check the connection, browser extensions, or whether Supabase Realtime is online.'))}},20000);netChannel.subscribe(async state=>{if(state==='SUBSCRIBED'&&!settled){try{await netChannel.track({id:netPlayerId,name:netPlayerName,x:player.x,y:player.y,z:player.z,yaw});settled=true;clearTimeout(timer);resolve(state)}catch(error){settled=true;clearTimeout(timer);reject(new Error('Connected, but presence setup failed: '+(error?.message||error)))}}else if((state==='CHANNEL_ERROR'||state==='TIMED_OUT'||state==='CLOSED')&&!settled){settled=true;clearTimeout(timer);reject(new Error('Supabase Realtime status: '+state+'. '+(navigator.onLine?'The network is online; the realtime service or browser connection may be blocked.':'This device appears to be offline.')))}})});
   netReady=true;showRoomCode();
   if(netIsHost){$('mainMenu').style.display='none';$('modeScreen').style.display='block';netToast('Room '+netRoomCode+' created · choose a mode and start');}
-  else{netToast('Connected to '+netRoomCode+' · waiting for host');await netChannel.send({type:'broadcast',event:'world-init-request',payload:{}})}
+  else{netToast('Connected to '+netRoomCode+' · waiting for host world');for(let attempt=0;attempt<8&&!netWorldReceived&&netChannel;attempt++){await netChannel.send({type:'broadcast',event:'world-init-request',payload:{}});if(!netWorldReceived)await new Promise(resolve=>setTimeout(resolve,1500))}if(!netWorldReceived&&netReady)netToast('Still connected to '+netRoomCode+' · ask the host to start their world');}
  }catch(error){console.error('SMOKE multiplayer:',error);netToast(error.message||'Connection failed');await leaveMultiplayer()}
 }
 async function sendWorldInit(){
