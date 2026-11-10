@@ -223,7 +223,7 @@ function updatePlayerBody(){
 $('skinUpload').addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>1024*1024){toast('Skin PNG must be under 1 MB');e.target.value='';return}const reader=new FileReader();reader.onload=()=>applyUploadedSkin(String(reader.result),true);reader.onerror=()=>toast('Could not read skin file');reader.readAsDataURL(file)});
 try{const savedUpload=localStorage.getItem('smokeblocks-uploaded-skin');if(savedUpload)applyUploadedSkin(savedUpload,false)}catch(e){}
 
-const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);let performanceMode=(()=>{try{return localStorage.getItem('smokeblocks-performance-mode')!=='off'}catch(e){return true}})();let adaptivePixelRatio=Math.min(devicePixelRatio,performanceMode ? 0.9 : 1.25);renderer.setPixelRatio(adaptivePixelRatio);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=true;root.appendChild(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);let performanceMode=(()=>{try{return localStorage.getItem('smokeblocks-performance-mode')!=='off'}catch(e){return true}})();let adaptivePixelRatio=Math.min(devicePixelRatio,performanceMode ? 0.78 : 1.1);renderer.setPixelRatio(adaptivePixelRatio);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=true;root.appendChild(renderer.domElement);
 // Adaptive resolution protects frame rate on weaker GPUs while retaining full detail when performance allows.
 let perfSampleTime=0,perfFrames=0,perfFps=60,perfAdjustClock=0;
 function updateAdaptiveResolution(frameDelta){
