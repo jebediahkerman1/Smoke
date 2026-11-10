@@ -544,7 +544,7 @@ function* generateChunk(cx,cz){
    }
   }
   if(biome==='taiga'&&!lake&&!iceLake&&!ocean&&!river&&roll>.78){let topBlock=null;for(let sy=h+12;sy>=h-1;sy--){const candidate=blocks.get(blockKey(x,sy,z));if(candidate){topBlock=candidate;break}}if(topBlock&&topBlock.type!=='Snow'&&topBlock.type!=='Snow Layer'&&!blocks.has(blockKey(x,topBlock.y+1,z)))addBlock(x,topBlock.y+1,z,'Snow Layer')}
- }worldGeneratingChunk=false;yield;worldGeneratingChunk=true;}
+ worldGeneratingChunk=false;yield;worldGeneratingChunk=true;}}
  worldGeneratingChunk=false;
  applyingWorldEdits=true;
  for(const [editKey,editType] of worldEdits){const [ex,ey,ez]=editKey.split(',').map(Number);if(chunkKey(ex,ez)!==key)continue;const existing=blocks.get(editKey);if(existing){blocks.delete(editKey);blocksByChunk.get(key)?.delete(existing);dirtyChunks.add(key)}if(editType!==null)addBlock(ex,ey,ez,editType,editType==='Water'?{waterSource:true,flowLevel:0}:{})}
@@ -717,9 +717,10 @@ function processChunkQueue(dt){
  }
  const current=activeChunkTask;
  try{
-  // Generate two 16-block-wide terrain rows per frame to avoid whole-chunk stalls.
+  // Generate only a few terrain columns per frame. A full 16-column row
+  // can contain thousands of blocks and cause a visible frame-time spike.
   let finished=false;
-  const rowsPerFrame=performanceMode?1:(perfFps<40?1:2);for(let row=0;row<rowsPerFrame;row++){const result=current.task.next();if(result.done){finished=true;break}}
+  const columnsPerFrame=performanceMode?1:(perfFps<40?1:2);for(let column=0;column<columnsPerFrame;column++){const result=current.task.next();if(result.done){finished=true;break}}
   if(!finished)return;
   const {item,key}=current;
   const success=generatedChunks.has(key)&&(blocksByChunk.get(key)?.size||0)>0&&((chunkGroups.get(key)?.children.length)||0)>0;
