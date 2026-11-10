@@ -480,8 +480,17 @@ function hitAnimal(){ray.setFromCamera(new THREE.Vector2(0,0),camera);const hit=
 
 function* generateChunk(cx,cz){
  const key=cx+','+cz;if(generatedChunks.has(key))return;worldGeneratingChunk=true;generatedChunks.add(key);getChunk(cx*CHUNK_SIZE,cz*CHUNK_SIZE);const chunkWaterData=[];
+ // STAGE 1 — build a compact 16x16 heightmap and biome map before placing blocks.
+ // This keeps terrain sampling separate from caves, structures, and surface features.
+ const heightmap=new Int16Array(CHUNK_SIZE*CHUNK_SIZE),biomeMap=new Array(CHUNK_SIZE*CHUNK_SIZE);
+ for(let x=cx*CHUNK_SIZE;x<(cx+1)*CHUNK_SIZE;x++)for(let z=cz*CHUNK_SIZE;z<(cz+1)*CHUNK_SIZE;z++){
+  const index=(x-cx*CHUNK_SIZE)*CHUNK_SIZE+(z-cz*CHUNK_SIZE);
+  heightmap[index]=terrainHeight(x,z);biomeMap[index]=biomeAt(x,z);
+  worldGeneratingChunk=false;yield;worldGeneratingChunk=true;
+ }
+ // STAGE 2 — build terrain density, caves, aquifer-ready water surfaces, and features from the maps.
  for(let x=cx*CHUNK_SIZE;x<(cx+1)*CHUNK_SIZE;x++){for(let z=cz*CHUNK_SIZE;z<(cz+1)*CHUNK_SIZE;z++){
-  const biome=biomeAt(x,z),rawH=terrainHeight(x,z),ocean=oceanAt(x,z),river=!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river){for(let dx=-1;dx<=1&&!coast;dx++)for(let dz=-1;dz<=1&&!coast;dz++)if((dx||dz)&&oceanAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river,h=ocean?oceanBedHeight(rawH,x,z):river?rawH-2:rawH,riverSurface=rawH+1,top=coast?'Sand':biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
+  const columnIndex=(x-cx*CHUNK_SIZE)*CHUNK_SIZE+(z-cz*CHUNK_SIZE),biome=biomeMap[columnIndex],rawH=heightmap[columnIndex],ocean=oceanAt(x,z),river=!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river){for(let dx=-1;dx<=1&&!coast;dx++)for(let dz=-1;dz<=1&&!coast;dz++)if((dx||dz)&&oceanAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river,h=ocean?oceanBedHeight(rawH,x,z):river?rawH-2:rawH,riverSurface=rawH+1,top=coast?'Sand':biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
   // Flat inland lakes remain separate from the larger ocean and river network.
   const flat=Math.abs(terrainHeight(x+1,z)-rawH)===0&&Math.abs(terrainHeight(x-1,z)-rawH)===0&&Math.abs(terrainHeight(x,z+1)-rawH)===0&&Math.abs(terrainHeight(x,z-1)-rawH)===0;
   const lakeField=smoothNoise(x+worldSeed*.013,z-worldSeed*.017,38)*.72+smoothNoise(x-worldSeed*.021+340,z+worldSeed*.017-180,13)*.28;
