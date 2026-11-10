@@ -1268,7 +1268,7 @@ document.addEventListener('keydown',e=>{if(e.key==='/'&&!e.repeat&&!e.ctrlKey&&!
 function update(dt){
  crouching=!!keys.ShiftLeft||touchCrouching;
  const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));let move=new THREE.Vector3();
- const water=waterAt(player.x,player.z),inWater=!!(water&&player.y+1.72>water.bottom+.04&&player.y<water.surface-.02);
+ const water=waterAt(player.x,player.z),inWater=!!(water&&player.y+1.72>water.bottom+.04&&player.y<water.surface+.55);
  if(keys.KeyW||keys.ArrowUp||touchKeys.KeyW)move.add(forward);if(keys.KeyS||keys.ArrowDown||touchKeys.KeyS)move.sub(forward);if(keys.KeyD||keys.ArrowRight||touchKeys.KeyD)move.add(right);if(keys.KeyA||keys.ArrowLeft||touchKeys.KeyA)move.sub(right);
  if(move.lengthSq()){if(gameMode==='survival'&&!inWater&&keys.ControlLeft)addExhaustion(dt*.12);move.normalize().multiplyScalar((inWater?3.15:(crouching?2.2:(keys.ControlLeft?10:5.3)))*dt);const nx=player.x+move.x,nz=player.z+move.z;if(!collidesAt(nx,player.y,player.z))player.x=nx;if(!collidesAt(player.x,player.y,nz))player.z=nz}
  const oldY=player.y,wasGrounded=onGround;if(wasGrounded)fallStartY=player.y;let ny;
@@ -1281,7 +1281,7 @@ function update(dt){
   if(keys.Space||touchKeys.Space)velocityY=8;else if(keys.ShiftLeft||keys.ControlLeft||touchKeys.ShiftLeft||touchKeys.ControlLeft)velocityY=-8;else velocityY=0;
   ny=player.y+velocityY*dt;if(collidesAt(player.x,ny,player.z)){ny=player.y;velocityY=0}onGround=false;fallStartY=null;
  }else if(inWater){
-  const waterFloor=water.bottom+.5,swimTop=water.surface-.12;
+  const waterFloor=water.bottom+.5,swimTop=water.surface+.45;
   if(keys.Space||touchKeys.Space)velocityY=Math.min(4.2,velocityY+20*dt);
   else if(keys.ShiftLeft||keys.ControlLeft||touchKeys.ShiftLeft||touchKeys.ControlLeft)velocityY=Math.max(-4.5,velocityY-18*dt);
   else velocityY+=(-1.15-velocityY)*Math.min(1,dt*1.8);
