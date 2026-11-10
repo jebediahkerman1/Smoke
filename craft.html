@@ -483,9 +483,12 @@ function* generateChunk(cx,cz){
  // STAGE 1 — build a compact 16x16 heightmap and biome map before placing blocks.
  // This keeps terrain sampling separate from caves, structures, and surface features.
  const heightmap=new Int16Array(CHUNK_SIZE*CHUNK_SIZE),biomeMap=new Array(CHUNK_SIZE*CHUNK_SIZE);
- for(let x=cx*CHUNK_SIZE;x<(cx+1)*CHUNK_SIZE;x++)for(let z=cz*CHUNK_SIZE;z<(cz+1)*CHUNK_SIZE;z++){
-  const index=(x-cx*CHUNK_SIZE)*CHUNK_SIZE+(z-cz*CHUNK_SIZE);
-  heightmap[index]=terrainHeight(x,z);biomeMap[index]=biomeAt(x,z);
+ for(let x=cx*CHUNK_SIZE;x<(cx+1)*CHUNK_SIZE;x++){
+  for(let z=cz*CHUNK_SIZE;z<(cz+1)*CHUNK_SIZE;z++){
+   const index=(x-cx*CHUNK_SIZE)*CHUNK_SIZE+(z-cz*CHUNK_SIZE);
+   heightmap[index]=terrainHeight(x,z);biomeMap[index]=biomeAt(x,z);
+  }
+  // Yield once per row: the 16x16 heightmap is cheap to prepare, but still share work across frames.
   worldGeneratingChunk=false;yield;worldGeneratingChunk=true;
  }
  // STAGE 2 — build terrain density, caves, aquifer-ready water surfaces, and features from the maps.
@@ -559,7 +562,7 @@ function* generateChunk(cx,cz){
    }
   }
   if(biome==='taiga'&&!lake&&!iceLake&&!ocean&&!river&&roll>.78){let topBlock=null;for(let sy=h+12;sy>=h-1;sy--){const candidate=blocks.get(blockKey(x,sy,z));if(candidate){topBlock=candidate;break}}if(topBlock&&topBlock.type!=='Snow'&&topBlock.type!=='Snow Layer'&&!blocks.has(blockKey(x,topBlock.y+1,z)))addBlock(x,topBlock.y+1,z,'Snow Layer')}
- worldGeneratingChunk=false;yield;worldGeneratingChunk=true;}}
+ if(((x-cx*CHUNK_SIZE)*CHUNK_SIZE+(z-cz*CHUNK_SIZE)+1)%8===0){worldGeneratingChunk=false;yield;worldGeneratingChunk=true;}}}
  worldGeneratingChunk=false;
  applyingWorldEdits=true;
  for(const [editKey,editType] of worldEdits){const [ex,ey,ez]=editKey.split(',').map(Number);if(chunkKey(ex,ez)!==key)continue;const existing=blocks.get(editKey);if(existing){blocks.delete(editKey);blocksByChunk.get(key)?.delete(existing);dirtyChunks.add(key)}if(editType!==null)addBlock(ex,ey,ez,editType,editType==='Water'?{waterSource:true,flowLevel:0}:{})}
@@ -800,8 +803,9 @@ function generateWorld(seedValue,restorePosition=null){
  $('loadingScreen').style.display='grid';updateLoadingScreen();
  // Build the player's immediate surroundings first so the world is never an empty sky.
  try{
-  generateChunk(0,0);
-  initialChunkDone=1;
+  // The spawn chunk is queued like every other chunk; count it only after its generator finishes.
+  // Calling a generator function alone does not execute its body.
+  initialChunkDone=0;
  }catch(error){
   console.error('SMOKEBLOCKS spawn chunk failed:',error);
   setWorldText('loadingDetail','World generation error: '+(error?.message||String(error)),'generateWorld catch');
