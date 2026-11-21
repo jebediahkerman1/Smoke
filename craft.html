@@ -316,14 +316,15 @@ grassBlockMaterials[0]=grassBlockMaterials[1]=grassBlockMaterials[4]=grassBlockM
 const dirtMenuTexture=materials['Dirt'].map.image.toDataURL();for(const id of ['start','loadingScreen']){const panel=document.getElementById(id);panel.style.backgroundColor='#8a5a36';panel.style.backgroundImage='url('+dirtMenuTexture+')';panel.style.backgroundRepeat='repeat';panel.style.backgroundSize='64px 64px';panel.style.imageRendering='pixelated'}
 const geo=new THREE.BoxGeometry(1,1,1);
 function compoundBlockGeometry(parts){
- const positions=[],normals=[],uvs=[];
+ const positions=[],normals=[],uvs=[],indices=[];
  for(const [w,h,d,x,y,z] of parts){
   const g=new THREE.BoxGeometry(w,h,d);g.translate(x,y,z);
-  const p=g.getAttribute('position'),n=g.getAttribute('normal'),u=g.getAttribute('uv');
+  const p=g.getAttribute('position'),n=g.getAttribute('normal'),u=g.getAttribute('uv'),index=g.getIndex(),vertexOffset=positions.length/3;
   for(let i=0;i<p.count;i++){positions.push(p.getX(i),p.getY(i),p.getZ(i));normals.push(n.getX(i),n.getY(i),n.getZ(i));uvs.push(u.getX(i),u.getY(i))}
+  if(index){for(let i=0;i<index.count;i++)indices.push(index.getX(i)+vertexOffset)}
   g.dispose();
  }
- const out=new THREE.BufferGeometry();out.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));out.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));out.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));out.computeBoundingSphere();return out;
+ const out=new THREE.BufferGeometry();out.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));out.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));out.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));out.setIndex(indices);out.computeBoundingSphere();return out;
 }
 const tallGrassGeometry=(()=>{
  const g=new THREE.BufferGeometry(),p=[-.42,-.5,0,.42,-.5,0,.42,.5,0,-.42,-.5,0,.42,.5,0,-.42,.5,0,0,-.5,-.42,0,-.5,.42,0,.5,.42,0,-.5,-.42,0,.5,.42,0,.5,-.42];
