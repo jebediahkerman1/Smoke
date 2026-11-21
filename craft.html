@@ -246,8 +246,8 @@ function updateAdaptiveResolution(frameDelta){
  perfSampleTime+=frameDelta;perfFrames++;perfAdjustClock+=frameDelta;
  if(perfSampleTime>=1){perfFps=perfFrames/perfSampleTime;perfFrames=0;perfSampleTime=0}
  if(perfAdjustClock<1.5)return;perfAdjustClock=0;
- const cap=Math.min(devicePixelRatio,performanceMode ? 0.78 : 1.1),floor=performanceMode ? 0.48 : 0.65;
- const target=perfFps<(performanceMode?48:42)?Math.max(floor,adaptivePixelRatio-(performanceMode ? 0.12 : 0.15)):perfFps>58?Math.min(cap,adaptivePixelRatio+(performanceMode ? 0.02 : 0.04)):adaptivePixelRatio;
+ const cap=Math.min(devicePixelRatio,performanceMode ? 0.9 : 1.25),floor=performanceMode ? 0.56 : 0.7;
+ const target=perfFps<(performanceMode?50:45)?Math.max(floor,adaptivePixelRatio-(performanceMode ? 0.09 : 0.12)):perfFps>58?Math.min(cap,adaptivePixelRatio+(performanceMode ? 0.035 : 0.05)):adaptivePixelRatio;
  if(Math.abs(target-adaptivePixelRatio)>.02){adaptivePixelRatio=target;renderer.setPixelRatio(adaptivePixelRatio);renderer.setSize(innerWidth,innerHeight,false)}
 }
 window.smokePerf=()=>({fps:Math.round(perfFps),pixelRatio:+adaptivePixelRatio.toFixed(2),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,chunks:chunkGroups.size,blocks:blocks.size});
@@ -756,7 +756,7 @@ function processChunkQueue(dt){
   // Generate only a few terrain columns per frame. A full 16-column row
   // can contain thousands of blocks and cause a visible frame-time spike.
   let finished=false;
-  const columnsPerFrame=performanceMode?1:(perfFps<40?1:2);for(let column=0;column<columnsPerFrame;column++){const result=current.task.next();if(result.done){finished=true;break}}
+  const generationBudgetMs=performanceMode?5.5:8.5,maxRowsPerFrame=performanceMode?4:6,generationStart=performance.now();let rowsProcessed=0;while(rowsProcessed<maxRowsPerFrame&&(rowsProcessed===0||performance.now()-generationStart<generationBudgetMs)){const result=current.task.next();rowsProcessed++;if(result.done){finished=true;break}}
   if(!finished)return;
   const {item,key}=current;
   const success=generatedChunks.has(key)&&(blocksByChunk.get(key)?.size||0)>0&&((chunkGroups.get(key)?.children.length)||0)>0;
@@ -813,7 +813,7 @@ function generateWorld(seedValue,restorePosition=null){
  yaw=Math.PI;pitch=-0.32;
  camera.position.set(player.x,player.y+(crouching?0.95:1.5),player.z);
  camera.rotation.order='YXZ';camera.rotation.set(pitch,yaw,0);
- initialLoading=true;initialChunkDone=0;initialChunkPending.clear();initialChunkTotal=0;for(let dz=-renderDistance;dz<=renderDistance;dz++)for(let dx=-renderDistance;dx<=renderDistance;dx++)if(dx*dx+dz*dz<=renderDistance*renderDistance)initialChunkTotal++;chunkLoadClock=0;
+ initialLoading=true;initialChunkDone=0;initialChunkPending.clear();initialChunkTotal=0;const startupRadius=Math.min(2,renderDistance);for(let dz=-startupRadius;dz<=startupRadius;dz++)for(let dx=-startupRadius;dx<=startupRadius;dx++)if(dx*dx+dz*dz<=startupRadius*startupRadius)initialChunkTotal++;chunkLoadClock=0;
  $('loadingScreen').style.display='grid';updateLoadingScreen();
  // Build the player's immediate surroundings first so the world is never an empty sky.
  try{
@@ -847,7 +847,9 @@ function updateChunkVisibility(force=false){
   columns.sort((a,b)=>Math.abs(a-pcx)-Math.abs(b-pcx));
   for(const cx of columns)wanted.push({cx,cz});
  }
- for(const c of wanted)enqueueChunk(c.cx,c.cz,initialLoading&&initialChunkDone<initialChunkTotal);
+ const startupRadius=Math.min(2,renderDistance);for(const c of wanted){const dx=c.cx-pcx,dz=c.cz-pcz,isStartup=initialLoading&&dx*dx+dz*dz<=startupRadius*startupRadius;enqueueChunk(c.cx,c.cz,isStartup)}
+  // Drop queued chunks that have moved outside the render radius; never spend generation time on scenery behind the player.
+  for(let i=chunkQueue.length-1;i>=0;i--){const q=chunkQueue[i],dx=q.cx-pcx,dz=q.cz-pcz;if(dx*dx+dz*dz>radiusSq){queuedChunks.delete(q.cx+','+q.cz);if(q.initial)initialChunkPending.delete(q.cx+','+q.cz);chunkQueue.splice(i,1)}}
  let removedAny=false;
  for(const key of [...chunkGroups.keys()]){
   const [cx,cz]=key.split(',').map(Number);
