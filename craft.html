@@ -722,7 +722,7 @@ function updateLoadingScreen(){
  const side=Math.round(72*Math.sqrt(Math.max(0,Math.min(100,percent))/100));
  $('loadingBar').style.width=side+'px';$('loadingBar').style.height=side+'px';
  setWorldText('loadingPercent',percent+'%','updateLoadingScreen');
- setWorldText('loadingDetail','Chunks generated: '+initialChunkDone+' / '+initialChunkTotal,'updateLoadingScreen');
+ setWorldText('loadingDetail','Generating terrain...','updateLoadingScreen');
 }
 function finishInitialLoading(){
  initialLoading=false;
