@@ -1289,15 +1289,20 @@ let gravityBlockClock=0;
 const GRAVITY_BLOCK_TYPES=new Set(['Sand','Red Sand','Gravel','Anvil']);
 function updateGravityBlocks(dt){
  gravityBlockClock+=dt;if(gravityBlockClock<.12)return;gravityBlockClock=0;
- const moving=[];let checked=0;
- for(const data of blocks.values()){
-  if(checked++>1800)break;
-  if(!GRAVITY_BLOCK_TYPES.has(data.type))continue;
-  const dx=data.x+.5-player.x,dz=data.z+.5-player.z;
-  if(dx*dx+dz*dz>SIMULATION_DISTANCE_BLOCKS*SIMULATION_DISTANCE_BLOCKS)continue;
-  const below=blocks.get(blockKey(data.x,data.y-1,data.z));
-  if(!below||['Tall Grass','Snow Layer','Water','Seaweed'].includes(below.type))moving.push(data);
-  if(moving.length>=10)break;
+ const moving=[];
+  // Scan nearby chunk buckets, not the first N world blocks: terrain generation
+  // inserts distant chunks first, which could leave nearby sand permanently floating.
+ const pcx=Math.floor(player.x/CHUNK_SIZE),pcz=Math.floor(player.z/CHUNK_SIZE),chunkRadius=SIMULATION_DISTANCE_CHUNKS+1;
+ for(let cx=pcx-chunkRadius;cx<=pcx+chunkRadius&&moving.length<10;cx++)for(let cz=pcz-chunkRadius;cz<=pcz+chunkRadius&&moving.length<10;cz++){
+  const bucket=blocksByChunk.get(cx+','+cz);if(!bucket)continue;
+  for(const data of bucket){
+   if(!GRAVITY_BLOCK_TYPES.has(data.type))continue;
+   const dx=data.x+.5-player.x,dz=data.z+.5-player.z;
+   if(dx*dx+dz*dz>SIMULATION_DISTANCE_BLOCKS*SIMULATION_DISTANCE_BLOCKS)continue;
+   const below=blocks.get(blockKey(data.x,data.y-1,data.z));
+   if(!below||['Tall Grass','Snow Layer','Water','Seaweed'].includes(below.type))moving.push(data);
+   if(moving.length>=10)break;
+  }
  }
  if(!moving.length)return;
  for(const data of moving){
