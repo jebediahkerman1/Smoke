@@ -934,20 +934,56 @@ let menuPreviewGroup=null;
 function buildMenuPreview(){
  if(menuPreviewGroup)return;
  const group=new THREE.Group(),size=CHUNK_SIZE*8,depth=CHUNK_SIZE*5;
- const geometry=new THREE.BoxGeometry(1,1,1);
- const material=materials['Grass']||new THREE.MeshLambertMaterial({color:0x62ad3e});
- const count=size*depth,mesh=new THREE.InstancedMesh(geometry,material,count);
- const dummy=new THREE.Object3D();let index=0;
+ const cube=new THREE.BoxGeometry(1,1,1),dummy=new THREE.Object3D();
+ const batches={Grass:[],Dirt:[],Stone:[],Log:[],Leaves:[],TallGrass:[]};
  const startX=-size/2,startZ=-depth/2;
+ // Build proper solid terrain columns: grass cap, dirt below, stone foundations.
  for(let x=0;x<size;x++)for(let z=0;z<depth;z++){
-  const wx=startX+x,wz=startZ+z,h=Math.max(1,Math.floor(terrainHeight(wx,wz)));
-  dummy.position.set(wx+.5,h+.5,wz+.5);dummy.updateMatrix();mesh.setMatrixAt(index++,dummy.matrix);
+  const wx=startX+x,wz=startZ+z,h=Math.max(2,Math.floor(terrainHeight(wx,wz)));
+  batches.Grass.push([wx+.5,h-.5,wz+.5]);
+  for(let layer=1;layer<=3;layer++)batches.Dirt.push([wx+.5,h-layer-.5,wz+.5]);
+  for(let layer=4;layer<=5;layer++)batches.Stone.push([wx+.5,h-layer-.5,wz+.5]);
  }
- mesh.count=index;mesh.instanceMatrix.needsUpdate=true;mesh.frustumCulled=false;group.add(mesh);
- group.userData={menuPreview:true,chunkWidth:8,chunkDepth:5,chunkCount:40,visualOnly:true};
+ function addBatch(name,positions,material){
+  if(!positions.length)return;
+  const mesh=new THREE.InstancedMesh(cube,material,positions.length);
+  positions.forEach(([x,y,z],i)=>{dummy.position.set(x,y,z);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix)});
+  mesh.instanceMatrix.needsUpdate=true;mesh.frustumCulled=false;group.add(mesh);
+ }
+ addBatch('Grass',batches.Grass,materials.Grass);
+ addBatch('Dirt',batches.Dirt,materials.Dirt);
+ addBatch('Stone',batches.Stone,materials.Stone);
+ // Deterministic scattered trees, kept on the menu preview only.
+ let seed=41731;
+ const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
+ const trunk=[],foliage=[],tufts=[];
+ for(let i=0;i<155;i++){
+  const x=startX+5+Math.floor(rand()*(size-10)),z=startZ+5+Math.floor(rand()*(depth-10));
+  const h=Math.max(2,Math.floor(terrainHeight(x,z)));
+  if(rand()<.16)continue;
+  const trunkH=3+Math.floor(rand()*3);
+  for(let y=1;y<=trunkH;y++)trunk.push([x+.5,h+y+.5,z+.5]);
+  const crownY=h+trunkH;
+  for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=0;dy<=2;dy++){
+   if(Math.abs(dx)+Math.abs(dz)+Math.abs(dy-1)>4)continue;
+   if(rand()<.13)continue;
+   foliage.push([x+dx+.5,crownY+dy+.5,z+dz+.5]);
+  }
+ }
+ addBatch('Logs',trunk,materials['Oak Log']);
+ addBatch('Leaves',foliage,materials.Leaves);
+ // Tall grass patches add detail without creating thousands of separate objects.
+ const grassGeo=blockGeometries['Tall Grass']||cube;
+ const grassMesh=new THREE.InstancedMesh(grassGeo,materials['Tall Grass'],850);
+ for(let i=0;i<850;i++){
+  const x=startX+Math.floor(rand()*size),z=startZ+Math.floor(rand()*depth),h=Math.max(2,Math.floor(terrainHeight(x,z)));
+  dummy.position.set(x+.5,h+1,z+.5);dummy.rotation.y=rand()*Math.PI;dummy.scale.setScalar(.75+rand()*.6);dummy.updateMatrix();grassMesh.setMatrixAt(i,dummy.matrix);
+ }
+ grassMesh.instanceMatrix.needsUpdate=true;grassMesh.frustumCulled=false;group.add(grassMesh);
+ group.userData={menuPreview:true,chunkWidth:8,chunkDepth:5,chunkCount:40,visualOnly:true,trees:trunk.length,grassTufts:850};
  scene.add(group);menuPreviewGroup=group;
- // Frame the preset landscape behind the menu, rather than loading a playable world.
- camera.position.set(0,34,94);camera.rotation.order='YXZ';camera.rotation.set(-.34,0,0);
+ // Higher, wider aerial camera to show the rolling landscape and scattered forest.
+ camera.position.set(0,92,150);camera.rotation.order='YXZ';camera.rotation.set(-.48,0,0);
 }
 function clearMenuPreview(){
  if(!menuPreviewGroup)return;
