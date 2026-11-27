@@ -1275,24 +1275,24 @@ const player={x:0,y:1.01,z:5},ray=new THREE.Raycaster();camera.position.set(play
 
 const voxelClouds=[];
 const CLOUD_ALTITUDE=43.01; // Fixed world height; clouds must not follow player altitude.
-// Minecraft-style flat cloud layer: thin, evenly lit and translucent.
-const cloudBlockGeometry=new THREE.BoxGeometry(8,.16,8);
+// Decorative cloud clusters: each visual-only CloudBlock is exactly 7x7x1 blocks.
+// They are meshes, not world blocks: no collision, inventory entry, mining or placement.
+const cloudBlockGeometry=new THREE.BoxGeometry(7,1,7);
 const cloudMaterial=new THREE.MeshBasicMaterial({color:0xf7fbff,transparent:true,opacity:.58,depthWrite:false,fog:false});
-
-const cloudBaseCells=[[-2,-1],[-1,-1],[0,-1],[1,-1],[-3,0],[-2,0],[-1,0],[0,0],[1,0],[2,0],[-2,1],[-1,1],[0,1],[1,1],[2,1],[-1,-2],[0,-2],[1,-2]];
+const cloudBlockCells=[[0,0],[1,0],[0,1],[1,1]]; // Four connected CloudBlocks maximum.
 const cloudOffsets=[[-115,-75],[-55,35],[5,-115],[75,75],[130,-25],[-135,105],[42,125],[-12,-12],[105,-120]];
 function createVoxelCloud(offsetX,offsetZ,index){
  const group=new THREE.Group();
- const cells=cloudBaseCells.map(([x,z])=>[x*7.2,0,z*7.2]);
+ const cells=cloudBlockCells.map(([x,z])=>[(x-.5)*7,0,(z-.5)*7]);
  const body=new THREE.InstancedMesh(cloudBlockGeometry,cloudMaterial,cells.length);
  const dummy=new THREE.Object3D();
  cells.forEach(([x,y,z],i)=>{dummy.position.set(x,y,z);dummy.scale.set(1,1,1);dummy.updateMatrix();body.setMatrixAt(i,dummy.matrix)});
-
  body.instanceMatrix.needsUpdate=true;
  body.frustumCulled=false;
- group.add(body);group.scale.setScalar(.78+(index%4)*.11);
+ body.userData={visualOnly:true,unobtainable:true,cloudBlocks:cells.length};
+ group.add(body);
  group.position.set(player.x+offsetX,CLOUD_ALTITUDE,player.z+offsetZ);
- group.userData={speed:.55+(index%3)*.16,offsetX,offsetZ};
+ group.userData={speed:.55+(index%3)*.16,offsetX,offsetZ,visualOnly:true,unobtainable:true};
  scene.add(group);voxelClouds.push(group);
 }
 cloudOffsets.forEach(([x,z],i)=>createVoxelCloud(x,z,i));
