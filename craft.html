@@ -232,27 +232,34 @@ const bodyRightHand=new THREE.Mesh(new THREE.BoxGeometry(.25,.17,.255),handMater
 bodyRightHand.position.set(0,-.69,0);bodyRightArmPivot.add(bodyRightHand);
 const bodyLeftHand=new THREE.Mesh(new THREE.BoxGeometry(.25,.17,.255),handMaterial.clone());
 bodyLeftHand.position.set(0,-.69,0);bodyLeftArmPivot.add(bodyLeftHand);
-// Simple blocky hair cap and fringe, attached to the head so it follows head movement.
-const hairMaterial=new THREE.MeshLambertMaterial({color:0x4a2c19});
-const bodyHairCap=new THREE.Mesh(new THREE.BoxGeometry(.515,.105,.515),hairMaterial);
-bodyHairCap.position.set(0,.205,0);bodyHead.add(bodyHairCap);
-const bodyHairFringe=new THREE.Mesh(new THREE.BoxGeometry(.515,.105,.055),hairMaterial);
-bodyHairFringe.position.set(0,.125,.255);bodyHead.add(bodyHairFringe);
-// Pixel-style eyes on the front (+Z) of the head.
-const eyeWhiteMaterial=new THREE.MeshLambertMaterial({color:0xf4f4ed});
-const eyeDarkMaterial=new THREE.MeshLambertMaterial({color:0x20252d});
-for(const side of [-1,1]){
- const white=new THREE.Mesh(new THREE.BoxGeometry(.105,.075,.018),eyeWhiteMaterial);
- white.position.set(side*.105,.005,.258);bodyHead.add(white);
- const pupil=new THREE.Mesh(new THREE.BoxGeometry(.045,.06,.012),eyeDarkMaterial);
- pupil.position.set(side*.105,.005,.273);bodyHead.add(pupil);
+// Hair, eyes, and shoes are 2D pixel-art overlays on flat planes (not 3D blocks).
+function makePixelOverlay(width,height,draw){
+ const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+ const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;draw(ctx);
+ const texture=new THREE.CanvasTexture(canvas);texture.magFilter=THREE.NearestFilter;texture.minFilter=THREE.NearestFilter;texture.colorSpace=THREE.SRGBColorSpace;
+ return new THREE.MeshBasicMaterial({map:texture,transparent:true,alphaTest:.08,side:THREE.DoubleSide,depthWrite:false});
 }
-// Shoes sit at the bottom of each animated leg pivot.
-const shoeMaterial=new THREE.MeshLambertMaterial({color:0x292b35});
-const bodyRightShoe=new THREE.Mesh(new THREE.BoxGeometry(.265,.15,.29),shoeMaterial);
-bodyRightShoe.position.set(0,-.55,.015);bodyRightLegPivot.add(bodyRightShoe);
-const bodyLeftShoe=new THREE.Mesh(new THREE.BoxGeometry(.265,.15,.29),shoeMaterial);
-bodyLeftShoe.position.set(0,-.55,.015);bodyLeftLegPivot.add(bodyLeftShoe);
+const hairOverlayMaterial=makePixelOverlay(32,16,ctx=>{
+ ctx.fillStyle='#4a2c19';ctx.fillRect(2,0,28,7);ctx.fillRect(0,3,32,6);
+ ctx.fillRect(1,7,7,5);ctx.fillRect(9,7,7,3);ctx.fillRect(18,7,6,5);ctx.fillRect(26,7,5,4);
+ ctx.fillStyle='#68432b';ctx.fillRect(4,2,8,2);ctx.fillRect(18,1,7,2);
+});
+const bodyHair2D=new THREE.Mesh(new THREE.PlaneGeometry(.515,.27),hairOverlayMaterial);
+bodyHair2D.position.set(0,.13,.253);bodyHead.add(bodyHair2D);
+const eyesOverlayMaterial=makePixelOverlay(32,12,ctx=>{
+ for(const x of [5,19]){ctx.fillStyle='#f4f4ed';ctx.fillRect(x,2,8,8);ctx.fillStyle='#20252d';ctx.fillRect(x+3,3,4,7);}
+});
+const bodyEyes2D=new THREE.Mesh(new THREE.PlaneGeometry(.5,.19),eyesOverlayMaterial);
+bodyEyes2D.position.set(0,.005,.254);bodyHead.add(bodyEyes2D);
+const shoeOverlayMaterial=makePixelOverlay(16,10,ctx=>{
+ ctx.fillStyle='#171a22';ctx.fillRect(1,1,14,8);
+ ctx.fillStyle='#343947';ctx.fillRect(2,1,12,5);
+ ctx.fillStyle='#777d89';ctx.fillRect(2,7,12,1);
+});
+const bodyRightShoe2D=new THREE.Mesh(new THREE.PlaneGeometry(.28,.17),shoeOverlayMaterial);
+bodyRightShoe2D.position.set(0,-.55,.132);bodyRightLegPivot.add(bodyRightShoe2D);
+const bodyLeftShoe2D=new THREE.Mesh(new THREE.PlaneGeometry(.28,.17),shoeOverlayMaterial.clone());
+bodyLeftShoe2D.position.set(0,-.55,.132);bodyLeftLegPivot.add(bodyLeftShoe2D);
 let uploadedSkinTexture=null,thirdPerson=false;
 function applyUploadedSkin(dataUrl,save=true){
  const img=new Image();img.onload=()=>{if(img.width!==64||img.height!==64){toast('Skin must be a standard 64×64 Minecraft PNG');return}
