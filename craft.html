@@ -268,6 +268,8 @@ function dampAngle(current,target,lambda,dt){
 }
 let playerAnim={phase:0,move:0,swing:0,bob:0,bodyYaw:0,crouch:0,swim:0};
 function updatePlayerBody(){
+ // The menu has its own fixed showcase camera. Do not let player-follow logic pull it down to ground level.
+ if(!worldStarted&&$('start').style.display!=='none')return;
  const now=performance.now(),rawDt=(now-(updatePlayerBody._lastTime||now))/1000,dt=Math.min(.05,Math.max(.001,rawDt));updatePlayerBody._lastTime=now;
  const moving=!!(keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||touchKeys.KeyW||touchKeys.KeyA||touchKeys.KeyS||touchKeys.KeyD);
  const water=waterAt(player.x,player.z),swimming=!!(water&&player.y<water.surface+.25);
