@@ -485,7 +485,7 @@ function oceanBedHeight(rawH,x,z){
 }
 function oceanAt(x,z){
  const field=oceanFieldAt(x,z);
- return field>.69&&oceanBedHeight(terrainHeight(x,z),x,z)<1.5;
+ return field>.69&&oceanBedHeight(terrainHeight(x,z),x,z)<0;
 }
 function riverAt(x,z){
  const phase=worldSeed*.0000007;
