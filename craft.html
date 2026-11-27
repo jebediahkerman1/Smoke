@@ -1048,8 +1048,8 @@ function buildMenuPreview(){
  group.userData={menuPreview:true,chunkWidth:8,chunkDepth:5,chunkCount:40,visualOnly:true,trees:trunk.length,grassTufts:850};
  scene.add(group);menuPreviewGroup=group;
  // Low menu viewpoint: keep the camera about five blocks above the nearby terrain.
- const menuCameraZ=depth/2+12;
- camera.position.set(0,Math.max(6,terrainHeight(0,menuCameraZ)+5),menuCameraZ);camera.rotation.order='YXZ';camera.rotation.set(-.18,0,0);
+ const menuCameraZ=depth/2+25;
+ camera.position.set(0,Math.max(6,terrainHeight(0,menuCameraZ)+8),menuCameraZ);camera.rotation.order='YXZ';camera.rotation.set(-.18,0,0);
 }
 function clearMenuPreview(){
  // Remove the tracked preview and any orphaned preview group, so it cannot overlap gameplay chunks.
