@@ -1288,15 +1288,15 @@ const player={x:0,y:1.01,z:5},ray=new THREE.Raycaster();camera.position.set(play
 
 const voxelClouds=[];
 const CLOUD_ALTITUDE=43.01; // Fixed world height; clouds must not follow player altitude.
-const cloudBlockGeometry=new THREE.BoxGeometry(8,2.4,8);
-const cloudMaterial=new THREE.MeshLambertMaterial({color:0xf7fbff,fog:false});
+// Minecraft-style flat cloud layer: thin, evenly lit and translucent.
+const cloudBlockGeometry=new THREE.BoxGeometry(8,.16,8);
+const cloudMaterial=new THREE.MeshBasicMaterial({color:0xf7fbff,transparent:true,opacity:.58,depthWrite:false,fog:false});
 
 const cloudBaseCells=[[-2,-1],[-1,-1],[0,-1],[1,-1],[-3,0],[-2,0],[-1,0],[0,0],[1,0],[2,0],[-2,1],[-1,1],[0,1],[1,1],[2,1],[-1,-2],[0,-2],[1,-2]];
-const cloudPuffCells=[[-1,-1],[0,-1],[0,0],[1,0],[-1,0]];
 const cloudOffsets=[[-115,-75],[-55,35],[5,-115],[75,75],[130,-25],[-135,105],[42,125],[-12,-12],[105,-120]];
 function createVoxelCloud(offsetX,offsetZ,index){
  const group=new THREE.Group();
- const cells=[...cloudBaseCells.map(([x,z])=>[x*7.2,.9,z*7.2]),...cloudPuffCells.map(([x,z])=>[x*7.2,3.25,z*7.2])];
+ const cells=cloudBaseCells.map(([x,z])=>[x*7.2,0,z*7.2]);
  const body=new THREE.InstancedMesh(cloudBlockGeometry,cloudMaterial,cells.length);
  const dummy=new THREE.Object3D();
  cells.forEach(([x,y,z],i)=>{dummy.position.set(x,y,z);dummy.scale.set(1,1,1);dummy.updateMatrix();body.setMatrixAt(i,dummy.matrix)});
