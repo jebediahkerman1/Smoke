@@ -216,16 +216,16 @@ const bodyTorso=addPlayerBodyPart([.5,.75,.25],[0,1.0,0],torsoUV,bodyShirtMat);
 // Limb pivots sit at the shoulders and hips, so Steve swings from the correct joints.
 const bodyRightArmPivot=new THREE.Group();bodyRightArmPivot.position.set(-.375,1.375,0);playerBody.add(bodyRightArmPivot);
 const bodyLeftArmPivot=new THREE.Group();bodyLeftArmPivot.position.set(.375,1.375,0);playerBody.add(bodyLeftArmPivot);
-const bodyRightLegPivot=new THREE.Group();bodyRightLegPivot.position.set(-.13,.75,0);playerBody.add(bodyRightLegPivot);
-const bodyLeftLegPivot=new THREE.Group();bodyLeftLegPivot.position.set(.13,.75,0);playerBody.add(bodyLeftLegPivot);
+const bodyRightLegPivot=new THREE.Group();bodyRightLegPivot.position.set(-.13,.625,0);playerBody.add(bodyRightLegPivot);
+const bodyLeftLegPivot=new THREE.Group();bodyLeftLegPivot.position.set(.13,.625,0);playerBody.add(bodyLeftLegPivot);
 function addPivotLimb(pivot,size,rects,material){
  const mesh=new THREE.Mesh(skinBoxGeometry(...size,rects),material.clone());
  mesh.position.y=-size[1]/2;pivot.add(mesh);playerBodyParts.push(mesh);return mesh;
 }
 const bodyRightArm=addPivotLimb(bodyRightArmPivot,[.25,.75,.25],rightArmUV,bodyShirtMat);
 const bodyLeftArm=addPivotLimb(bodyLeftArmPivot,[.25,.75,.25],leftArmUV,bodyShirtMat);
-const bodyRightLeg=addPivotLimb(bodyRightLegPivot,[.25,.75,.25],rightLegUV,bodyPantsMat);
-const bodyLeftLeg=addPivotLimb(bodyLeftLegPivot,[.25,.75,.25],leftLegUV,bodyPantsMat);
+const bodyRightLeg=addPivotLimb(bodyRightLegPivot,[.25,.625,.25],rightLegUV,bodyPantsMat);
+const bodyLeftLeg=addPivotLimb(bodyLeftLegPivot,[.25,.625,.25],leftLegUV,bodyPantsMat);
 let uploadedSkinTexture=null,thirdPerson=false;
 function applyUploadedSkin(dataUrl,save=true){
  const img=new Image();img.onload=()=>{if(img.width!==64||img.height!==64){toast('Skin must be a standard 64×64 Minecraft PNG');return}
