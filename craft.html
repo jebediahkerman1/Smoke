@@ -638,6 +638,7 @@ function* generateChunk(cx,cz,worldVersion=worldGenerationVersion){
    addBlock(x,y,z,type);
   }
   if(iceLake)addBlock(x,h,z,'Ice');
+  if(!hellDimension&&seededNoise(x+worldSeed%613+191,z-worldSeed%457-83)>.996){const veinY=h-18;addBlock(x,veinY,z,'Obsidian');if(seededNoise(x+37,z-19)>.35)addBlock(x+1,veinY,z,'Obsidian');if(seededNoise(x-23,z+41)>.52)addBlock(x,veinY,z+1,'Obsidian')}
   if(seaWater||lake){
    const bottom=waterBed+1,surface=ocean?1.5:river?riverSurface:h+.5,depth=Math.max(.1,surface-bottom),columnKey=x+','+z;
    const waterData={chunkKey:key,columnKey,bottom,surface,waterType:ocean?'ocean':river?'river':'lake',x:x+.5,y:bottom+depth/2,z:z+.5,depth};
@@ -815,7 +816,7 @@ function* generateChunk(cx,cz,worldVersion=worldGenerationVersion){
    fallMesh.frustumCulled=true;scene.add(fallMesh);waterTiles.push(fallMesh);
   }
  }
- for(const [editKey,value] of worldEdits){const [ex,ey,ez]=editKey.split(',').map(Number);if(Math.floor(ex/CHUNK_SIZE)===cx&&Math.floor(ez/CHUNK_SIZE)===cz){const existing=blocks.get(editKey);if(existing)removeBlock(existing);if(value!==null)addBlock(ex,ey,ez,value)}}
+ applyingWorldEdits=true;try{for(const [editKey,value] of worldEdits){const [ex,ey,ez]=editKey.split(',').map(Number);if(Math.floor(ex/CHUNK_SIZE)===cx&&Math.floor(ez/CHUNK_SIZE)===cz){const existing=blocks.get(editKey);if(existing)removeBlock(existing);if(value!==null)addBlock(ex,ey,ez,value)}}}finally{applyingWorldEdits=false}
  flushDirtyChunks();
  if(hellDimension){for(const mob of [...animals])if(mob.chunk===key)removeAnimal(mob)}else spawnChunkAnimals(cx,cz);
  const ownGroup=chunkGroups.get(key);
@@ -966,7 +967,7 @@ function generateWorld(seedValue,restorePosition=null){
  clearMenuPreview();clearWorld();
  worldStarted=true;dayCycleSeconds=0;
  worldSeed=seedToNumber(seedValue);
- if(gameMode==='survival'&&!inventorySlots.some(item=>item&&(item.type==='Bucket'||item.type==='Water Bucket')))addInventoryItem('Bucket',1);
+ if(gameMode==='survival'&&!inventorySlots.some(item=>item&&(item.type==='Bucket'||item.type==='Water Bucket')))addInventoryItem('Bucket',1);if(gameMode==='survival'&&!inventorySlots.some(item=>item?.type==='Flint and Steel'))addInventoryItem('Flint and Steel',1);
  setWorldText('currentWorldSeed',String(worldSeed),'generateWorld');$('worldSeedInput').value=String(worldSeed);
  const safeSpawn=restorePosition||findSafePlayerSpawn(0,5);player.x=Number(safeSpawn.x??.5);player.z=Number(safeSpawn.z??5.5);player.y=Number(safeSpawn.y??1.01);
  velocityY=0;onGround=true;fallStartY=null;
