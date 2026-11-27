@@ -934,7 +934,8 @@ function generateWorld(seedValue,restorePosition=null){
 // This is decorative geometry only; gameplay chunks are generated separately after Play.
 let menuPreviewGroup=null;
 function buildMenuPreview(){
- if(menuPreviewGroup)return;
+ // Never create decorative menu terrain once a playable world has started.
+ if(worldStarted||menuPreviewGroup)return;
  const group=new THREE.Group(),size=CHUNK_SIZE*8,depth=CHUNK_SIZE*5;
  const cube=new THREE.BoxGeometry(1,1,1),dummy=new THREE.Object3D();
  const batches={Grass:[],Dirt:[],Stone:[],Log:[],Leaves:[],TallGrass:[]};
@@ -989,8 +990,11 @@ function buildMenuPreview(){
  camera.position.set(0,Math.max(6,terrainHeight(0,menuCameraZ)+5),menuCameraZ);camera.rotation.order='YXZ';camera.rotation.set(-.18,0,0);
 }
 function clearMenuPreview(){
- if(!menuPreviewGroup)return;
- scene.remove(menuPreviewGroup);menuPreviewGroup=null;
+ // Remove the tracked preview and any orphaned preview group, so it cannot overlap gameplay chunks.
+ if(menuPreviewGroup){scene.remove(menuPreviewGroup);menuPreviewGroup=null}
+ for(const child of [...scene.children]){
+  if(child.userData?.menuPreview)scene.remove(child);
+ }
 }
 function updateChunkVisibility(force=false){
  const pcx=Math.floor(player.x/CHUNK_SIZE),pcz=Math.floor(player.z/CHUNK_SIZE);
