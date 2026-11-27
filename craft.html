@@ -1097,7 +1097,7 @@ function updateBreakParticles(dt){for(let i=breakParticles.length-1;i>=0;i--){co
 let leafParticleClock=0;
 const demonSoulParticles=[];let demonSoulClock=0;
 function spawnDemonSoulParticles(dt){
- if(performanceMode||!onGround)return;
+ if(!onGround)return;
  const floorBlock=blocks.get(blockKey(Math.floor(player.x),Math.floor(player.y-.99),Math.floor(player.z)));
  if(floorBlock?.type!=='Demon Sand')return;
  demonSoulClock+=dt;if(demonSoulClock<.16)return;demonSoulClock=0;
