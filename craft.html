@@ -96,7 +96,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const $=id=>document.getElementById(id),root=$('game');
 
 const netConfig=window.SMOKE_SUPABASE_CONFIG;
-let netClient=null,netChannel=null,netLobbyChannel=null,netRoomCode='',netPlayerName='Player',netPlayerId='',netIsHost=false,netReady=false,lastNetSend=0,netWorldReceived=false; let onlineWorldEntries=[];
+let netClient=null,netChannel=null,netLobbyChannel=null,netRoomCode='',netPlayerName='Player',netPlayerId='',netIsHost=false,netReady=false,lastNetSend=0,netWorldReceived=false; let onlineWorldEntries=[],netRoomWorldStarted=false;
 const remotePlayers=new Map();
 function netToast(message){toast('MULTIPLAYER · '+message)}
 function showRoomCode(){if(!netRoomCode)return;$('roomCodeValue').textContent=netRoomCode;$('settingsRoomCode').textContent=netRoomCode;$('roomBadge').style.display='flex'}
@@ -148,13 +148,13 @@ function refreshOnlineWorlds(){
 async function updateOnlineWorldSlot(){
  if(!netLobbyChannel||!netReady||!netIsHost||!netRoomCode)return;
  const peers=netChannel?.presenceState?.()||{};let players=1;for(const group of Object.values(peers))players+=group.length;
- try{await netLobbyChannel.track({hostId:netPlayerId,roomCode:netRoomCode,worldName:netPlayerName+'\'s World',mode:gameMode,seed:String(worldSeed||''),started:!!worldStarted,players,updated:Date.now()})}catch(error){console.warn('Could not update online world slot:',error)}
+ try{await netLobbyChannel.track({hostId:netPlayerId,roomCode:netRoomCode,worldName:netPlayerName+'\'s World',mode:gameMode,seed:String(worldSeed||''),started:netRoomWorldStarted,players,updated:Date.now()})}catch(error){console.warn('Could not update online world slot:',error)}
 }
 async function leaveMultiplayer(){
  if(netLobbyChannel&&netIsHost){try{await netLobbyChannel.untrack()}catch(_){}refreshOnlineWorlds()}
  if(netChannel){try{await netChannel.unsubscribe()}catch(_){}netChannel=null}
  for(const id of [...remotePlayers.keys()])removeRemotePlayer(id);
- netReady=false;netWorldReceived=false;netRoomCode='';netIsHost=false;hideRoomCode();
+ netReady=false;netWorldReceived=false;netRoomWorldStarted=false;netRoomCode='';netIsHost=false;hideRoomCode();
 }
 async function openMultiplayerRoom(joining,roomCode=''){
  try{
@@ -163,11 +163,11 @@ async function openMultiplayerRoom(joining,roomCode=''){
   netPlayerId=(globalThis.crypto?.randomUUID?.()||('p-'+Math.random().toString(36).slice(2)+Date.now().toString(36)));
   netRoomCode=joining?String(roomCode||$('joinRoomCodeInput')?.value||'').trim().toUpperCase():makeRoomCode();
   if(!netRoomCode){netToast('Room code required');return}
-  netIsHost=!joining;
+  netIsHost=!joining;netRoomWorldStarted=false;
   const client=ensureNetClient();
   await ensureOnlineWorldList();
   netChannel=client.channel('smoke-world-'+netRoomCode,{config:{presence:{key:netPlayerId},broadcast:{self:false}}});
-  netChannel.on('presence',{event:'sync'},()=>{const state=netChannel.presenceState();for(const [key,entries] of Object.entries(state)){for(const entry of entries){if(entry.id&&entry.id!==netPlayerId)updateRemotePlayer(entry)}}});
+  netChannel.on('presence',{event:'sync'},()=>{const state=netChannel.presenceState();for(const [key,entries] of Object.entries(state)){for(const entry of entries){if(entry.id&&entry.id!==netPlayerId)updateRemotePlayer(entry)}}if(netIsHost)updateOnlineWorldSlot()});
   netChannel.on('broadcast',{event:'player'},({payload})=>updateRemotePlayer(payload));
   netChannel.on('broadcast',{event:'block-edit'},({payload})=>applyNetworkBlockEdit(payload));
   netChannel.on('broadcast',{event:'world-init-request'},async()=>{if(netIsHost&&worldStarted)await sendWorldInit()});
@@ -180,6 +180,7 @@ async function openMultiplayerRoom(joining,roomCode=''){
 }
 async function sendWorldInit(){
  if(!netReady||!netIsHost||!netChannel)return;
+ netRoomWorldStarted=true;
  await netChannel.send({type:'broadcast',event:'world-init',payload:{seed:worldSeed,mode:gameMode,edits:[...worldEdits.entries()]}});
  await updateOnlineWorldSlot();
 }
