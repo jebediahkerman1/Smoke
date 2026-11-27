@@ -190,7 +190,7 @@ const armFinger=new THREE.Mesh(armBox,armSkinMaterial);armFinger.scale.set(.18,.
 let handActionTime=1,handActionKind='break';
 function triggerArmSwing(kind){handActionKind=kind;handActionTime=0}
 function applyDominantArm(side,save=true){dominantArm=side==='left'?'left':'right';const left=dominantArm==='left';firstPersonArm.position.x=left?-.48:.48;firstPersonArm.rotation.z=left?.12:-.12;armThumb.position.x=left?-.145:.145;const handSelect=$('dominantHand');if(handSelect)handSelect.value=dominantArm;if(save){try{localStorage.setItem('smokeblocks-dominant-hand',dominantArm)}catch(e){}}}
-function applyPlayerSkin(skin,shirt){if(skin)playerSkin.skin=skin;if(shirt)playerSkin.shirt=shirt;armSkinMaterial.color.set(playerSkin.skin);armShirtMaterial.color.set(playerSkin.shirt);bodySkinMat.color.set(playerSkin.skin);bodyShirtMat.color.set(playerSkin.shirt);if(!uploadedSkinTexture){bodyHead.material.color.set(playerSkin.skin);bodyTorso.material.color.set(playerSkin.shirt);bodyRightArm.material.color.set(playerSkin.shirt);bodyLeftArm.material.color.set(playerSkin.shirt)}try{localStorage.setItem('smokeblocks-player-skin',JSON.stringify(playerSkin))}catch(e){}}
+function applyPlayerSkin(skin,shirt){if(skin)playerSkin.skin=skin;if(shirt)playerSkin.shirt=shirt;armSkinMaterial.color.set(playerSkin.skin);armShirtMaterial.color.set(playerSkin.shirt);bodySkinMat.color.set(playerSkin.skin);bodyShirtMat.color.set(playerSkin.shirt);handMaterial.color.set(playerSkin.skin);bodyRightHand.material.color.set(playerSkin.skin);bodyLeftHand.material.color.set(playerSkin.skin);if(!uploadedSkinTexture){bodyHead.material.color.set(playerSkin.skin);bodyTorso.material.color.set(playerSkin.shirt);bodyRightArm.material.color.set(playerSkin.shirt);bodyLeftArm.material.color.set(playerSkin.shirt)}try{localStorage.setItem('smokeblocks-player-skin',JSON.stringify(playerSkin))}catch(e){}}
 try{const savedSkin=JSON.parse(localStorage.getItem('smokeblocks-player-skin')||'null');if(savedSkin){if(/^#[0-9a-f]{6}$/i.test(savedSkin.skin||''))playerSkin.skin=savedSkin.skin;if(/^#[0-9a-f]{6}$/i.test(savedSkin.shirt||''))playerSkin.shirt=savedSkin.shirt;}}catch(e){}
 const playerBody=new THREE.Group();playerBody.visible=false;scene.add(playerBody);
 const playerBodyParts=[];
@@ -226,6 +226,33 @@ const bodyRightArm=addPivotLimb(bodyRightArmPivot,[.25,.75,.25],rightArmUV,bodyS
 const bodyLeftArm=addPivotLimb(bodyLeftArmPivot,[.25,.75,.25],leftArmUV,bodyShirtMat);
 const bodyRightLeg=addPivotLimb(bodyRightLegPivot,[.25,.625,.25],rightLegUV,bodyPantsMat);
 const bodyLeftLeg=addPivotLimb(bodyLeftLegPivot,[.25,.625,.25],leftLegUV,bodyPantsMat);
+// Visible skin-tone hands at the ends of the sleeves.
+const handMaterial=new THREE.MeshLambertMaterial({color:playerSkin.skin});
+const bodyRightHand=new THREE.Mesh(new THREE.BoxGeometry(.25,.17,.255),handMaterial.clone());
+bodyRightHand.position.set(0,-.69,0);bodyRightArmPivot.add(bodyRightHand);
+const bodyLeftHand=new THREE.Mesh(new THREE.BoxGeometry(.25,.17,.255),handMaterial.clone());
+bodyLeftHand.position.set(0,-.69,0);bodyLeftArmPivot.add(bodyLeftHand);
+// Simple blocky hair cap and fringe, attached to the head so it follows head movement.
+const hairMaterial=new THREE.MeshLambertMaterial({color:0x4a2c19});
+const bodyHairCap=new THREE.Mesh(new THREE.BoxGeometry(.515,.105,.515),hairMaterial);
+bodyHairCap.position.set(0,.205,0);bodyHead.add(bodyHairCap);
+const bodyHairFringe=new THREE.Mesh(new THREE.BoxGeometry(.515,.105,.055),hairMaterial);
+bodyHairFringe.position.set(0,.125,.255);bodyHead.add(bodyHairFringe);
+// Pixel-style eyes on the front (+Z) of the head.
+const eyeWhiteMaterial=new THREE.MeshLambertMaterial({color:0xf4f4ed});
+const eyeDarkMaterial=new THREE.MeshLambertMaterial({color:0x20252d});
+for(const side of [-1,1]){
+ const white=new THREE.Mesh(new THREE.BoxGeometry(.105,.075,.018),eyeWhiteMaterial);
+ white.position.set(side*.105,.005,.258);bodyHead.add(white);
+ const pupil=new THREE.Mesh(new THREE.BoxGeometry(.045,.06,.012),eyeDarkMaterial);
+ pupil.position.set(side*.105,.005,.273);bodyHead.add(pupil);
+}
+// Shoes sit at the bottom of each animated leg pivot.
+const shoeMaterial=new THREE.MeshLambertMaterial({color:0x292b35});
+const bodyRightShoe=new THREE.Mesh(new THREE.BoxGeometry(.265,.15,.29),shoeMaterial);
+bodyRightShoe.position.set(0,-.55,.015);bodyRightLegPivot.add(bodyRightShoe);
+const bodyLeftShoe=new THREE.Mesh(new THREE.BoxGeometry(.265,.15,.29),shoeMaterial);
+bodyLeftShoe.position.set(0,-.55,.015);bodyLeftLegPivot.add(bodyLeftShoe);
 let uploadedSkinTexture=null,thirdPerson=false;
 function applyUploadedSkin(dataUrl,save=true){
  const img=new Image();img.onload=()=>{if(img.width!==64||img.height!==64){toast('Skin must be a standard 64×64 Minecraft PNG');return}
