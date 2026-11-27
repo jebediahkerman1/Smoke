@@ -349,14 +349,14 @@ $('skinTemplateButton').addEventListener('click',()=>{
 });
 
 
-const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);let performanceMode=(()=>{try{return localStorage.getItem('smokeblocks-performance-mode')!=='off'}catch(e){return true}})();let adaptivePixelRatio=Math.min(devicePixelRatio,performanceMode ? 0.78 : 1.1);renderer.setPixelRatio(adaptivePixelRatio);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=true;root.appendChild(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);let performanceMode=(()=>{try{return localStorage.getItem('smokeblocks-performance-mode')!=='off'}catch(e){return true}})();let adaptivePixelRatio=Math.min(devicePixelRatio,performanceMode ? 0.58 : 0.85);renderer.setPixelRatio(adaptivePixelRatio);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.info.autoReset=true;root.appendChild(renderer.domElement);
 // Adaptive resolution protects frame rate on weaker GPUs while retaining full detail when performance allows.
 let perfSampleTime=0,perfFrames=0,perfFps=60,perfAdjustClock=0;
 function updateAdaptiveResolution(frameDelta){
  perfSampleTime+=frameDelta;perfFrames++;perfAdjustClock+=frameDelta;
  if(perfSampleTime>=1){perfFps=perfFrames/perfSampleTime;perfFrames=0;perfSampleTime=0}
  if(perfAdjustClock<1.5)return;perfAdjustClock=0;
- const cap=Math.min(devicePixelRatio,performanceMode ? 0.9 : 1.25),floor=performanceMode ? 0.56 : 0.7;
+ const cap=Math.min(devicePixelRatio,performanceMode ? 0.72 : 1.0),floor=performanceMode ? 0.42 : 0.6;
  const target=perfFps<(performanceMode?50:45)?Math.max(floor,adaptivePixelRatio-(performanceMode ? 0.09 : 0.12)):perfFps>58?Math.min(cap,adaptivePixelRatio+(performanceMode ? 0.035 : 0.05)):adaptivePixelRatio;
  if(Math.abs(target-adaptivePixelRatio)>.02){adaptivePixelRatio=target;renderer.setPixelRatio(adaptivePixelRatio);renderer.setSize(innerWidth,innerHeight,false)}
 }
@@ -452,7 +452,7 @@ const blockGeometries={
  'Oak Stairs':compoundBlockGeometry([[1,.5,1,0,-.25,0],[1,.5,.5,0,.25,-.25]]),
  'Oak Fence':compoundBlockGeometry([[.22,1,.22,0,0,0],[.78,.16,.16,0,.22,0],[.78,.16,.16,0,-.2,0],[.16,.16,.78,0,.22,0],[.16,.16,.78,0,-.2,0]])
 };
-const blocks=new Map(),leafParticles=[],seaweedPlants=[],waterTiles=[],waterColumns=new Map(),droppedItems=[],breakParticles=[],chunkGroups=new Map(),CHUNK_SIZE=16;const SIMULATION_DISTANCE_CHUNKS=4,SIMULATION_DISTANCE_BLOCKS=SIMULATION_DISTANCE_CHUNKS*CHUNK_SIZE;let mobTickAccumulator=0,itemTickAccumulator=0;const MAX_INVENTORY_SLOTS=36;let renderDistance=6,worldSeed=0,lastChunkX=Infinity,lastChunkZ=Infinity,worldGeneratingChunk=false,applyingWorldEdits=false;const worldEdits=new Map();let hellDimension=false;const dimensionEditStores={overworld:new Map(),hell:new Map()};let portalFrame=null,portalVisual=null,lastOverworldPortal=null,portalTravelCooldown=0;const generatedChunks=new Set(),chunkQueue=[],queuedChunks=new Set(),initialChunkPending=new Set();let initialChunkTotal=0,initialChunkDone=0,initialLoading=false,chunkLoadClock=0;function updateFog(){const edge=renderDistance*CHUNK_SIZE;scene.fog.near=Math.max(10,edge*.28);scene.fog.far=Math.max(scene.fog.near+18,edge*.78);camera.far=Math.max(220,edge*2.2);camera.updateProjectionMatrix()}updateFog();const blockKey=(x,y,z)=>x+','+y+','+z;const waterFlowCanvas=document.createElement('canvas');waterFlowCanvas.width=waterFlowCanvas.height=128;const waterFlowCtx=waterFlowCanvas.getContext('2d');waterFlowCtx.imageSmoothingEnabled=false;const waterPixels=waterFlowCtx.createImageData(128,128);const waterPalette=[[25,76,224],[31,88,239],[39,103,250],[48,116,255],[57,128,255],[34,94,237]];const waterHash=(x,y)=>{let n=Math.imul(x,374761393)^Math.imul(y,668265263)^0x51ed270b;n=Math.imul(n^(n>>>13),1274126177);return (n^(n>>>16))>>>0};for(let py=0;py<128;py++)for(let px=0;px<128;px++){const a=Math.sin(px*.105+Math.sin(py*.047)*2.4)*.34+Math.cos(py*.091-Math.sin(px*.039)*2.1)*.29+Math.sin((px+py)*.052)*.2+Math.cos((px-py)*.071)*.12+(waterHash(Math.floor(px/3),Math.floor(py/3))/4294967295-.5)*.22;const band=Math.max(0,Math.min(5,Math.floor((a+1.05)*2.25)));const c=waterPalette[band],i=(py*128+px)*4;waterPixels.data[i]=c[0];waterPixels.data[i+1]=c[1];waterPixels.data[i+2]=c[2];waterPixels.data[i+3]=255}waterFlowCtx.putImageData(waterPixels,0,0);const waterFlowTexture=new THREE.CanvasTexture(waterFlowCanvas);waterFlowTexture.wrapS=waterFlowTexture.wrapT=THREE.RepeatWrapping;waterFlowTexture.repeat.set(1/8,1/8);waterFlowTexture.magFilter=THREE.NearestFilter;waterFlowTexture.minFilter=THREE.NearestMipmapLinearFilter;waterFlowTexture.generateMipmaps=true;const waterMaterial=new THREE.MeshLambertMaterial({map:waterFlowTexture,color:0xffffff,transparent:true,opacity:.96,depthWrite:false,side:THREE.DoubleSide});waterMaterial.customProgramCacheKey=()=> 'smokeblocks-continuous-world-water-v2';const waterGeo=new THREE.BoxGeometry(1,1,1);const WATER_SURFACE=.48;materials.Water=waterMaterial;
+const blocks=new Map(),leafParticles=[],seaweedPlants=[],waterTiles=[],waterColumns=new Map(),droppedItems=[],breakParticles=[],chunkGroups=new Map(),CHUNK_SIZE=16;const SIMULATION_DISTANCE_CHUNKS=4,SIMULATION_DISTANCE_BLOCKS=SIMULATION_DISTANCE_CHUNKS*CHUNK_SIZE;let mobTickAccumulator=0,itemTickAccumulator=0;const MAX_INVENTORY_SLOTS=36;let renderDistance=3,worldSeed=0,lastChunkX=Infinity,lastChunkZ=Infinity,worldGeneratingChunk=false,applyingWorldEdits=false;const worldEdits=new Map();let hellDimension=false;const dimensionEditStores={overworld:new Map(),hell:new Map()};let portalFrame=null,portalVisual=null,lastOverworldPortal=null,portalTravelCooldown=0;const generatedChunks=new Set(),chunkQueue=[],queuedChunks=new Set(),initialChunkPending=new Set();let initialChunkTotal=0,initialChunkDone=0,initialLoading=false,chunkLoadClock=0;function updateFog(){const edge=renderDistance*CHUNK_SIZE;scene.fog.near=Math.max(10,edge*.28);scene.fog.far=Math.max(scene.fog.near+18,edge*.78);camera.far=Math.max(220,edge*2.2);camera.updateProjectionMatrix()}updateFog();const blockKey=(x,y,z)=>x+','+y+','+z;const waterFlowCanvas=document.createElement('canvas');waterFlowCanvas.width=waterFlowCanvas.height=128;const waterFlowCtx=waterFlowCanvas.getContext('2d');waterFlowCtx.imageSmoothingEnabled=false;const waterPixels=waterFlowCtx.createImageData(128,128);const waterPalette=[[25,76,224],[31,88,239],[39,103,250],[48,116,255],[57,128,255],[34,94,237]];const waterHash=(x,y)=>{let n=Math.imul(x,374761393)^Math.imul(y,668265263)^0x51ed270b;n=Math.imul(n^(n>>>13),1274126177);return (n^(n>>>16))>>>0};for(let py=0;py<128;py++)for(let px=0;px<128;px++){const a=Math.sin(px*.105+Math.sin(py*.047)*2.4)*.34+Math.cos(py*.091-Math.sin(px*.039)*2.1)*.29+Math.sin((px+py)*.052)*.2+Math.cos((px-py)*.071)*.12+(waterHash(Math.floor(px/3),Math.floor(py/3))/4294967295-.5)*.22;const band=Math.max(0,Math.min(5,Math.floor((a+1.05)*2.25)));const c=waterPalette[band],i=(py*128+px)*4;waterPixels.data[i]=c[0];waterPixels.data[i+1]=c[1];waterPixels.data[i+2]=c[2];waterPixels.data[i+3]=255}waterFlowCtx.putImageData(waterPixels,0,0);const waterFlowTexture=new THREE.CanvasTexture(waterFlowCanvas);waterFlowTexture.wrapS=waterFlowTexture.wrapT=THREE.RepeatWrapping;waterFlowTexture.repeat.set(1/8,1/8);waterFlowTexture.magFilter=THREE.NearestFilter;waterFlowTexture.minFilter=THREE.NearestMipmapLinearFilter;waterFlowTexture.generateMipmaps=true;const waterMaterial=new THREE.MeshLambertMaterial({map:waterFlowTexture,color:0xffffff,transparent:true,opacity:.96,depthWrite:false,side:THREE.DoubleSide});waterMaterial.customProgramCacheKey=()=> 'smokeblocks-continuous-world-water-v2';const waterGeo=new THREE.BoxGeometry(1,1,1);const WATER_SURFACE=.48;materials.Water=waterMaterial;
 // Deterministic smooth terrain noise and biome selection.
 function seededNoise(x,z){
  // Mix the world seed with integer grid coordinates so each seed creates
@@ -582,8 +582,8 @@ function spawnChunkAnimals(cx,cz){
  if(sleeping){unloadedAnimalStates.delete(chunk);for(const saved of sleeping){makeAnimal(saved.type,saved.x,saved.z,chunk,saved.y);const mob=animals[animals.length-1];mob.hp=saved.hp;mob.maxHp=saved.maxHp;mob.tamed=saved.tamed;mob.dir=saved.dir;mob.phase=saved.phase;if(mob.tamed){mob.speed=2.2;const collar=new THREE.Mesh(new THREE.TorusGeometry(.22,.055,6,12),new THREE.MeshLambertMaterial({color:0xb52d35}));collar.position.set(0,.72,.12);mob.group.add(collar)}}return;}
  // Keep wildlife simulation small and concentrated near the player.
  const dx=cx-Math.floor(player.x/CHUNK_SIZE),dz=cz-Math.floor(player.z/CHUNK_SIZE);
- if(dx*dx+dz*dz>16||animals.length>=32)return;
- for(let n=0;n<2&&animals.length<32;n++){
+ if(dx*dx+dz*dz>9||animals.length>=10)return;
+ for(let n=0;n<1&&animals.length<10;n++){
   let spot=null;
   for(let attempt=0;attempt<64&&!spot;attempt++){
    const seed=attempt+n*71,x=cx*CHUNK_SIZE+1+Math.floor(seededNoise(cx*19+seed*7,cz*23+5)*14),z=cz*CHUNK_SIZE+1+Math.floor(seededNoise(cx*29+4,cz*17+seed)*14),y=terrainHeight(x,z)+1;
@@ -690,7 +690,7 @@ function* generateChunk(cx,cz,worldVersion=worldGenerationVersion){
    }
   }
   if(biome==='taiga'&&!lake&&!iceLake&&!ocean&&!river&&roll>.78){let topBlock=null;for(let sy=h+12;sy>=h-1;sy--){const candidate=blocks.get(blockKey(x,sy,z));if(candidate){topBlock=candidate;break}}if(topBlock&&topBlock.type!=='Snow'&&topBlock.type!=='Snow Layer'&&!blocks.has(blockKey(x,topBlock.y+1,z)))addBlock(x,topBlock.y+1,z,'Snow Layer')}
- if(((x-cx*CHUNK_SIZE)*CHUNK_SIZE+(z-cz*CHUNK_SIZE)+1)%8===0){worldGeneratingChunk=false;yield;if(worldVersion!==worldGenerationVersion)return;worldGeneratingChunk=true;}}}
+ if(((x-cx*CHUNK_SIZE)*CHUNK_SIZE+(z-cz*CHUNK_SIZE)+1)%2===0){worldGeneratingChunk=false;yield;if(worldVersion!==worldGenerationVersion)return;worldGeneratingChunk=true;}}}
  worldGeneratingChunk=false;
  applyingWorldEdits=true;
  for(const [editKey,editType] of worldEdits){const [ex,ey,ez]=editKey.split(',').map(Number);if(chunkKey(ex,ez)!==key)continue;const existing=blocks.get(editKey);if(existing){blocks.delete(editKey);blocksByChunk.get(key)?.delete(existing);dirtyChunks.add(key)}if(editType!==null)addBlock(ex,ey,ez,editType,editType==='Water'?{waterSource:true,flowLevel:0}:{})}
@@ -908,7 +908,7 @@ function finishInitialLoading(){
 let worldGenerationVersion=0;
 const activeChunkTasks=[];
 function processChunkQueue(dt){
- const MAX_PARALLEL_CHUNKS=4;
+ const MAX_PARALLEL_CHUNKS=1;
  if(!chunkQueue.length&&initialLoading&&initialChunkPending.size&&activeChunkTasks.length===0){for(const key of initialChunkPending){const [cx,cz]=key.split(',').map(Number);enqueueChunk(cx,cz,true)}}
  const pcx=Math.floor(player.x/CHUNK_SIZE),pcz=Math.floor(player.z/CHUNK_SIZE);
  while(activeChunkTasks.length<MAX_PARALLEL_CHUNKS&&chunkQueue.length){
@@ -917,12 +917,12 @@ function processChunkQueue(dt){
   try{activeChunkTasks.push({item,key,task:generateChunk(item.cx,item.cz)})}
   catch(error){console.error('SMOKEBLOCKS chunk generation failed:',key,error);worldGeneratingChunk=false;unloadChunk(key);if(item.attempts<2){item.attempts++;queuedChunks.add(key);chunkQueue.push(item)}else{initialChunkPending.delete(key);toast('A chunk failed after 3 attempts. Check the browser console')}}
  }
- const frameStart=performance.now(),frameBudget=performanceMode?7:11;
+ const frameStart=performance.now(),frameBudget=performanceMode?3:6;
  for(let i=activeChunkTasks.length-1;i>=0;i--){
   const current=activeChunkTasks[i],{item,key}=current;
   try{
    let finished=false,steps=0;
-   while(steps<2&&(steps===0||performance.now()-frameStart<frameBudget)){const result=current.task.next();steps++;if(result.done){finished=true;break}}
+   while(steps<1&&(steps===0||performance.now()-frameStart<frameBudget)){const result=current.task.next();steps++;if(result.done){finished=true;break}}
    if(!finished)continue;
    const success=generatedChunks.has(key)&&(blocksByChunk.get(key)?.size||0)>0&&((chunkGroups.get(key)?.children.length)||0)>0;
    activeChunkTasks.splice(i,1);
