@@ -395,7 +395,7 @@ function updateDayNight(dt){
  scene.background.copy(skyColor);scene.fog.color.copy(skyColor);
  sunOrb.visible=elevation>-.12;moonOrb.visible=elevation<.18;
 }
-const defs=[['Grass',0x62ad3e],['Obsidian',0x21152f],['Flint and Steel',0x9b9b9b],['Hell Block',0x4b1018],['Demon Sand',0x8a292d],['Tall Grass',0x579b37],['Seaweed',0x287d49],['Dirt',0x8a5a36],['Stone',0x888888],['Deepslate',0x454b55],['BlockiaStone',0x171923],['Cobblestone',0x777777],['Stick',0x9a7044],['Wooden Pickaxe',0x9b754b],['Oak Planks',0xb98a50],['Oak Stairs',0xa9824b],['Oak Fence',0x9a6b39],['Oak Log',0x80552d],['Cherry Log',0x9b685e],['Cherry Planks',0xe6a0b8],['Cherry Leaves',0xf18db2],['Snow Layer',0xf4f7fa],['Powdered Snow',0xdcecf2],['Leaves',0x3e8836],['Sand',0xd9c17b],['Bricks',0x9c5142],['Birch Planks',0xd8c99a],['Birch Log',0xe4dfc8],['Birch Leaves',0x6ca84b],['Spruce Planks',0x79502f],['Spruce Log',0x62452f],['Spruce Leaves',0x285b3c],['Jungle Planks',0xb77b43],['Jungle Log',0x98623b],['Jungle Leaves',0x278044],['Sandstone',0xc9ad73],['Cactus',0x32834a],['Snow',0xeaf5fa],['Ice',0x9bd9ec],['Blue Ice',0x4b9de8],['Gravel',0x77736d],['Clay',0x9aa6a8],['Rail',0xb8b8b8],['Minecart',0x454545],['Piston',0x9b8b68],['Sticky Piston',0x8cae70],['Piston Head',0xb99a6b],['Redstone Block',0x9f2424],['Crafting Table',0x9a7044],['Farmland',0x76502f],['Wheat Crop',0xd8bd4f],['Carrot Crop',0xe58a32],['Potato Crop',0xb58a55],['Hoe',0x8b6540],['Wheat Seeds',0x9fc45a],['Carrot Seeds',0xe98b35],['Potato Seeds',0xb58c59],['Wheat',0xd9c16b],['Potato',0xb99468],['Carrot',0xf08024],['Steak',0x8d3828],['Chicken',0xe4c5a1],['Rabbit',0xb88c69],['Bunny',0xb88c69],['Vegetable Stew',0xb56c32],['Rabbit Stew',0x9a593b],['Bread',0xc99748],['Porkchop',0xb96b62],['Mutton',0xc17b68],['Wool',0xe8e3d8],['Bone',0xe5dfc9],['Bucket',0xb8c2c9],['Water Bucket',0x438ee8],['Totem of Life',0xb4d86b]];
+const defs=[['Grass',0x62ad3e],['Lava',0xff4a08],['Obsidian',0x21152f],['Flint and Steel',0x9b9b9b],['Hell Block',0x4b1018],['Demon Sand',0x8a292d],['Tall Grass',0x579b37],['Seaweed',0x287d49],['Dirt',0x8a5a36],['Stone',0x888888],['Deepslate',0x454b55],['BlockiaStone',0x171923],['Cobblestone',0x777777],['Stick',0x9a7044],['Wooden Pickaxe',0x9b754b],['Oak Planks',0xb98a50],['Oak Stairs',0xa9824b],['Oak Fence',0x9a6b39],['Oak Log',0x80552d],['Cherry Log',0x9b685e],['Cherry Planks',0xe6a0b8],['Cherry Leaves',0xf18db2],['Snow Layer',0xf4f7fa],['Powdered Snow',0xdcecf2],['Leaves',0x3e8836],['Sand',0xd9c17b],['Bricks',0x9c5142],['Birch Planks',0xd8c99a],['Birch Log',0xe4dfc8],['Birch Leaves',0x6ca84b],['Spruce Planks',0x79502f],['Spruce Log',0x62452f],['Spruce Leaves',0x285b3c],['Jungle Planks',0xb77b43],['Jungle Log',0x98623b],['Jungle Leaves',0x278044],['Sandstone',0xc9ad73],['Cactus',0x32834a],['Snow',0xeaf5fa],['Ice',0x9bd9ec],['Blue Ice',0x4b9de8],['Gravel',0x77736d],['Clay',0x9aa6a8],['Rail',0xb8b8b8],['Minecart',0x454545],['Piston',0x9b8b68],['Sticky Piston',0x8cae70],['Piston Head',0xb99a6b],['Redstone Block',0x9f2424],['Crafting Table',0x9a7044],['Farmland',0x76502f],['Wheat Crop',0xd8bd4f],['Carrot Crop',0xe58a32],['Potato Crop',0xb58a55],['Hoe',0x8b6540],['Wheat Seeds',0x9fc45a],['Carrot Seeds',0xe98b35],['Potato Seeds',0xb58c59],['Wheat',0xd9c16b],['Potato',0xb99468],['Carrot',0xf08024],['Steak',0x8d3828],['Chicken',0xe4c5a1],['Rabbit',0xb88c69],['Bunny',0xb88c69],['Vegetable Stew',0xb56c32],['Rabbit Stew',0x9a593b],['Bread',0xc99748],['Porkchop',0xb96b62],['Mutton',0xc17b68],['Wool',0xe8e3d8],['Bone',0xe5dfc9],['Bucket',0xb8c2c9],['Water Bucket',0x438ee8],['Totem of Life',0xb4d86b]];
 function pixelTexture(name,base){
  const cv=document.createElement('canvas');cv.width=cv.height=16;const g=cv.getContext('2d');
  const rgb=[(base>>16)&255,(base>>8)&255,base&255];g.fillStyle='#'+base.toString(16).padStart(6,'0');g.fillRect(0,0,16,16);
@@ -619,7 +619,7 @@ function* generateChunk(cx,cz,worldVersion=worldGenerationVersion){
  }
  // STAGE 2 — build terrain density, caves, aquifer-ready water surfaces, and features from the maps.
  for(let x=cx*CHUNK_SIZE;x<(cx+1)*CHUNK_SIZE;x++){for(let z=cz*CHUNK_SIZE;z<(cz+1)*CHUNK_SIZE;z++){
-  const columnIndex=(x-cx*CHUNK_SIZE)*CHUNK_SIZE+(z-cz*CHUNK_SIZE),biome=hellDimension?'hell':biomeMap[columnIndex],rawH=hellDimension?10:heightmap[columnIndex],ocean=hellDimension?false:oceanAt(x,z),river=!hellDimension&&!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river){for(let dx=-1;dx<=1&&!coast;dx++)for(let dz=-1;dz<=1&&!coast;dz++)if((dx||dz)&&oceanAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river,h=ocean?oceanBedHeight(rawH,x,z):river?rawH-2:rawH,riverSurface=rawH+1,top=hellDimension?'Demon Sand':coast?'Sand':biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
+  const columnIndex=(x-cx*CHUNK_SIZE)*CHUNK_SIZE+(z-cz*CHUNK_SIZE),biome=hellDimension?'hell':biomeMap[columnIndex],hellLake=hellDimension&&smoothNoise(x+worldSeed*.001+740,z-worldSeed*.001-290,72)>.68,hellMountain=hellDimension?Math.max(0,smoothNoise(x+worldSeed*.0013-510,z-worldSeed*.0011+830,115)-.39)*58+Math.pow(Math.max(0,smoothNoise(x+330,z-710,38)-.48),1.4)*17:0,rawH=hellDimension?(hellLake?3:Math.min(45,Math.floor(12+hellMountain))):heightmap[columnIndex],ocean=hellDimension?false:oceanAt(x,z),river=!hellDimension&&!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river){for(let dx=-1;dx<=1&&!coast;dx++)for(let dz=-1;dz<=1&&!coast;dz++)if((dx||dz)&&oceanAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river,h=ocean?oceanBedHeight(rawH,x,z):river?rawH-2:rawH,riverSurface=rawH+1,top=hellDimension?'Demon Sand':coast?'Sand':biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
   // Flat inland lakes remain separate from the larger ocean and river network.
   const flat=Math.abs(terrainHeight(x+1,z)-rawH)===0&&Math.abs(terrainHeight(x-1,z)-rawH)===0&&Math.abs(terrainHeight(x,z+1)-rawH)===0&&Math.abs(terrainHeight(x,z-1)-rawH)===0;
   const lakeField=smoothNoise(x+worldSeed*.013,z-worldSeed*.017,38)*.72+smoothNoise(x-worldSeed*.021+340,z+worldSeed*.017-180,13)*.28;
@@ -638,6 +638,7 @@ function* generateChunk(cx,cz,worldVersion=worldGenerationVersion){
    addBlock(x,y,z,type);
   }
   if(iceLake)addBlock(x,h,z,'Ice');
+  if(hellDimension){if(hellLake)addBlock(x,4,z,'Lava');addBlock(x,62,z,'Hell Block');addBlock(x,63,z,'Hell Block')}
   if(!hellDimension&&seededNoise(x+worldSeed%613+191,z-worldSeed%457-83)>.996){const veinY=h-18;addBlock(x,veinY,z,'Obsidian');if(seededNoise(x+37,z-19)>.35)addBlock(x+1,veinY,z,'Obsidian');if(seededNoise(x-23,z+41)>.52)addBlock(x,veinY,z+1,'Obsidian')}
   if(seaWater||lake){
    const bottom=waterBed+1,surface=ocean?1.5:river?riverSurface:h+.5,depth=Math.max(.1,surface-bottom),columnKey=x+','+z;
@@ -668,8 +669,8 @@ function* generateChunk(cx,cz,worldVersion=worldGenerationVersion){
   const plainsGridX=Math.floor(x/11),plainsGridZ=Math.floor(z/11),plainsTreeSpot=x===plainsGridX*11+3+Math.floor(seededNoise(plainsGridX+worldSeed%127,plainsGridZ-worldSeed%181)*5)&&z===plainsGridZ*11+3+Math.floor(seededNoise(plainsGridX-worldSeed%163+47,plainsGridZ+worldSeed%199+83)*5);
   if(biome==='plains'&&!lake&&!iceLake&&!seaWater&&roll>.82&&roll<.94)addBlock(x,h+1,z,'Tall Grass');
   if(biome==='cherry'&&!lake&&!iceLake&&!seaWater&&roll>.90)addBlock(x,h+1,z,'Tall Grass');
-  if(biome==='desert'&&!seaWater&&roll>.986&&h>=0){const height=2+Math.floor(seededNoise(x+9,z+2)*3);for(let y=1;y<=height;y++)addBlock(x,h+y,z,'Cactus')}
-  else if(biome!=='desert'&&!lake&&!iceLake&&!ocean&&!river){
+  if(!hellDimension&&biome==='desert'&&!seaWater&&roll>.986&&h>=0){const height=2+Math.floor(seededNoise(x+9,z+2)*3);for(let y=1;y<=height;y++)addBlock(x,h+y,z,'Cactus')}
+  else if(!hellDimension&&biome!=='desert'&&!lake&&!iceLake&&!ocean&&!river){
    const forestBiome=biome==='forest'||biome==='taiga'||biome==='jungle';
    const forestDensity=biome==='jungle'?.89:biome==='taiga'?.92:biome==='forest'?.91:biome==='cherry'?.95:.972;
    const gx=Math.floor(x/24),gz=Math.floor(z/24),megaX=gx*24+3+Math.floor(seededNoise(gx+worldSeed%191,gz-worldSeed%137)*15),megaZ=gz*24+3+Math.floor(seededNoise(gx-worldSeed%173+41,gz+worldSeed%211-29)*15);
@@ -1096,13 +1097,11 @@ function updateBreakParticles(dt){for(let i=breakParticles.length-1;i>=0;i--){co
 let leafParticleClock=0;
 const demonSoulParticles=[];let demonSoulClock=0;
 function spawnDemonSoulParticles(dt){
- if(performanceMode||!onGround)return;
- const moving=keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||keys.ArrowUp||keys.ArrowDown||keys.ArrowLeft||keys.ArrowRight||touchKeys.KeyW||touchKeys.KeyA||touchKeys.KeyS||touchKeys.KeyD;
- if(!moving)return;
+ if(!onGround)return;
  const floorBlock=blocks.get(blockKey(Math.floor(player.x),Math.floor(player.y-.99),Math.floor(player.z)));
  if(floorBlock?.type!=='Demon Sand')return;
- demonSoulClock+=dt;if(demonSoulClock<.075)return;demonSoulClock=0;
- for(let n=0;n<2&&demonSoulParticles.length<64;n++){
+ demonSoulClock+=dt;if(demonSoulClock<.16)return;demonSoulClock=0;
+ for(let n=0;n<2&&demonSoulParticles.length<28;n++){
   const mat=new THREE.MeshBasicMaterial({color:n===0?0xff303b:0x9f1428,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending});
   const mesh=new THREE.Mesh(new THREE.PlaneGeometry(.09+Math.random()*.08,.16+Math.random()*.12),mat);
   mesh.position.set(player.x+(Math.random()-.5)*.62,player.y+.04,player.z+(Math.random()-.5)*.62);mesh.rotation.y=Math.random()*Math.PI;scene.add(mesh);
@@ -1427,7 +1426,8 @@ function createVoxelCloud(offsetX,offsetZ,index){
 }
 cloudOffsets.forEach(([x,z],i)=>createVoxelCloud(x,z,i));
 function updateVoxelClouds(dt){
- if(!worldStarted)return;
+ if(!worldStarted||hellDimension){for(const cloud of voxelClouds)cloud.visible=false;return}
+ for(const cloud of voxelClouds)cloud.visible=true;
  for(const cloud of voxelClouds){
   cloud.position.x+=cloud.userData.speed*dt;
   if(cloud.position.x-player.x>180)cloud.position.x=player.x-180;
