@@ -680,6 +680,15 @@ function* generateChunk(cx,cz){
   // drops to a lower neighboring river column.
   const fallPositions=[],fallUvs=[],fallIndices=[];
   const addFallQuad=(a,b,c,d)=>{
+   // Never draw waterfall sheets through solid terrain. Test the quad's
+   // occupied block-space bounds before adding its vertices.
+   const minX=Math.floor(Math.min(a[0],b[0],c[0],d[0])+.001),maxX=Math.floor(Math.max(a[0],b[0],c[0],d[0])-.001);
+   const minY=Math.floor(Math.min(a[1],b[1],c[1],d[1])+.001),maxY=Math.floor(Math.max(a[1],b[1],c[1],d[1])-.001);
+   const minZ=Math.floor(Math.min(a[2],b[2],c[2],d[2])+.001),maxZ=Math.floor(Math.max(a[2],b[2],c[2],d[2])-.001);
+   for(let bx=minX;bx<=maxX;bx++)for(let by=minY;by<=maxY;by++)for(let bz=minZ;bz<=maxZ;bz++){
+    const obstruction=blocks.get(blockKey(bx,by,bz));
+    if(obstruction&&!['Water','Tall Grass','Seaweed','Rail','Minecart'].includes(obstruction.type))return;
+   }
    const base=fallPositions.length/3;
    fallPositions.push(...a,...b,...c,...d);
    fallUvs.push(0,0,1,0,1,1,0,1);
