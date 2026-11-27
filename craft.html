@@ -541,7 +541,7 @@ const dirtyChunks=new Set(),blocksByChunk=new Map(),waterFlowCells=new Map();let
 function addBlock(x,y,z,type,extra={}){const k=blockKey(x,y,z);if(blocks.has(k))return;const data={x,y,z,type,...extra},ck=chunkKey(x,z);if(worldStarted&&!worldGeneratingChunk&&!applyingWorldEdits&&!(type==='Water'&&extra.flowingWater)){worldEdits.set(k,type);broadcastBlockEdit(x,y,z,type,extra)}getChunk(x,z);blocks.set(k,data);if(!blocksByChunk.has(ck))blocksByChunk.set(ck,new Set());blocksByChunk.get(ck).add(data);if(type==='Water'){const columnKey=x+','+z,waterData={chunkKey:ck,columnKey,bottom:y,surface:y+1,waterType:'bucket',x:x+.5,y:y+.5,z:z+.5,depth:1};const prior=waterColumns.get(columnKey);if(!prior||prior.surface<=waterData.surface)waterColumns.set(columnKey,waterData);if(extra.waterSource||extra.flowingWater)waterFlowCells.set(k,data);const mesh=new THREE.Mesh(waterGeo,waterMaterial);mesh.position.set(x+.5,y+.5,z+.5);mesh.userData.chunkKey=ck;mesh.userData.columnKeys=[columnKey];mesh.userData.blockKey=k;mesh.userData.dynamicWater=true;mesh.frustumCulled=true;scene.add(mesh);waterTiles.push(mesh)}dirtyChunks.add(ck);return data}
 function rebuildChunk(key){const group=chunkGroups.get(key);if(!group)return;for(const child of group.children)if(child.isInstancedMesh)child.dispose();group.clear();for(let i=seaweedPlants.length-1;i>=0;i--)if(seaweedPlants[i].chunkKey===key)seaweedPlants.splice(i,1);const byType=new Map();for(const data of (blocksByChunk.get(key)||[])){const exposed=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]].some(([dx,dy,dz])=>{const neighbor=blocks.get(blockKey(data.x+dx,data.y+dy,data.z+dz));return !neighbor||neighbor.type==='Tall Grass'});if(!exposed)continue;if(data.type==='Water')continue;if(data.type==='Seaweed'){const pivot=new THREE.Group(),plant=new THREE.Mesh(tallGrassGeometry,materials.Seaweed);plant.material.side=THREE.DoubleSide;pivot.position.set(data.x+.5,data.y+.5,data.z+.5);pivot.add(plant);pivot.userData.swayPhase=seededNoise(data.x+37,data.z-19)*Math.PI*2;group.add(pivot);seaweedPlants.push({pivot,chunkKey:key});continue}if(!byType.has(data.type))byType.set(data.type,[]);byType.get(data.type).push(data)}for(const [type,list] of byType){const material=type==='Grass'?grassBlockMaterials:type==='Tall Grass'?materials[type].clone():materials[type]||materials.Grass;if(type==='Tall Grass')material.side=THREE.DoubleSide;const inst=new THREE.InstancedMesh(blockGeometries[type]||geo,logMaterials[type]||material,list.length);const matrix=new THREE.Matrix4();list.forEach((d,i)=>{matrix.makeTranslation(d.x+.5,d.y+.5,d.z+.5);inst.setMatrixAt(i,matrix)});inst.instanceMatrix.needsUpdate=true;inst.userData.instanceBlocks=list;inst.computeBoundingSphere();inst.frustumCulled=true;group.add(inst)}}
 function flushDirtyChunks(){for(const key of dirtyChunks)rebuildChunk(key);dirtyChunks.clear()}
-function clearWorld(){terrainHeightCache.clear();activeChunkTask=null;worldGeneratingChunk=false;for(const mob of [...animals])removeAnimal(mob);unloadedAnimalStates.clear();chunkQueue.length=0;queuedChunks.clear();initialChunkPending.clear();initialLoading=false;$('loadingScreen').style.display='none';for(const item of droppedItems)scene.remove(item.mesh);droppedItems.length=0;for(const p of breakParticles){scene.remove(p.mesh);p.mesh.material.dispose()}breakParticles.length=0;for(const p of leafParticles){scene.remove(p.mesh);p.mesh.material.dispose()}leafParticles.length=0;for(const group of chunkGroups.values())scene.remove(group);chunkGroups.clear();seaweedPlants.length=0;for(const m of waterTiles)scene.remove(m);waterTiles.length=0;waterColumns.clear();waterFlowCells.clear();waterPhysicsClock=0;blocks.clear();blocksByChunk.clear();dirtyChunks.clear();generatedChunks.clear();lastChunkX=lastChunkZ=Infinity}
+function clearWorld(){terrainHeightCache.clear();activeChunkTasks.length=0;worldGeneratingChunk=false;for(const mob of [...animals])removeAnimal(mob);unloadedAnimalStates.clear();chunkQueue.length=0;queuedChunks.clear();initialChunkPending.clear();initialLoading=false;$('loadingScreen').style.display='none';for(const item of droppedItems)scene.remove(item.mesh);droppedItems.length=0;for(const p of breakParticles){scene.remove(p.mesh);p.mesh.material.dispose()}breakParticles.length=0;for(const p of leafParticles){scene.remove(p.mesh);p.mesh.material.dispose()}leafParticles.length=0;for(const group of chunkGroups.values())scene.remove(group);chunkGroups.clear();seaweedPlants.length=0;for(const m of waterTiles)scene.remove(m);waterTiles.length=0;waterColumns.clear();waterFlowCells.clear();waterPhysicsClock=0;blocks.clear();blocksByChunk.clear();dirtyChunks.clear();generatedChunks.clear();lastChunkX=lastChunkZ=Infinity}
 function unloadChunk(key,deferRebuild=false){const group=chunkGroups.get(key);if(!group)return;const sleepingAnimals=animals.filter(mob=>mob.chunk===key).map(mob=>({type:mob.type,x:mob.group.position.x,y:mob.group.position.y,z:mob.group.position.z,hp:mob.hp,maxHp:mob.maxHp,tamed:mob.tamed,dir:mob.dir,phase:mob.phase}));if(sleepingAnimals.length)unloadedAnimalStates.set(key,sleepingAnimals);for(const mob of [...animals])if(mob.chunk===key)removeAnimal(mob);for(const d of (blocksByChunk.get(key)||[])){blocks.delete(blockKey(d.x,d.y,d.z));waterFlowCells.delete(blockKey(d.x,d.y,d.z))}blocksByChunk.delete(key);generatedChunks.delete(key);scene.remove(group);chunkGroups.delete(key);for(let i=seaweedPlants.length-1;i>=0;i--)if(seaweedPlants[i].chunkKey===key)seaweedPlants.splice(i,1);dirtyChunks.delete(key);for(let i=waterTiles.length-1;i>=0;i--){const w=waterTiles[i];if(w.userData.chunkKey===key){scene.remove(w);waterTiles.splice(i,1);for(const columnKey of (w.userData.columnKeys||[]))waterColumns.delete(columnKey)}}const [cx,cz]=key.split(',').map(Number);for(const neighbor of [[cx-1,cz],[cx+1,cz],[cx,cz-1],[cx,cz+1]]){const nk=neighbor.join(',');if(chunkGroups.has(nk))dirtyChunks.add(nk)}if(!deferRebuild)flushDirtyChunks()}
 
 const animals=[],animalMeshes=[],unloadedAnimalStates=new Map();
@@ -842,43 +842,30 @@ function finishInitialLoading(){
  setWorldText('loadingDetail','World ready!','finishInitialLoading');
  setTimeout(()=>$('loadingScreen').style.display='none',450);
 }
-let activeChunkTask=null;
+const activeChunkTasks=[];
 function processChunkQueue(dt){
- if(!activeChunkTask&&!chunkQueue.length&&initialLoading&&initialChunkPending.size){
-  for(const key of initialChunkPending){const [cx,cz]=key.split(',').map(Number);enqueueChunk(cx,cz,true)}
- }
- if(!activeChunkTask){
-  if(!chunkQueue.length)return;
-  // Player movement can make older queued chunks irrelevant. Prioritize
-  // whichever queued chunk is now closest to the player.
-  const pcx=Math.floor(player.x/CHUNK_SIZE),pcz=Math.floor(player.z/CHUNK_SIZE);
+ const MAX_PARALLEL_CHUNKS=4;
+ if(!chunkQueue.length&&initialLoading&&initialChunkPending.size&&activeChunkTasks.length===0){for(const key of initialChunkPending){const [cx,cz]=key.split(',').map(Number);enqueueChunk(cx,cz,true)}}
+ const pcx=Math.floor(player.x/CHUNK_SIZE),pcz=Math.floor(player.z/CHUNK_SIZE);
+ while(activeChunkTasks.length<MAX_PARALLEL_CHUNKS&&chunkQueue.length){
   chunkQueue.sort((a,b)=>((a.cx-pcx)**2+(a.cz-pcz)**2)-((b.cx-pcx)**2+(b.cz-pcz)**2));
-  const item=chunkQueue.shift(),key=item.cx+','+item.cz;
-  queuedChunks.delete(key);
-  try{activeChunkTask={item,key,task:generateChunk(item.cx,item.cz)}}catch(error){
-   console.error('SMOKEBLOCKS chunk generation failed:',key,error);worldGeneratingChunk=false;unloadChunk(key);
-   if(item.attempts<2){item.attempts++;queuedChunks.add(key);chunkQueue.push(item)}
-   else{initialChunkPending.delete(key);toast('A chunk failed after 3 attempts. Check the browser console')}
-   return;
-  }
+  const item=chunkQueue.shift(),key=item.cx+','+item.cz;queuedChunks.delete(key);
+  try{activeChunkTasks.push({item,key,task:generateChunk(item.cx,item.cz)})}
+  catch(error){console.error('SMOKEBLOCKS chunk generation failed:',key,error);worldGeneratingChunk=false;unloadChunk(key);if(item.attempts<2){item.attempts++;queuedChunks.add(key);chunkQueue.push(item)}else{initialChunkPending.delete(key);toast('A chunk failed after 3 attempts. Check the browser console')}}
  }
- const current=activeChunkTask;
- try{
-  // Generate only a few terrain columns per frame. A full 16-column row
-  // can contain thousands of blocks and cause a visible frame-time spike.
-  let finished=false;
-  const generationBudgetMs=performanceMode?5.5:8.5,maxRowsPerFrame=performanceMode?4:6,generationStart=performance.now();let rowsProcessed=0;while(rowsProcessed<maxRowsPerFrame&&(rowsProcessed===0||performance.now()-generationStart<generationBudgetMs)){const result=current.task.next();rowsProcessed++;if(result.done){finished=true;break}}
-  if(!finished)return;
-  const {item,key}=current;
-  const success=generatedChunks.has(key)&&(blocksByChunk.get(key)?.size||0)>0&&((chunkGroups.get(key)?.children.length)||0)>0;
-  activeChunkTask=null;
-  if(!success){unloadChunk(key);if(item.attempts<2){item.attempts++;queuedChunks.add(key);chunkQueue.push(item)}else{initialChunkPending.delete(key);toast('A chunk failed after 3 attempts. Check the browser console')}}
-  else if(item.initial)initialChunkPending.delete(key);
-  if(item.initial&&initialLoading){initialChunkDone=initialChunkTotal-initialChunkPending.size;updateLoadingScreen();if(initialChunkPending.size===0)finishInitialLoading()}
- }catch(error){
-  const {item,key}=current;console.error('SMOKEBLOCKS chunk generation failed:',key,error);worldGeneratingChunk=false;activeChunkTask=null;unloadChunk(key);
-  if(item.attempts<2){item.attempts++;queuedChunks.add(key);chunkQueue.push(item)}
-  else{initialChunkPending.delete(key);toast('A chunk failed after 3 attempts. Check the browser console')}
+ const frameStart=performance.now(),frameBudget=performanceMode?7:11;
+ for(let i=activeChunkTasks.length-1;i>=0;i--){
+  const current=activeChunkTasks[i],{item,key}=current;
+  try{
+   let finished=false,steps=0;
+   while(steps<2&&(steps===0||performance.now()-frameStart<frameBudget)){const result=current.task.next();steps++;if(result.done){finished=true;break}}
+   if(!finished)continue;
+   const success=generatedChunks.has(key)&&(blocksByChunk.get(key)?.size||0)>0&&((chunkGroups.get(key)?.children.length)||0)>0;
+   activeChunkTasks.splice(i,1);
+   if(!success){unloadChunk(key);if(item.attempts<2){item.attempts++;queuedChunks.add(key);chunkQueue.push(item)}else{initialChunkPending.delete(key);toast('A chunk failed after 3 attempts. Check the browser console')}}
+   else if(item.initial)initialChunkPending.delete(key);
+   if(item.initial&&initialLoading){initialChunkDone=initialChunkTotal-initialChunkPending.size;updateLoadingScreen();if(initialChunkPending.size===0)finishInitialLoading()}
+  }catch(error){console.error('SMOKEBLOCKS chunk generation failed:',key,error);worldGeneratingChunk=false;activeChunkTasks.splice(i,1);unloadChunk(key);if(item.attempts<2){item.attempts++;queuedChunks.add(key);chunkQueue.push(item)}else{initialChunkPending.delete(key);toast('A chunk failed after 3 attempts. Check the browser console')}}
  }
 }
 function findSafePlayerSpawn(originX=0,originZ=5){
@@ -964,7 +951,7 @@ function updateChunkVisibility(force=false){
  let removedAny=false;
  for(const key of [...chunkGroups.keys()]){
   const [cx,cz]=key.split(',').map(Number);
-  if(key===activeChunkTask?.key)continue;
+  if(activeChunkTasks.some(task=>task.key===key))continue;
   if((cx-pcx)*(cx-pcx)+(cz-pcz)*(cz-pcz)>radiusSq){unloadChunk(key,true);removedAny=true}
  }
  // Rebuild surviving edge chunks once after the entire unload batch, not once per removed chunk.
