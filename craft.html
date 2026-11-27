@@ -619,7 +619,7 @@ function* generateChunk(cx,cz,worldVersion=worldGenerationVersion){
  }
  // STAGE 2 — build terrain density, caves, aquifer-ready water surfaces, and features from the maps.
  for(let x=cx*CHUNK_SIZE;x<(cx+1)*CHUNK_SIZE;x++){for(let z=cz*CHUNK_SIZE;z<(cz+1)*CHUNK_SIZE;z++){
-  const columnIndex=(x-cx*CHUNK_SIZE)*CHUNK_SIZE+(z-cz*CHUNK_SIZE),biome=hellDimension?'hell':biomeMap[columnIndex],rawH=hellDimension?20+Math.floor(seededNoise(x+worldSeed%997,z-worldSeed%991)*5):heightmap[columnIndex],ocean=hellDimension?false:oceanAt(x,z),river=!hellDimension&&!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river){for(let dx=-1;dx<=1&&!coast;dx++)for(let dz=-1;dz<=1&&!coast;dz++)if((dx||dz)&&oceanAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river,h=ocean?oceanBedHeight(rawH,x,z):river?rawH-2:rawH,riverSurface=rawH+1,top=hellDimension?'Demon Sand':coast?'Sand':biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
+  const columnIndex=(x-cx*CHUNK_SIZE)*CHUNK_SIZE+(z-cz*CHUNK_SIZE),biome=hellDimension?'hell':biomeMap[columnIndex],rawH=hellDimension?10:heightmap[columnIndex],ocean=hellDimension?false:oceanAt(x,z),river=!hellDimension&&!ocean&&riverAt(x,z);let coast=false;if(!ocean&&!river){for(let dx=-1;dx<=1&&!coast;dx++)for(let dz=-1;dz<=1&&!coast;dz++)if((dx||dz)&&oceanAt(x+dx,z+dz))coast=true;}const seaWater=ocean||river,h=ocean?oceanBedHeight(rawH,x,z):river?rawH-2:rawH,riverSurface=rawH+1,top=hellDimension?'Demon Sand':coast?'Sand':biome==='desert'?'Sand':biome==='taiga'?'Snow':'Grass';
   // Flat inland lakes remain separate from the larger ocean and river network.
   const flat=Math.abs(terrainHeight(x+1,z)-rawH)===0&&Math.abs(terrainHeight(x-1,z)-rawH)===0&&Math.abs(terrainHeight(x,z+1)-rawH)===0&&Math.abs(terrainHeight(x,z-1)-rawH)===0;
   const lakeField=smoothNoise(x+worldSeed*.013,z-worldSeed*.017,38)*.72+smoothNoise(x-worldSeed*.021+340,z+worldSeed*.017-180,13)*.28;
@@ -875,9 +875,9 @@ function createPortalVisual(frame){
  portalVisual.userData.hellPortal=true;scene.add(portalVisual);
 }
 function createHellReturnPortal(){
- const frame={axis:'x',minX:-2,minZ:0,baseY:20};
- for(let i=0;i<4;i++){addBlock(-2+i,20,0,'Obsidian');addBlock(-2+i,24,0,'Obsidian')}
- for(let y=21;y<24;y++){addBlock(-2,y,0,'Obsidian');addBlock(1,y,0,'Obsidian')}
+ const frame={axis:'x',minX:-2,minZ:0,baseY:10};
+ for(let i=0;i<4;i++){addBlock(-2+i,10,0,'Obsidian');addBlock(-2+i,14,0,'Obsidian')}
+ for(let y=11;y<14;y++){addBlock(-2,y,0,'Obsidian');addBlock(1,y,0,'Obsidian')}
  portalFrame=frame;createPortalVisual(frame);flushDirtyChunks();
 }
 function switchHellDimension(){
@@ -885,7 +885,7 @@ function switchHellDimension(){
  dimensionEditStores[oldKey].clear();for(const [k,v] of worldEdits)dimensionEditStores[oldKey].set(k,v);
  if(!hellDimension&&portalFrame)lastOverworldPortal={...portalFrame};
  hellDimension=!hellDimension;worldEdits.clear();for(const [k,v] of dimensionEditStores[newKey])worldEdits.set(k,v);
- const destination=hellDimension?{x:.5,y:21.01,z:2.5}:{x:lastOverworldPortal?lastOverworldPortal.minX+2.5:.5,y:lastOverworldPortal?lastOverworldPortal.baseY+1.01:1.01,z:lastOverworldPortal?lastOverworldPortal.minZ+2.5:5.5};
+ const destination=hellDimension?{x:.5,y:11.01,z:2.5}:{x:lastOverworldPortal?lastOverworldPortal.minX+2.5:.5,y:lastOverworldPortal?lastOverworldPortal.baseY+1.01:1.01,z:lastOverworldPortal?lastOverworldPortal.minZ+2.5:5.5};
  if(!hellDimension)portalFrame=lastOverworldPortal||null;
  generateWorld(String(worldSeed),destination);
  toast(hellDimension?'Entering the HellLands...':'Returning to the Overworld...');
