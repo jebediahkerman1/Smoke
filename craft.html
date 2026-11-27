@@ -213,10 +213,19 @@ function addPlayerBodyPart(size,pos,rects,material){
 }
 const bodyHead=addPlayerBodyPart([.5,.5,.5],[0,1.55,0],headUV,bodySkinMat);
 const bodyTorso=addPlayerBodyPart([.5,.75,.25],[0,1.0,0],torsoUV,bodyShirtMat);
-const bodyRightArm=addPlayerBodyPart([.25,.75,.25],[-.375,1.0,0],rightArmUV,bodyShirtMat);
-const bodyLeftArm=addPlayerBodyPart([.25,.75,.25],[.375,1.0,0],leftArmUV,bodyShirtMat);
-const bodyRightLeg=addPlayerBodyPart([.25,.75,.25],[-.13,.375,0],rightLegUV,bodyPantsMat);
-const bodyLeftLeg=addPlayerBodyPart([.25,.75,.25],[.13,.375,0],leftLegUV,bodyPantsMat);
+// Limb pivots sit at the shoulders and hips, so Steve swings from the correct joints.
+const bodyRightArmPivot=new THREE.Group();bodyRightArmPivot.position.set(-.375,1.375,0);playerBody.add(bodyRightArmPivot);
+const bodyLeftArmPivot=new THREE.Group();bodyLeftArmPivot.position.set(.375,1.375,0);playerBody.add(bodyLeftArmPivot);
+const bodyRightLegPivot=new THREE.Group();bodyRightLegPivot.position.set(-.13,.75,0);playerBody.add(bodyRightLegPivot);
+const bodyLeftLegPivot=new THREE.Group();bodyLeftLegPivot.position.set(.13,.75,0);playerBody.add(bodyLeftLegPivot);
+function addPivotLimb(pivot,size,rects,material){
+ const mesh=new THREE.Mesh(skinBoxGeometry(...size,rects),material.clone());
+ mesh.position.y=-size[1]/2;pivot.add(mesh);playerBodyParts.push(mesh);return mesh;
+}
+const bodyRightArm=addPivotLimb(bodyRightArmPivot,[.25,.75,.25],rightArmUV,bodyShirtMat);
+const bodyLeftArm=addPivotLimb(bodyLeftArmPivot,[.25,.75,.25],leftArmUV,bodyShirtMat);
+const bodyRightLeg=addPivotLimb(bodyRightLegPivot,[.25,.75,.25],rightLegUV,bodyPantsMat);
+const bodyLeftLeg=addPivotLimb(bodyLeftLegPivot,[.25,.75,.25],leftLegUV,bodyPantsMat);
 let uploadedSkinTexture=null,thirdPerson=false;
 function applyUploadedSkin(dataUrl,save=true){
  const img=new Image();img.onload=()=>{if(img.width!==64||img.height!==64){toast('Skin must be a standard 64×64 Minecraft PNG');return}
@@ -227,11 +236,36 @@ function applyUploadedSkin(dataUrl,save=true){
 }
 $('skinTone').value=playerSkin.skin;$('shirtColor').value=playerSkin.shirt;$('skinTone').addEventListener('input',()=>applyPlayerSkin($('skinTone').value,null));$('shirtColor').addEventListener('input',()=>applyPlayerSkin(null,$('shirtColor').value));$('dominantHand').addEventListener('change',()=>{applyDominantArm($('dominantHand').value);toast('Main hand: '+dominantArm)});applyDominantArm(dominantArm,false);
 function updatePlayerBody(){
- playerBody.visible=thirdPerson;firstPersonArm.visible=!thirdPerson;if(!thirdPerson){const moving=keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||touchKeys.KeyW||touchKeys.KeyA||touchKeys.KeyS||touchKeys.KeyD;const walkBob=moving?Math.sin(performance.now()*.012)*.025:0;const action=handActionTime<.32?Math.sin((handActionTime/.32)*Math.PI):0;handActionTime=Math.min(.32,handActionTime+Math.min(.04,Math.max(0,(performance.now()-(updatePlayerBody._lastTime||performance.now()))/1000)));updatePlayerBody._lastTime=performance.now();firstPersonArm.position.y=-.43+walkBob-action*(handActionKind==='place'?.12:.2);firstPersonArm.rotation.x=-.16+walkBob*1.5+action*(handActionKind==='place'?-.22:-.62);firstPersonArm.rotation.z=(dominantArm==='left'?.12:-.12)+(moving?Math.sin(performance.now()*.012)*.035:0);camera.position.set(player.x,player.y+(crouching?.95:1.5),player.z);camera.rotation.set(pitch,yaw,0);return}
- playerBody.position.set(player.x,player.y,player.z);playerBody.rotation.y=Math.PI-yaw;
- const moving=keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||touchKeys.KeyW||touchKeys.KeyA||touchKeys.KeyS||touchKeys.KeyD;
- const swing=moving?Math.sin(performance.now()*.012)*.42:0;
- bodyRightArm.rotation.x=dominantArm==='right'?swing:swing*.35;bodyLeftArm.rotation.x=dominantArm==='left'?-swing:-swing*.35;bodyRightLeg.rotation.x=-swing;bodyLeftLeg.rotation.x=swing;
+ const now=performance.now(),moving=!!(keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||touchKeys.KeyW||touchKeys.KeyA||touchKeys.KeyS||touchKeys.KeyD);
+ const swimming=!!(waterAt(player.x,player.z)&&player.y<waterAt(player.x,player.z).surface+.25);
+ const sprinting=!!(keys.ControlLeft||keys.ControlRight||touchKeys.ControlLeft||touchKeys.ControlRight);
+ const speed=sprinting?1.65:1,phase=now*(sprinting?.016:.0115),swing=moving?Math.sin(phase)*(sprinting?.62:.43):0;
+ const bob=moving?Math.abs(Math.sin(phase*2))*(sprinting?.075:.045):0;
+ playerBody.visible=thirdPerson;firstPersonArm.visible=!thirdPerson;
+ if(!thirdPerson){
+  const walkBob=moving?Math.sin(phase*2)*.018:0;
+  const action=handActionTime<.32?Math.sin((handActionTime/.32)*Math.PI):0;
+  handActionTime=Math.min(.32,handActionTime+Math.min(.04,Math.max(0,(now-(updatePlayerBody._lastTime||now))/1000)));updatePlayerBody._lastTime=now;
+  firstPersonArm.position.y=-.43+walkBob-action*(handActionKind==='place'?.12:.2);
+  firstPersonArm.rotation.x=swimming?-.75+Math.sin(now*.006)*.16:-.16+walkBob*1.5+action*(handActionKind==='place'?-.22:-.62);
+  firstPersonArm.rotation.z=(dominantArm==='left'?.12:-.12)+(swimming?Math.sin(now*.006)*.24:(moving?Math.sin(phase)*.045:0));
+  camera.position.set(player.x,player.y+(crouching?.95:1.5),player.z);camera.rotation.set(pitch,yaw,0);return;
+ }
+ playerBody.position.set(player.x,player.y+(swimming?Math.sin(now*.004)*.035:bob*.12),player.z);
+ playerBody.rotation.y=Math.PI-yaw;
+ if(swimming){
+  const swim=Math.sin(now*.006);
+  bodyRightArmPivot.rotation.x=-1.05+swim*.42;bodyLeftArmPivot.rotation.x=-1.05-swim*.42;
+  bodyRightLegPivot.rotation.x=swim*.48;bodyLeftLegPivot.rotation.x=-swim*.48;
+ }else{
+  const airborne=!onGround;
+  bodyRightArmPivot.rotation.x=airborne?-.55:swing*(dominantArm==='right'?1:.45);
+  bodyLeftArmPivot.rotation.x=airborne?-.55:-swing*(dominantArm==='left'?1:.45);
+  bodyRightLegPivot.rotation.x=airborne?.22:-swing;
+  bodyLeftLegPivot.rotation.x=airborne?.22:swing;
+ }
+ bodyTorso.position.y=1.0+(swimming?-.04: bob*.16);
+ bodyHead.rotation.x=swimming?-.12:0;
  const eye=new THREE.Vector3(player.x,player.y+(crouching?1.05:1.5),player.z);
  const forward=new THREE.Vector3(-Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch));
  camera.position.copy(eye).addScaledVector(forward,-4.6);camera.rotation.set(pitch,yaw,0);
