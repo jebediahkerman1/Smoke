@@ -691,7 +691,7 @@ function* generateChunk(cx,cz,worldVersion=worldGenerationVersion){
    }
   }
   if(biome==='taiga'&&!lake&&!iceLake&&!ocean&&!river&&roll>.78){let topBlock=null;for(let sy=h+12;sy>=h-1;sy--){const candidate=blocks.get(blockKey(x,sy,z));if(candidate){topBlock=candidate;break}}if(topBlock&&topBlock.type!=='Snow'&&topBlock.type!=='Snow Layer'&&!blocks.has(blockKey(x,topBlock.y+1,z)))addBlock(x,topBlock.y+1,z,'Snow Layer')}
- if(((x-cx*CHUNK_SIZE)*CHUNK_SIZE+(z-cz*CHUNK_SIZE)+1)%2===0){worldGeneratingChunk=false;yield;if(worldVersion!==worldGenerationVersion)return;worldGeneratingChunk=true;}}}
+ worldGeneratingChunk=false;yield;if(worldVersion!==worldGenerationVersion)return;worldGeneratingChunk=true;}}
  worldGeneratingChunk=false;
  applyingWorldEdits=true;
  for(const [editKey,editType] of worldEdits){const [ex,ey,ez]=editKey.split(',').map(Number);if(chunkKey(ex,ez)!==key)continue;const existing=blocks.get(editKey);if(existing){blocks.delete(editKey);blocksByChunk.get(key)?.delete(existing);dirtyChunks.add(key)}if(editType!==null)addBlock(ex,ey,ez,editType,editType==='Water'?{waterSource:true,flowLevel:0}:{})}
