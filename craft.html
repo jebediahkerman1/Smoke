@@ -394,7 +394,7 @@ function updateDayNight(dt){
  scene.background.copy(skyColor);scene.fog.color.copy(skyColor);
  sunOrb.visible=elevation>-.12;moonOrb.visible=elevation<.18;
 }
-const defs=[['Grass',0x62ad3e],['Hell Block',0x4b1018],['Demon Sand',0x8a292d],['Tall Grass',0x579b37],['Seaweed',0x287d49],['Dirt',0x8a5a36],['Stone',0x888888],['Cobblestone',0x777777],['Stick',0x9a7044],['Wooden Pickaxe',0x9b754b],['Oak Planks',0xb98a50],['Oak Stairs',0xa9824b],['Oak Fence',0x9a6b39],['Oak Log',0x80552d],['Cherry Log',0x9b685e],['Cherry Planks',0xe6a0b8],['Cherry Leaves',0xf18db2],['Snow Layer',0xf4f7fa],['Powdered Snow',0xdcecf2],['Leaves',0x3e8836],['Sand',0xd9c17b],['Bricks',0x9c5142],['Birch Planks',0xd8c99a],['Birch Log',0xe4dfc8],['Birch Leaves',0x6ca84b],['Spruce Planks',0x79502f],['Spruce Log',0x62452f],['Spruce Leaves',0x285b3c],['Jungle Planks',0xb77b43],['Jungle Log',0x98623b],['Jungle Leaves',0x278044],['Sandstone',0xc9ad73],['Cactus',0x32834a],['Snow',0xeaf5fa],['Ice',0x9bd9ec],['Blue Ice',0x4b9de8],['Gravel',0x77736d],['Clay',0x9aa6a8],['Rail',0xb8b8b8],['Minecart',0x454545],['Piston',0x9b8b68],['Sticky Piston',0x8cae70],['Piston Head',0xb99a6b],['Redstone Block',0x9f2424],['Crafting Table',0x9a7044],['Farmland',0x76502f],['Wheat Crop',0xd8bd4f],['Carrot Crop',0xe58a32],['Potato Crop',0xb58a55],['Hoe',0x8b6540],['Wheat Seeds',0x9fc45a],['Carrot Seeds',0xe98b35],['Potato Seeds',0xb58c59],['Wheat',0xd9c16b],['Potato',0xb99468],['Carrot',0xf08024],['Steak',0x8d3828],['Chicken',0xe4c5a1],['Rabbit',0xb88c69],['Bunny',0xb88c69],['Vegetable Stew',0xb56c32],['Rabbit Stew',0x9a593b],['Bread',0xc99748],['Porkchop',0xb96b62],['Mutton',0xc17b68],['Wool',0xe8e3d8],['Bone',0xe5dfc9],['Bucket',0xb8c2c9],['Water Bucket',0x438ee8],['Totem of Life',0xb4d86b]];
+const defs=[['Grass',0x62ad3e],['Hell Block',0x4b1018],['Demon Sand',0x8a292d],['Tall Grass',0x579b37],['Seaweed',0x287d49],['Dirt',0x8a5a36],['Stone',0x888888],['Deepslate',0x454b55],['BlockiaStone',0x171923],['Cobblestone',0x777777],['Stick',0x9a7044],['Wooden Pickaxe',0x9b754b],['Oak Planks',0xb98a50],['Oak Stairs',0xa9824b],['Oak Fence',0x9a6b39],['Oak Log',0x80552d],['Cherry Log',0x9b685e],['Cherry Planks',0xe6a0b8],['Cherry Leaves',0xf18db2],['Snow Layer',0xf4f7fa],['Powdered Snow',0xdcecf2],['Leaves',0x3e8836],['Sand',0xd9c17b],['Bricks',0x9c5142],['Birch Planks',0xd8c99a],['Birch Log',0xe4dfc8],['Birch Leaves',0x6ca84b],['Spruce Planks',0x79502f],['Spruce Log',0x62452f],['Spruce Leaves',0x285b3c],['Jungle Planks',0xb77b43],['Jungle Log',0x98623b],['Jungle Leaves',0x278044],['Sandstone',0xc9ad73],['Cactus',0x32834a],['Snow',0xeaf5fa],['Ice',0x9bd9ec],['Blue Ice',0x4b9de8],['Gravel',0x77736d],['Clay',0x9aa6a8],['Rail',0xb8b8b8],['Minecart',0x454545],['Piston',0x9b8b68],['Sticky Piston',0x8cae70],['Piston Head',0xb99a6b],['Redstone Block',0x9f2424],['Crafting Table',0x9a7044],['Farmland',0x76502f],['Wheat Crop',0xd8bd4f],['Carrot Crop',0xe58a32],['Potato Crop',0xb58a55],['Hoe',0x8b6540],['Wheat Seeds',0x9fc45a],['Carrot Seeds',0xe98b35],['Potato Seeds',0xb58c59],['Wheat',0xd9c16b],['Potato',0xb99468],['Carrot',0xf08024],['Steak',0x8d3828],['Chicken',0xe4c5a1],['Rabbit',0xb88c69],['Bunny',0xb88c69],['Vegetable Stew',0xb56c32],['Rabbit Stew',0x9a593b],['Bread',0xc99748],['Porkchop',0xb96b62],['Mutton',0xc17b68],['Wool',0xe8e3d8],['Bone',0xe5dfc9],['Bucket',0xb8c2c9],['Water Bucket',0x438ee8],['Totem of Life',0xb4d86b]];
 function pixelTexture(name,base){
  const cv=document.createElement('canvas');cv.width=cv.height=16;const g=cv.getContext('2d');
  const rgb=[(base>>16)&255,(base>>8)&255,base&255];g.fillStyle='#'+base.toString(16).padStart(6,'0');g.fillRect(0,0,16,16);
@@ -533,7 +533,7 @@ function caveNoiseAt(x,y,z){
  return broad*.62+detail*.38;
 }
 function isCavernAt(x,y,z,surfaceHeight){
- if(y>surfaceHeight-5||y<-46)return false;
+ if(y>surfaceHeight-5||y<surfaceHeight-350)return false;
  const cave=caveNoiseAt(x,y,z),chamber=smoothNoise(x+worldSeed*.003+y*4,z-worldSeed*.002-y*3,47);
  return cave>.69||(y<-13&&chamber>.76&&cave>.55);
 }
@@ -628,11 +628,12 @@ function* generateChunk(cx,cz,worldVersion=worldGenerationVersion){
   const iceLake=!seaWater&&!lake&&biome==='taiga'&&flat&&smoothNoise(x+worldSeed*.013+420,z-worldSeed*.017-260,16)>.79;
   const pondDepth=2+Math.floor((smoothNoise(x+worldSeed*.019,z-worldSeed*.023,11)+seededNoise(x+worldSeed%137,z-worldSeed%251))*.5*8);
   const waterBed=(ocean||river)?h:(lake||iceLake)?h-pondDepth:h;
-  for(let y=-48;y<=h;y++){
+  for(let y=h-361;y<=h;y++){
    if((seaWater||lake||iceLake)&&y>waterBed)continue;
    const shaftFloor=mineshaftFloorAt(x,z,rawH);
-   if(isCavernAt(x,y,z,rawH)||isMineshaftSpaceAt(x,y,z,rawH))continue;
-   const type=(seaWater||lake||iceLake)&&y===waterBed?'Sand':shaftFloor!==null&&y===shaftFloor?'Oak Planks':y===h?(iceLake?'Ice':top):y>=h-3?'Dirt':biome==='desert'&&y>=h-6?'Sandstone':'Stone';
+   if(y!==h-361&&(isCavernAt(x,y,z,rawH)||isMineshaftSpaceAt(x,y,z,rawH)))continue;
+   const depthBelowSurface=h-y;
+   const type=y===h-361?'BlockiaStone':(seaWater||lake||iceLake)&&y===waterBed?'Sand':shaftFloor!==null&&y===shaftFloor?'Oak Planks':y===h?(iceLake?'Ice':top):y>=h-3?'Dirt':biome==='desert'&&y>=h-6?'Sandstone':depthBelowSurface>=64?'Deepslate':'Stone';
    addBlock(x,y,z,type);
   }
   if(iceLake)addBlock(x,h,z,'Ice');
@@ -1438,7 +1439,7 @@ if(e.button===2&&gameMode==='survival'){
  const food={Steak:[8,0],Porkchop:[6,0],Mutton:[6,0],Chicken:[6,0],Rabbit:[5,0],Bunny:[5,0],Carrot:[3,0],Bread:[5,0],'Vegetable Stew':[7,0],'Rabbit Stew':[8,0]};
  if(food[tool]){const [restore]=food[tool];if(hunger>=20){toast('You are not hungry');return}consumeInventoryItem(tool,1);hunger=Math.min(20,hunger+restore);updateSurvivalHud();refreshInventory();toast('Ate '+tool+' · +'+restore+' hunger');return}
 }
-if(e.button===1){if(!d)return;const blockIndex=defs.findIndex(item=>item[0]===d.type);if(blockIndex<0)return;if(gameMode==='survival'){toast('Use your inventory to arrange blocks');return}equipBlock(blockIndex);return;}if(!d)return;if(e.button===2&&(d.type==='Piston'||d.type==='Sticky Piston')){togglePiston(d);return}if(e.button===0){if(d.y<=terrainHeight(d.x,d.z)-3){toast('Deep bedrock cannot be broken');return}if(gameMode==='survival'){
+if(e.button===1){if(!d)return;const blockIndex=defs.findIndex(item=>item[0]===d.type);if(blockIndex<0)return;if(gameMode==='survival'){toast('Use your inventory to arrange blocks');return}equipBlock(blockIndex);return;}if(!d)return;if(e.button===2&&(d.type==='Piston'||d.type==='Sticky Piston')){togglePiston(d);return}if(e.button===0){if(d.type==='BlockiaStone'){toast('BlockiaStone is indestructible');return}if(gameMode==='survival'){
  let drops=d.type==='Wheat Crop'?{'Wheat':1,'Wheat Seeds':1}:d.type==='Carrot Crop'?{Carrot:2}:d.type==='Potato Crop'?{Potato:2}:null;
  if(d.type==='Grass'&&Math.random()<.22)drops={'Wheat Seeds':1};
  if(d.type==='Stone'){
