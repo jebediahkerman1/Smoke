@@ -111,13 +111,13 @@ function netAvatar(id,name){
  const labelCanvas=document.createElement('canvas');labelCanvas.width=256;labelCanvas.height=64;
  const ctx=labelCanvas.getContext('2d');ctx.fillStyle='#0009';ctx.fillRect(0,0,256,64);ctx.fillStyle='#fff';ctx.font='bold 30px Arial';ctx.textAlign='center';ctx.fillText(String(name||'Player').slice(0,18),128,42);
  const label=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(labelCanvas),transparent:true,depthTest:false}));
- label.scale.set(2.4,.6,1);label.position.y=2.35;group.add(label);scene.add(group);
+ label.scale.set(2.4,.6,1);label.position.y=2.35;group.add(label);group.visible=!!worldStarted&&!initialLoading&&$('start').style.display==='none';scene.add(group);
  remotePlayers.set(id,{group,name});
 }
 function updateRemotePlayer(payload){
  if(!payload||!payload.id||payload.id===netPlayerId)return;
  let remote=remotePlayers.get(payload.id);if(!remote){netAvatar(payload.id,payload.name);remote=remotePlayers.get(payload.id)}
- if(remote){remote.group.position.set(Number(payload.x)||0,Number(payload.y)||0,Number(payload.z)||0);remote.group.rotation.y=Number(payload.yaw)||0}
+ if(remote){remote.group.position.set(Number(payload.x)||0,Number(payload.y)||0,Number(payload.z)||0);remote.group.rotation.y=Number(payload.yaw)||0;remote.group.visible=!!worldStarted&&!initialLoading&&$('start').style.display==='none'}
 }
 function removeRemotePlayer(id){const p=remotePlayers.get(id);if(p){scene.remove(p.group);p.group.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material.dispose()}});remotePlayers.delete(id)}}
 function ensureNetClient(){
@@ -175,7 +175,7 @@ async function openMultiplayerRoom(joining,roomCode=''){
   const status=await new Promise((resolve,reject)=>{let settled=false;const timer=setTimeout(()=>{if(!settled){settled=true;reject(new Error('Supabase Realtime timed out. Check the connection, browser extensions, or whether Supabase Realtime is online.'))}},20000);netChannel.subscribe(async state=>{if(state==='SUBSCRIBED'&&!settled){try{await netChannel.track({id:netPlayerId,name:netPlayerName,x:player.x,y:player.y,z:player.z,yaw});settled=true;clearTimeout(timer);resolve(state)}catch(error){settled=true;clearTimeout(timer);reject(new Error('Connected, but presence setup failed: '+(error?.message||error)))}}else if((state==='CHANNEL_ERROR'||state==='TIMED_OUT'||state==='CLOSED')&&!settled){settled=true;clearTimeout(timer);reject(new Error('Supabase Realtime status: '+state+'. '+(navigator.onLine?'The network is online; the realtime service or browser connection may be blocked.':'This device appears to be offline.')))}})});
   netReady=true;showRoomCode();
   if(netIsHost){await updateOnlineWorldSlot();$('start').style.display='grid';$('mainMenu').style.display='none';$('multiplayerScreen').style.display='none';$('modeScreen').style.display='block';netToast('World slot created · choose a mode and start');}
-  else{netToast('Connected to '+netRoomCode+' · waiting for host world');for(let attempt=0;attempt<8&&!netWorldReceived&&netChannel;attempt++){await netChannel.send({type:'broadcast',event:'world-init-request',payload:{}});if(!netWorldReceived)await new Promise(resolve=>setTimeout(resolve,1500))}if(!netWorldReceived&&netReady)netToast('Still connected to '+netRoomCode+' · ask the host to start their world');}
+  else{netToast('Connected to '+netRoomCode+' · waiting for host world');let attempts=0;while(netReady&&!netWorldReceived&&netChannel){await netChannel.send({type:'broadcast',event:'world-init-request',payload:{}});if(!netWorldReceived)await new Promise(resolve=>setTimeout(resolve,2000));attempts++;if(attempts===8&&!netWorldReceived)netToast('Still waiting · the host world is loading. You will join automatically when it is ready.')} }
  }catch(error){console.error('SMOKE multiplayer:',error);netToast(error.message||'Connection failed');await leaveMultiplayer()}
 }
 async function sendWorldInit(){
@@ -941,6 +941,7 @@ function finishInitialLoading(){
  setWorldText('loadingPercent','100%','finishInitialLoading');
  setWorldText('loadingDetail','World ready!','finishInitialLoading');
  setTimeout(()=>$('loadingScreen').style.display='none',450);
+ for(const remote of remotePlayers.values())remote.group.visible=!!worldStarted&&$('start').style.display==='none';
  // Publish the multiplayer slot only after the host's initial terrain has finished loading.
  if(netReady&&netIsHost){netToast('World fully loaded · now joinable');sendWorldInit().catch(error=>console.error('Could not publish loaded multiplayer world:',error))}
 }
