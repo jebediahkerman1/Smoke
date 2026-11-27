@@ -1260,6 +1260,7 @@ function updateSurvival(dt){
 const player={x:0,y:1.01,z:5},ray=new THREE.Raycaster();camera.position.set(player.x,player.y+1.5,player.z);
 
 const voxelClouds=[];
+const CLOUD_ALTITUDE=43.01; // Fixed world height; clouds must not follow player altitude.
 const cloudBlockGeometry=new THREE.BoxGeometry(8,2.4,8);
 const cloudMaterial=new THREE.MeshLambertMaterial({color:0xf7fbff,fog:false});
 
@@ -1276,7 +1277,7 @@ function createVoxelCloud(offsetX,offsetZ,index){
  body.instanceMatrix.needsUpdate=true;
  body.frustumCulled=false;
  group.add(body);group.scale.setScalar(.78+(index%4)*.11);
- group.position.set(player.x+offsetX,player.y+42,player.z+offsetZ);
+ group.position.set(player.x+offsetX,CLOUD_ALTITUDE,player.z+offsetZ);
  group.userData={speed:.55+(index%3)*.16,offsetX,offsetZ};
  scene.add(group);voxelClouds.push(group);
 }
@@ -1289,7 +1290,7 @@ function updateVoxelClouds(dt){
   else if(cloud.position.x-player.x< -180)cloud.position.x=player.x+180;
   if(cloud.position.z-player.z>180)cloud.position.z=player.z-160;
   else if(cloud.position.z-player.z< -180)cloud.position.z=player.z+160;
-  cloud.position.y=player.y+42;
+  cloud.position.y=CLOUD_ALTITUDE;
  }
 }
 
